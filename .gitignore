@@ -18,6 +18,9 @@ output/15.2.building_assigned.txt
 # 건축물대장 표제부 원본 (8.4MB). 로컬 캐시(output/raw/ledger/)로 즉시,
 # 캐시가 없으면 API 호출 8,755건으로 재생성된다 (일 한도 10,000건 내)
 output/19.1.building_ledger.txt
+# horizon 관측점 원본 (3MB, 65,751행). 디버깅용이며 21을 90초 돌리면 재생성된다.
+# 집계본 21.1.complex_metrics.txt 는 downstream 입력이므로 커밋한다
+output/21.2.observation_points.txt
 
 # Python
 __pycache__/
