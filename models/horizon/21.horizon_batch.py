@@ -36,6 +36,10 @@
 #                                    대장 층수의 중앙값 — 근사지만 대장 데이터
 #                3순위 osm_levels    대장을 아예 못 받은 지번은 기존 OSM levels로
 #                                    폴백 — 데이터 없다고 관측점을 버리지 않는다
+#                4순위 osm_height     층수가 전혀 없고 높이만 있는 동은 높이를
+#                                    층고(2.8m)로 나눠 역산한다. 올림픽파크포레온
+#                                    (둔촌주공 재건축, 거래 1,257건)이 47동 전부
+#                                    levels 결측이라 통째로 빠지고 있었다
 #
 #              [알려진 한계] DEM(수치표고모델)이 없어 지면을 평지(z=0)로
 #              가정한다. 05는 합성 데이터로 AMSL datum(지반이 높을수록
@@ -231,6 +235,10 @@ ledger_median_by_key = ledger.groupby("join_key")["grnd_flr_cnt"].median()
 
 assigned["name_key"] = assigned["name"].apply(lambda v: None if pd.isna(v) else normalize_dong(v))
 osm_levels = pd.to_numeric(assigned["levels"], errors="coerce")   # 3순위 폴백 입력(원본 OSM levels)
+# 4순위: 층수가 아예 없고 높이만 있는 동. 신축 대단지에서 실제로 발생한다
+osm_height_levels = (pd.to_numeric(assigned["height_m"], errors="coerce")
+                     / FLOOR_HEIGHT_M).round()
+osm_height_levels = osm_height_levels.where(osm_height_levels >= 1)
 
 ledger_by_name_dict = ledger_by_name.to_dict()
 name_pairs = list(zip(assigned["join_key"], assigned["name_key"]))
@@ -238,18 +246,21 @@ ledger_name_denom = pd.Series([ledger_by_name_dict.get(p) for p in name_pairs], 
 ledger_median_denom = assigned["join_key"].map(ledger_median_by_key)
 
 denom_source = np.select(
-    [ledger_name_denom.notna(), ledger_median_denom.notna(), osm_levels.notna()],
-    ["ledger_name", "ledger_median", "osm_levels"],
+    [ledger_name_denom.notna(), ledger_median_denom.notna(), osm_levels.notna(),
+     osm_height_levels.notna()],
+    ["ledger_name", "ledger_median", "osm_levels", "osm_height"],
     default="missing")
 # levels 컬럼을 대장 우선 분모로 덮어쓴다 — 이후 로직(대표층 계산 등)은 이 값을 그대로 쓴다
-assigned["levels"] = ledger_name_denom.combine_first(ledger_median_denom).combine_first(osm_levels)
+assigned["levels"] = (ledger_name_denom.combine_first(ledger_median_denom)
+                      .combine_first(osm_levels).combine_first(osm_height_levels))
 
 n_no_levels = (denom_source == "missing").sum()
 assigned = assigned[denom_source != "missing"].reset_index(drop=True)
 print(f"  분모 결측으로 제외: {n_no_levels}동 (대장·OSM levels 모두 없어 대표층을 정할 수 없음)")
 print("  분모 소스별 동 수 (대장 직접 매칭 / 지번 중앙값 / OSM levels):")
 source_counts = pd.Series(denom_source[denom_source != "missing"]).value_counts()
-print(source_counts.reindex(["ledger_name", "ledger_median", "osm_levels"]).fillna(0).astype(int).to_string())
+print(source_counts.reindex(["ledger_name", "ledger_median", "osm_levels",
+                             "osm_height"]).fillna(0).astype(int).to_string())
 print(f"  관측점 생성 대상 동: {len(assigned)}개")
 
 # 차폐물 전체: building 태그 무관, height_m 있는 모든 건물 (배정 여부 무관)
