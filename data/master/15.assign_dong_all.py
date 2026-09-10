@@ -50,7 +50,9 @@
 #              통과 기준:
 #                (1) 동수 정확 일치율 >= 90% (등록 정보 대조, 17이 최종 판정)
 #                (2) 동을 1개 이상 받은 단지 비율 >= 80%
-#                (3) 과다 배정 단지 0건 (상한을 걸었으므로 구조적으로 보장)
+#                (3) 지번 단위 과다 배정 0건 (aptSeq 단위는 capacity 상한이
+#                    숨겨 무의미하다 — 6절 참고. 지번 단위로 재집계해야
+#                    한 지번을 나눠 가진 aptSeq들의 합이 실제로 드러난다)
 # ============================================================================
 
 # ============================================================================
@@ -60,6 +62,7 @@
 import sys
 
 import re
+from difflib import SequenceMatcher
 
 import numpy as np
 import pandas as pd
@@ -133,6 +136,75 @@ def normalize_address(text):
     return text.str.replace(r"산\s+(?=\d)", "산", regex=True)
 
 
+def normalize_complex_name(name):
+    """단지명 비교용 정규화. 괄호 안 부연설명·공백·말미 '아파트'/'단지' 접미어를
+    없애 표기 차이를 흡수한다. 예: '현대6차(78~81동)' / '현대6차 아파트' -> '현대6차'"""
+    if pd.isna(name):
+        return ""
+    text = str(name).strip().upper()
+    text = re.sub(r"\([^)]*\)", "", text)
+    text = re.sub(r"\s+", "", text)
+    return re.sub(r"(아파트|단지)$", "", text)
+
+
+def name_match_score(a, b):
+    """완전일치(3) -> 부분포함(2) -> 최장공통부분문자열 2자+(1) -> 불일치(0).
+    등급을 나눠야 '현대6차'가 '현대65동'에 우연히 겹치는 얕은 유사도가
+    다른 단지의 완전일치보다 앞서지 않는다."""
+    if not a or not b:
+        return 0
+    if a == b:
+        return 3
+    if a in b or b in a:
+        return 2
+    lcs = SequenceMatcher(None, a, b).find_longest_match(0, len(a), 0, len(b))
+    return 1 if lcs.size >= 2 else 0
+
+
+def match_complex_names(apt_names, reg_names):
+    """한 지번 안 실거래 단지명(apt_names)과 등록 공식 단지명(reg_names)을
+    이름 유사도로 1:1 매칭한다 (버그 1: drop_duplicates로 버리면 압구정동 456의
+    현대65동/7차/6차 같은 서로 다른 공식 단지가 첫 행 하나로 뭉개졌다 — registry
+    duplicate 118행/49개 지번, 그중 44개가 서로 다른 동수).
+    점수가 높은 레벨부터 그리디로 소진하며, 레벨 안에서는 입력 순서(호출 쪽에서
+    aptSeq 오름차순으로 넘김)대로 먼저 오는 쪽이 이겨 동점을 결정적으로 가른다.
+    매칭 실패분은 아직 안 쓰인 공식 단지를 입력 순서대로 배정하고, 그마저
+    없으면 None을 남긴다(reg_dong 결측 = 상한 없음, 기존 미매칭과 동일 처리)."""
+    norm_apt = [normalize_complex_name(n) for n in apt_names]
+    norm_reg = [normalize_complex_name(n) for n in reg_names]
+    matched = [None] * len(apt_names)
+    used_reg = set()
+    for level in (3, 2, 1):
+        for i, a in enumerate(norm_apt):
+            if matched[i] is not None or not a:
+                continue
+            for j, r in enumerate(norm_reg):
+                if j in used_reg or not r:
+                    continue
+                if name_match_score(a, r) == level:
+                    matched[i] = j
+                    used_reg.add(j)
+                    break
+    unused_reg = iter(j for j in range(len(reg_names)) if j not in used_reg)
+    for i in range(len(apt_names)):
+        if matched[i] is None:
+            matched[i] = next(unused_reg, None)
+    return matched
+
+
+def largest_remainder_split(total, n):
+    """total을 정수 n등분해 합이 total과 정확히 같은 배열로 돌려준다 (버그 2).
+    ceil을 쓰면 각자 올림돼 합이 total을 넘는다 — reg_dong=5를 2개가 나누면
+    ceil(2.5)=3씩 되어 합이 6이 된다. floor로 먼저 채우고 남는 몫을 앞에서부터
+    1씩 더한다. 한 지번을 n개의 aptSeq가 똑같이 나누는 구조라 나머지는 전원
+    동률이므로, 그 동률은 호출 쪽이 넘긴 순서(aptSeq 오름차순)로 결정적으로 깬다."""
+    base = int(total) // n
+    remainder = int(total) - base * n
+    shares = np.full(n, float(base))
+    shares[:remainder] += 1
+    return shares
+
+
 registry = pd.read_csv(REGISTRY_PATH, encoding="utf-8-sig", dtype=str)
 registry = registry[registry["주소"].str.startswith("서울", na=False)
                     & (registry["단지종류"] == APARTMENT_CODE)].copy()
@@ -140,13 +212,52 @@ registry["reg_dong"] = pd.to_numeric(registry["동수"], errors="coerce")
 registry["reg_units"] = pd.to_numeric(registry["세대수"], errors="coerce")
 registry["reg_year"] = pd.to_numeric(registry["사용승인일"].str[:4], errors="coerce")
 registry["join_key"] = normalize_address(registry["주소"])
-registry = registry.drop_duplicates("join_key")
+registry["reg_name"] = (registry["단지명_공시가격"]
+                        .fillna(registry["단지명_건축물대장"])
+                        .fillna(registry["단지명_도로명주소"]))
+# 더 이상 drop_duplicates 하지 않는다 — 한 지번에 공식 단지가 여러 개 등록된
+# 경우(118행/49개 지번, 그중 44개가 서로 다른 동수)를 첫 행으로 뭉개면 안 된다
 
 master["join_key"] = normalize_address(
     master["gu"].fillna("") + " " + master["umd_name"].fillna("")
     + " " + master["jibun"].fillna(""))
-master = master.merge(registry[["join_key", "reg_dong", "reg_units", "reg_year"]],
-                      on="join_key", how="left")
+
+# 지번(join_key) 단위로 등록 정보를 aptSeq에 붙인다.
+#   공식 단지가 1개뿐: master aptSeq가 여럿이면(분양/임대 분리 등) 그 1건을
+#                     largest_remainder_split으로 나눠 갖는다 (버그 2).
+#   공식 단지가 여럿: 단지명으로 1:1 매칭한다 (버그 1). 매칭 실패분은 남은
+#                     공식 단지를 순서대로 받고, 그마저 없으면 결측(상한 없음).
+# 지번에 공식 단지가 1개뿐이고 aptSeq도 1개인 대다수(9,409/9,458)는 위 두
+# 분기 모두 n=1 분할이라 결과가 기존과 같다.
+registry_by_key = {k: g for k, g in registry.groupby("join_key")}
+reg_dong_col = pd.Series(np.nan, index=master.index)
+reg_units_col = pd.Series(np.nan, index=master.index)
+reg_year_col = pd.Series(np.nan, index=master.index)
+
+for join_key, group in master.sort_values("aptSeq").groupby("join_key", sort=False):
+    reg_group = registry_by_key.get(join_key)
+    if reg_group is None:
+        continue
+    idx = group.index
+    if len(reg_group) == 1:
+        row = reg_group.iloc[0]
+        if pd.notna(row["reg_dong"]):
+            reg_dong_col.loc[idx] = largest_remainder_split(row["reg_dong"], len(idx))
+        reg_units_col.loc[idx] = row["reg_units"]
+        reg_year_col.loc[idx] = row["reg_year"]
+    else:
+        matches = match_complex_names(group["apt_name"].tolist(), reg_group["reg_name"].tolist())
+        for pos, i in enumerate(idx):
+            j = matches[pos]
+            if j is not None:
+                row = reg_group.iloc[j]
+                reg_dong_col[i] = row["reg_dong"]
+                reg_units_col[i] = row["reg_units"]
+                reg_year_col[i] = row["reg_year"]
+
+master["reg_dong"] = reg_dong_col.to_numpy()
+master["reg_units"] = reg_units_col.to_numpy()
+master["reg_year"] = reg_year_col.to_numpy()
 
 anchors = gpd.GeoDataFrame(
     master[["aptSeq", "apt_name", "gu", "build_year", "n_deals",
@@ -155,11 +266,12 @@ anchors = gpd.GeoDataFrame(
     crs="EPSG:4326",
 ).to_crs(METRIC_CRS)
 
-# 같은 지번에 여러 aptSeq가 등록된 경우 등록 정보 1건을 나눠 갖는다.
-# 상한을 그대로 주면 합쳐서 초과하므로 지번당 균등 분할한다.
-share = master.groupby("join_key")["aptSeq"].transform("size")
-capacity = (anchors["reg_dong"] / share.to_numpy()).to_numpy()
-capacity = np.where(np.isnan(capacity), np.inf, np.ceil(capacity))
+# 상한 = 이 aptSeq에 배정된 등록 동수 그대로. 위에서 이미 지번 단위로 정확히
+# 나눠 놓았으므로(이름 매칭 또는 largest_remainder_split) 여기서 다시 나눌
+# 필요가 없다. 예전처럼 join_key당 aptSeq 수로 나눠 ceil하면(reg_dong=5를
+# 2개가 나눌 때 ceil(2.5)=3씩 -> 합 6) 등록 동수를 초과했다 (버그 2).
+capacity = anchors["reg_dong"].to_numpy()
+capacity = np.where(np.isnan(capacity), np.inf, capacity)
 
 # 단지 규모에 비례한 반경. 구조가 다른 단지를 하나의 원으로 재던 문제를 없앤다
 radius = np.where(
@@ -464,16 +576,31 @@ print(f"\n  horizon 투입 가능 동: {horizon_ready}/{n_assigned} "
 # ============================================================================
 
 print("\n===== 6. 판정 =====")
+# aptSeq 단위 과다(n_over)는 capacity 상한이 구조적으로 막으므로 항상 0에
+# 가깝게 나와 게이트로서 무의미하다 (실제로 초과가 나도 숨긴다 — 버그 2).
+# 진짜 검사는 지번(join_key) 단위다: 한 지번에 aptSeq가 여러 개면 각자의
+# capacity가 나뉘어 있어도, 그 지번에 실제 배정된 동 수의 합이 그 지번의
+# 공식 등록 동수 합(registry 여러 행의 reg_dong 합)을 넘을 수 있다.
+apt_join_key = result["aptSeq"].map(master.set_index("aptSeq")["join_key"])
+assigned_by_jibun = result["n_dong"].fillna(0).groupby(apt_join_key).sum()
+registered_by_jibun = registry.groupby("join_key")["reg_dong"].sum()
+jibun_compare = registered_by_jibun.to_frame("registered").join(
+    assigned_by_jibun.rename("assigned"), how="left")
+jibun_compare["assigned"] = jibun_compare["assigned"].fillna(0)
+n_over_jibun = int((jibun_compare["assigned"] > jibun_compare["registered"]).sum())
+print(f"  지번 단위 과다 배정 검사: {len(jibun_compare)}개 지번 중 "
+      f"배정 동 수 합이 등록 동수 합을 초과한 지번 {n_over_jibun}건")
+
 checks = [
     ("등록 동수 정확 일치 >= 90%", dong_accuracy, 90.0),
     ("동을 받은 단지 >= 80%", coverage_rate, 80.0),
-    ("과다 배정 0건", -n_over, 0.0),
+    ("지번 단위 과다 배정 0건", -n_over_jibun, 0.0),
 ]
 all_passed = True
 for label, value, threshold in checks:
     passed = value >= threshold
     all_passed &= passed
-    shown = f"{n_over}건" if label.startswith("과다") else f"실측 {value:.1f}%"
+    shown = f"{n_over_jibun}건" if label.startswith("지번 단위 과다") else f"실측 {value:.1f}%"
     print(f"  [{'PASS' if passed else 'FAIL'}] {label:26s} {shown}")
 
 result.to_csv(COMPLEX_RESULT, sep="\t", index=False, lineterminator="\n")

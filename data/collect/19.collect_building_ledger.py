@@ -149,21 +149,21 @@ def save_cache():
     CACHE_PATH.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
 
 
-def fetch(sigungu_cd, bjdong_cd, bun, ji):
-    """지번 하나의 표제부 전체. 인증·권한 오류는 즉시 중단시킨다."""
-    global n_calls
-    cache_key = f"{sigungu_cd}|{bjdong_cd}|{bun}|{ji}"
-    if cache_key in cache:
-        return cache[cache_key]
-
+def fetch_page(cache_key, sigungu_cd, bjdong_cd, bun, ji, page_no):
+    """표제부 1페이지 요청. 반환: (items, total_count, counted).
+    counted는 이 시도를 일 호출량(n_calls)에 반영해야 하는지 여부다 — 요청
+    자체가 서버에 닿지 못한 RequestException은 반영하지 않는다(기존 동작 유지).
+    파싱 실패(JSON 아님)와 요청 실패는 items=None으로 구분해 호출 쪽이
+    캐시하지 않도록 한다 (버그 3: 실패를 []로 캐시하면 totalCount=0인 정상
+    빈 응답과 구분이 안 돼 다음 실행에서도 재시도가 안 된다)."""
     params = {"serviceKey": SERVICE_KEY, "sigunguCd": sigungu_cd,
               "bjdongCd": bjdong_cd, "bun": bun, "ji": ji,
-              "numOfRows": ROWS_PER_CALL, "pageNo": 1, "_type": "json"}
+              "numOfRows": ROWS_PER_CALL, "pageNo": page_no, "_type": "json"}
     try:
         response = requests.get(API_URL, params=params, timeout=20)
     except requests.RequestException as error:
-        print(f"  [경고] 요청 실패 {cache_key}: {mask_key(error)[:120]}")
-        return None
+        print(f"  [경고] 요청 실패 {cache_key} p{page_no}: {mask_key(error)[:120]}")
+        return None, None, False
 
     if response.status_code in (401, 403):
         save_cache()
@@ -171,21 +171,56 @@ def fetch(sigungu_cd, bjdong_cd, bun, ji):
             f"인증/권한 오류 [{response.status_code}] {mask_key(response.text)[:200]}\n"
             "  -> https://www.data.go.kr/data/15134735/openapi.do 에서 활용신청 필요")
 
-    items = []
-    if response.status_code == 200:
-        try:
-            body = response.json().get("response", {}).get("body", {})
-            raw_items = (body.get("items") or {}).get("item") or []
-            items = raw_items if isinstance(raw_items, list) else [raw_items]
-        except ValueError:
-            print(f"  [경고] JSON 아님 {cache_key}: {mask_key(response.text)[:120]}")
+    if response.status_code != 200:
+        print(f"  [경고] HTTP {response.status_code} {cache_key} p{page_no}")
+        return None, None, True
 
-    cache[cache_key] = items
-    n_calls += 1
+    try:
+        body = response.json().get("response", {}).get("body", {})
+        raw_items = (body.get("items") or {}).get("item") or []
+        items = raw_items if isinstance(raw_items, list) else [raw_items]
+        total_count = int(body.get("totalCount") or 0)
+    except (ValueError, TypeError):
+        print(f"  [경고] JSON 아님 {cache_key} p{page_no}: {mask_key(response.text)[:120]}")
+        return None, None, True
+
+    return items, total_count, True
+
+
+def fetch(sigungu_cd, bjdong_cd, bun, ji):
+    """지번 하나의 표제부 전체를 모든 페이지에 걸쳐 모은다. 인증·권한 오류는
+    즉시 중단시킨다.
+    numOfRows=100만 요청하고 totalCount를 안 보면 정확히 100건인 지번에서
+    잘린다 — 캐시 조사 결과 5개 지번이 이 값과 정확히 일치했다(헬리오시티
+    송파구 가락동 913은 등록 84동인데 52동만 받아 잘림이 유력했다). totalCount
+    가 지금까지 받은 개수보다 크면 다음 페이지를 이어 받는다.
+    페이지 중 하나라도 파싱/요청에 실패하면 지금까지 모은 것을 버리고 None을
+    돌려준다 — 절반만 캐시하면 다음 실행에서 그 절반이 '완료'로 오인돼
+    나머지 페이지를 영영 못 받는다."""
+    global n_calls
+    cache_key = f"{sigungu_cd}|{bjdong_cd}|{bun}|{ji}"
+    if cache_key in cache:
+        return cache[cache_key]
+
+    all_items = []
+    page_no = 1
+    while True:
+        items, total_count, counted = fetch_page(
+            cache_key, sigungu_cd, bjdong_cd, bun, ji, page_no)
+        if counted:
+            n_calls += 1
+        if items is None:
+            return None
+        all_items.extend(items)
+        time.sleep(SLEEP_SEC)
+        if not items or len(all_items) >= total_count:
+            break
+        page_no += 1
+
+    cache[cache_key] = all_items
     if n_calls % CACHE_FLUSH_EVERY == 0:
         save_cache()
-    time.sleep(SLEEP_SEC)
-    return items
+    return all_items
 
 
 records = []
@@ -193,7 +228,10 @@ for i, row in targets.iterrows():
     if n_calls >= DAILY_LIMIT:
         print(f"  [중단] 일 한도 {DAILY_LIMIT}건 도달. 캐시를 두고 내일 이어서 돌린다")
         break
-    items = fetch(row["sigungu_cd"], row["bjdong_cd"], row["bun"], row["ji"]) or []
+    items = fetch(row["sigungu_cd"], row["bjdong_cd"], row["bun"], row["ji"])
+    if items is None:
+        print(f"  [건너뜀] {row['join_key']}: 파싱/요청 실패로 캐시 안 함 (다음 실행에 재시도)")
+        continue
     for item in items:
         records.append({
             "join_key": row["join_key"],
