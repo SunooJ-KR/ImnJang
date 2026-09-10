@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>임앤장 후보함 비교</title>
+  <style>
+    *{box-sizing:border-box}
+    html,body{width:1200px;height:800px;margin:0;overflow:hidden;background:#0a1119;color:#f3f5ef;font-family:Pretendard,'Apple SD Gothic Neo','Malgun Gothic',sans-serif}
+    .canvas{width:1200px;height:800px;padding:24px 34px;background:linear-gradient(120deg,#0a1119 0%,#0e1a25 54%,#111c24 100%)}
+    .top{height:57px;display:flex;align-items:flex-start;border-bottom:1px solid #ffffff1a}
+    .brand{font-size:21px;font-weight:850;letter-spacing:-1.5px;line-height:26px}.brand:before{content:'';display:inline-block;width:10px;height:10px;margin:0 7px 1px 0;border-radius:50%;background:#c9f24b}
+    .crumb{margin:6px 0 0 28px;color:#87939b;font-size:12px}.reset{margin-left:auto;margin-top:1px;padding:7px 1px;color:#d7fb6a;font-size:12px;text-decoration:none;border-bottom:1px solid #c9f24b66}
+    .intro{height:92px;display:flex;align-items:center;justify-content:space-between}.intro h1{margin:0;font-size:28px;letter-spacing:-1.9px}.intro p{margin:8px 0 0;color:#9ba9b0;font-size:13px}.trust{align-self:flex-end;margin:0 1px 16px 0;color:#81929a;font-size:10px}.trust b{color:#c9f24b;font-weight:700}
+    .compare{height:425px;display:grid;grid-template-columns:154px repeat(3,1fr);border:1px solid #ffffff17;border-radius:15px;overflow:hidden;background:#101c27cf}
+    .corner,.complex{height:67px;border-bottom:1px solid #ffffff17}.corner{padding:22px 16px;color:#82939c;font-size:11px;font-weight:700}.complex{padding:13px 17px;border-left:1px solid #ffffff17}.complex:nth-child(4){background:linear-gradient(155deg,#1b2c1e,#101c27)}.complex .rank{display:block;margin-bottom:4px;color:#c9f24b;font-size:10px;font-weight:800}.complex strong{display:block;font-size:15px;letter-spacing:-.8px}.complex span{display:block;margin-top:3px;color:#91a0a8;font-size:11px}
+    .label,.value{height:35.7px;display:flex;align-items:center;border-bottom:1px solid #ffffff0f}.label{padding:0 12px 0 16px;gap:5px;color:#c9d2d4;font-size:12px;letter-spacing:-.4px}.label small{margin-left:auto;color:#72838b;font-size:9px;white-space:nowrap}.label .far{color:#a3bd78}.value{position:relative;padding:0 17px;border-left:1px solid #ffffff17;color:#e8ece8;font-size:12px;letter-spacing:-.5px}.value.win{color:#dcff6a;background:#c9f24b16;font-weight:800}.value.win:before{content:'';width:6px;height:6px;margin-right:8px;border-radius:50%;background:#c9f24b;box-shadow:0 0 8px #c9f24b88}.value.dim{font-size:11.5px}.value:last-child{border-bottom:0}.label.last{border-bottom:0}
+    .bottom{height:144px;margin-top:12px;display:grid;grid-template-columns:1.2fr .8fr;gap:14px}.card{border:1px solid #ffffff17;border-radius:15px;background:#101c27cf}.check{padding:16px 18px}.check h2{margin:0;color:#d8fa69;font-size:13px;letter-spacing:-.7px}.check p{margin:5px 0 0;color:#9facb2;font-size:11px}.questions{display:flex;gap:8px;margin-top:11px}.question{flex:1;padding:8px 9px;border-radius:9px;background:#ffffff08;color:#ccd5d1;font-size:10px;line-height:1.4;letter-spacing:-.3px}.question:before{content:'확인';display:block;margin-bottom:3px;color:#c9f24b;font-size:9px;font-weight:800}
+    .scope{display:flex;align-items:center;padding:20px 23px;border-color:#c9f24b4a;background:linear-gradient(135deg,#1a2a1e,#101c27)}.scope svg{flex:0 0 auto;margin-right:12px}.scope b{display:block;color:#dcff6a;font-size:13px;letter-spacing:-.7px}.scope span{display:block;margin-top:6px;color:#a8b4ad;font-size:11px;line-height:1.45}
+  </style>
+</head>
+<body>
+  <main class="canvas">
+    <header class="top">
+      <div class="brand">임앤장</div>
+      <div class="crumb">후보함 · 3개 단지 비교</div>
+      <a class="reset" href="#">조건 다시 설정</a>
+    </header>
+
+    <section class="intro" aria-label="비교 안내">
+      <div><h1>가장 좋은 3개만 남기고 비교하세요</h1><p>4,012개 → 조건 27개 → 후보함 3개</p></div>
+      <div class="trust"><b>런타임 생성형 AI 0회</b> · 모든 수치 계산 근거 공개</div>
+    </section>
+
+    <section class="compare" aria-label="후보 단지 비교">
+      <div class="corner">비교 항목</div>
+      <div class="complex"><strong>래미안 이수역 센트럴</strong><span>동작구 흑석동</span></div>
+      <div class="complex"><strong>마포 한강아이파크</strong><span>마포구 신공덕동</span></div>
+      <div class="complex"><span class="rank">이 항목에서 가장 많이 앞섭니다</span><strong>고덕 그린타운</strong><span>강동구 고덕동</span></div>
+
+      <div class="label">종합 점수 <small>▲ 높을수록 좋음</small></div><div class="value">82</div><div class="value">79</div><div class="value win">85</div>
+      <div class="label">겨울 일조 <small>▲ 높을수록 좋음</small></div><div class="value">5.8시간</div><div class="value">4.6시간</div><div class="value win">6.3시간</div>
+      <div class="label">하늘 트인 정도 <small>▲ 높을수록 좋음</small></div><div class="value">82%</div><div class="value">71%</div><div class="value win">88%</div>
+      <div class="label">큰길까지 거리 <small class="far">▲ 멀수록 좋음</small></div><div class="value">45m</div><div class="value">120m</div><div class="value win">210m</div>
+      <div class="label">역까지 예상 도보 <small>▼ 낮을수록 좋음</small></div><div class="value">9분</div><div class="value win">7분</div><div class="value">14분</div>
+      <div class="label">초등학교 <small>▼ 낮을수록 좋음</small></div><div class="value dim">210m 큰길 안 건넘</div><div class="value dim">480m 큰길 건넘</div><div class="value win dim">150m 큰길 안 건넘</div>
+      <div class="label">종합병원 <small>▼ 낮을수록 좋음</small></div><div class="value win">1.4km</div><div class="value">2.8km</div><div class="value">3.6km</div>
+      <div class="label">34평 실거래 <small>예산에 따라 판단</small></div><div class="value">13.8~14.6억</div><div class="value">15.2~16.1억</div><div class="value">11.9~12.7억</div>
+      <div class="label">전세가율 <small>참고 지표</small></div><div class="value">54%</div><div class="value">49%</div><div class="value">61%</div>
+      <div class="label last">세대수 · 준공 <small>참고 지표</small></div><div class="value dim">1,278세대 2019년</div><div class="value dim">892세대 2015년</div><div class="value dim">2,040세대 2021년</div>
+    </section>
+
+    <section class="bottom">
+      <article class="card check"><h2>확인이 필요한 것</h2><p>이 서비스는 향·호수·실내 상태·관리 수준을 확인할 수 없습니다.</p><div class="questions"><div class="question">매물의 향과 층은? (일조는 단지 대표동·중층 기준입니다)</div><div class="question">실내 채광과 결로 상태는?</div><div class="question">주차 대수와 실제 혼잡도는?</div></div></article>
+      <aside class="card scope"><svg width="25" height="25" viewBox="0 0 25 25" aria-hidden="true"><circle cx="12.5" cy="12.5" r="11" fill="none" stroke="#c9f24b" stroke-width="1.5"/><path d="M12.5 7.1v6.2m0 4.2h.01" stroke="#c9f24b" stroke-width="2" stroke-linecap="round"/></svg><div><b>이 비교는 단지 대표동·중층 기준입니다.</b><span>실제 매물의 향·호수는 반영되지 않습니다.</span></div></aside>
+    </section>
+  </main>
+</body>
+</html>

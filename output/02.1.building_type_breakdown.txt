@@ -1,0 +1,3 @@
+building_type	n	assigned	median_area	median_levels	assign_pct
+apartments	4465	2453	535.0055903352912	15.0	54.9
+residential	1073	5	152.12281436152165	4.0	0.5

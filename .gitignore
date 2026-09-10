@@ -1,0 +1,13 @@
+# 비밀정보
+.env
+
+# 가상환경 (플랫폼 종속, 재생성 가능)
+.venv/
+
+# API 응답 캐시 (재생성 가능, 대용량)
+output/cache_*.json
+output/*.log
+
+# Python
+__pycache__/
+*.pyc
