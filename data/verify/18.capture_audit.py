@@ -49,12 +49,14 @@ CAPTURE_DIR = output_dir / "18.captures"
 
 WIDTH, HEIGHT = 1200, 900
 NEAR_DEG = 0.006          # 주변 동을 함께 그릴 범위. 위경도 약 500~660m
-FIT_PAD = 0.6             # 배정 동 bbox를 이만큼 넓혀 주변 맥락을 남긴다
+FIT_PAD = 0.12            # 배정 동 bbox 여백. 대단지에서 0.6은 너무 넓어 판정이 안 됐다
 TILE_WAIT_MS = 5000       # 타일 로딩 대기
-PORT = 8734
 N_DEFAULT = 5
 
-n_wanted = int(sys.argv[1]) if len(sys.argv) > 1 else N_DEFAULT
+# 숫자를 주면 그만큼 층화로 뽑고, 단지명을 주면 그 단지만 굽는다
+arg = sys.argv[1] if len(sys.argv) > 1 else str(N_DEFAULT)
+n_wanted = int(arg) if arg.isdigit() else None
+name_filter = None if n_wanted is not None else arg
 
 
 # ============================================================================
@@ -66,7 +68,16 @@ print("===== 1. 표본 선정 =====")
 sample = pd.read_csv(SAMPLE_PATH, sep="\t", encoding="utf-8-sig", dtype={"aptSeq": str})
 sample["flagged"] = sample["prescreen"].fillna("") != ""
 
-if n_wanted >= len(sample):
+if name_filter is not None:
+    # 표본 밖 단지도 지목할 수 있어야 한다. 없으면 전체 마스터에서 만든다
+    picked = sample[sample["apt_name"].astype(str).str.contains(name_filter, na=False)]
+    if picked.empty:
+        whole = pd.read_csv(COMPLEX_PATH, sep="\t", dtype={"aptSeq": str})
+        picked = whole[whole["apt_name"].astype(str).str.contains(name_filter, na=False)].copy()
+        picked["prescreen"] = ""
+        picked["kakao_map_url"] = ""
+    print(f"  '{name_filter}' 매칭 {len(picked)}건")
+elif n_wanted >= len(sample):
     picked = sample
 else:
     # 층 x 의심신호 조합마다 하나씩 채운다
@@ -159,7 +170,11 @@ class QuietHandler(http.server.SimpleHTTPRequestHandler):
         pass
 
 
-server = socketserver.TCPServer(("127.0.0.1", PORT), QuietHandler)
+# 포트 0을 주면 커널이 빈 포트를 고른다. 고정 포트는 연속 실행 시 직전 소켓이
+# TIME_WAIT로 남아 bind가 실패했다
+socketserver.TCPServer.allow_reuse_address = True
+server = socketserver.TCPServer(("127.0.0.1", 0), QuietHandler)
+port = server.server_address[1]
 threading.Thread(target=server.serve_forever, daemon=True).start()
 
 saved = []
@@ -169,7 +184,7 @@ with sync_playwright() as p:
     for i, (_, row) in enumerate(picked.iterrows(), 1):
         page_path = CAPTURE_DIR / f"_{row['aptSeq']}.html"
         page_path.write_text(build_page(row), encoding="utf-8")
-        page.goto(f"http://127.0.0.1:{PORT}/{page_path.name}")
+        page.goto(f"http://127.0.0.1:{port}/{page_path.name}")
         page.wait_for_timeout(TILE_WAIT_MS)
         safe_name = str(row["apt_name"]).replace("/", "_")[:30]
         png = CAPTURE_DIR / f"{row['confidence']}_{row['aptSeq']}_{safe_name}.png"
@@ -179,6 +194,7 @@ with sync_playwright() as p:
         print(f"  캡처 중 [{i}/{len(picked)}]: {png.name}")
     browser.close()
 server.shutdown()
+server.server_close()
 
 
 # ============================================================================
