@@ -6,7 +6,12 @@
 
 # API 응답 캐시 (재생성 가능, 대용량)
 output/cache_*.json
+output/raw/
 output/*.log
+
+# 수집 결과 테이블 (대용량, 재생성 가능)
+output/11.[12].trades_*.txt
+output/12.[123].osm_*.txt
 
 # Python
 __pycache__/
