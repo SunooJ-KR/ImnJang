@@ -2,7 +2,7 @@
 
 > **한 줄 정의**: 서울 아파트 4,000개를 "살기 좋은 순서"로 정렬해주는 지도
 
-- 대회: 원티드 AI Championship 2026 · 개인 참가
+- 대회: 원티드 AI Championship 2026 · **팀 참가** (역할 분담은 [`docs/project-charter.md`](docs/project-charter.md) §7)
 - 문서 버전: v4 (D1 실측 반영)
 - 최종 수정: 2026-09-09
 
