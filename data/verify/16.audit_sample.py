@@ -4,9 +4,12 @@
 # Author:      yjkim
 # Purpose:     동 배정 결과를 사람이 눈으로 검수할 층화 표본 100개를 뽑는다
 # Description: plan.md 10절의 층화 정답셋. 15에서 부여한 배정 신뢰도를 층으로 쓴다.
-#                HIGH  30건 — 경계 폴리곤만으로 배정. 무오류가 통과 기준
-#                MIXED 30건 — 경계 + 최근접 혼합
-#                LOW   40건 — 최근접만. 가장 틀리기 쉬운 층
+#                LEVEL_MISMATCH 30건 — 층수가 대장과 어긋남. 독립 검증 1.5%로
+#                                       가장 위험한 층. 최우선 검수 대상
+#                MIXED 25건 — 근거가 섞인 단지
+#                LOW   20건 — 최근접 거리만 (독립 검증 87.0%)
+#                HIGH  15건 — 경계 폴리곤만 (97.2%). 무오류가 통과 기준
+#                NAME  10건 — 대장 동명칭 일치 (94.4%). 표본 확인용
 #
 #              판정은 사람이 한다. 이 스크립트는 판정에 필요한 것을 한 줄에 모을 뿐
 #              어떤 자동 판정도 하지 않는다. verdict 컬럼은 비워서 내보낸다.
@@ -40,7 +43,10 @@ MASTER_PATH = output_dir / "14.1.geocoded_master.txt"
 RESULT_PATH = output_dir / "16.1.audit_sample.txt"
 EXCEL_PATH = output_dir / "16.2.audit_sample.xlsx"
 
-STRATA = {"HIGH": 30, "MIXED": 30, "LOW": 40}
+# 15가 부여하는 배정 근거 등급을 그대로 층으로 쓴다. 20의 독립 검증(높이 ±3m)에서
+# 등급별 정확도가 HIGH 97.2% / NAME 94.4% / LOW 87.0% / LEVEL_MISMATCH 1.5%로
+# 갈렸으므로, 사람 눈이 가장 필요한 곳은 LEVEL_MISMATCH와 MIXED다.
+STRATA = {"LEVEL_MISMATCH": 30, "MIXED": 25, "LOW": 20, "HIGH": 15, "NAME": 10}
 MAX_DONG_LISTED = 12     # 이보다 많으면 줄여 적는다. 어차피 그 자체가 이상 신호다
 RANDOM_SEED = 42
 VERDICT_CHOICES = ["OK", "위치오배정", "일부오배정", "판정불가"]
