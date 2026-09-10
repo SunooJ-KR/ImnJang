@@ -10,8 +10,8 @@
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-work_dir = Path(__file__).parent
-mockup_dir = work_dir / "mockups"
+work_dir = Path(__file__).resolve().parents[2]   # 저장소 루트
+mockup_dir = Path(__file__).parent
 output_dir = work_dir / "output"
 output_dir.mkdir(exist_ok=True)
 

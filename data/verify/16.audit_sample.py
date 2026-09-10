@@ -31,7 +31,7 @@ from pathlib import Path
 from openpyxl.utils import get_column_letter
 from openpyxl.worksheet.datavalidation import DataValidation
 
-work_dir = Path(__file__).parent
+work_dir = Path(__file__).resolve().parents[2]   # 저장소 루트
 output_dir = work_dir / "output"
 
 COMPLEX_PATH = output_dir / "15.1.complex_final.txt"

@@ -29,7 +29,7 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-work_dir = Path(__file__).parent
+work_dir = Path(__file__).resolve().parents[2]   # 저장소 루트
 output_dir = work_dir / "output"
 
 SALE_PATH = output_dir / "11.1.trades_sale.txt"

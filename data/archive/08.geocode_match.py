@@ -33,7 +33,7 @@ import requests
 from shapely.geometry import Polygon, Point
 from shapely.ops import unary_union
 
-work_dir = Path(__file__).parent
+work_dir = Path(__file__).resolve().parents[2]   # 저장소 루트
 output_dir = work_dir / "output"
 output_dir.mkdir(exist_ok=True)
 

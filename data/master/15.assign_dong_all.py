@@ -39,7 +39,7 @@ from pathlib import Path
 from scipy.spatial import cKDTree
 from shapely import wkt
 
-work_dir = Path(__file__).parent
+work_dir = Path(__file__).resolve().parents[2]   # 저장소 루트
 output_dir = work_dir / "output"
 
 BUILDING_PATH = output_dir / "12.1.osm_buildings.txt"

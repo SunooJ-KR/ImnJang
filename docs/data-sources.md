@@ -2,7 +2,7 @@
 
 - 검증일: 2026-09-09
 - 대상 지역: 강남구 bbox (37.46~37.54, 127.01~127.12)
-- 검증 스크립트: `01.chain_test.py`, `02.diagnose_chain.py`, `03.cluster_complexes.py`, `04.cluster_refine.py`
+- 검증 스크립트: `data/archive/` 의 `01.chain_test.py`, `02.diagnose_chain.py`, `03.cluster_complexes.py`, `04.cluster_refine.py`
 
 ---
 
