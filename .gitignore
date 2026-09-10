@@ -12,6 +12,9 @@ output/*.log
 # 수집 결과 테이블 (대용량, 재생성 가능)
 output/11.[12].trades_*.txt
 output/12.[123].osm_*.txt
+# 동 배정 상세는 12.1 + 14.1에서 결정적으로 재생성된다 (3.6MB)
+# 14.1은 카카오 API 호출 8,400건의 산물이라 커밋한다
+output/15.2.building_assigned.txt
 
 # Python
 __pycache__/
