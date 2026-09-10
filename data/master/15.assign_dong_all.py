@@ -16,8 +16,17 @@
 #                  257동 배정). 공식 등록 동수를 capacity로 걸면 과다가
 #                  구조적으로 차단된다.
 #
-#              배정은 용량 제약 greedy다. 경계 근거 쌍을 거리순으로 먼저 소진하고,
-#              남은 동을 최근접 쌍으로 채우되 앵커별 잔여 용량을 넘지 않는다.
+#              (3) 건축물대장 동명칭 (19에서 확보)
+#                  20의 검증 결과 동수 상한만으로는 "맞는 동"을 고르지 못했다
+#                  (이름으로 판정 가능한 2,985단지 중 정상 51.1%).
+#                  대장은 지번마다 동명칭 목록을 주고 지번 안에서 그 이름은 사실상
+#                  유일하다(22,925건 중 중복 14건). OSM 이름이 그 목록에 있으면
+#                  최우선으로 붙이고, 목록에 없으면 그 쌍을 아예 금지한다.
+#                  이름은 전역 유일하지 않으므로(서울에 '101동'이 1,845개) 공간으로
+#                  후보를 좁힌 뒤 이름으로 가르는 순서여야 한다.
+#
+#              배정은 용량 제약 greedy다. 우선순위별로 쌍을 거리순 소진하며
+#              앵커별 잔여 용량을 넘지 않는다.
 #
 #              준공년도는 배정에 쓰지 않는다. 초판은 년도가 맞는 앵커를 고른 뒤
 #              년도로 검증해 일치율이 정의상 100%였다. 검증 전용으로 격리한다.
@@ -33,6 +42,8 @@
 # ============================================================================
 
 import sys
+
+import re
 
 import numpy as np
 import pandas as pd
@@ -77,6 +88,10 @@ YEAR_TOLERANCE = 2       # 검증 전용. 배정에는 쓰지 않는다
 YEAR_RANGE = (1930, 2027)  # OSM start_date에 '19997', '202' 같은 오타 태그가 있다
 MIN_HEIGHT_M = 5.0       # levels 15인데 height 4m 같은 태그 오류를 걸러낸다
 APARTMENT_CODE = "1"     # 등록 정보 단지종류 1=아파트
+
+# 대장 동명칭이 그 지번의 등록 동수를 다 담고 있을 때만 "목록에 없으면 금지"를
+# 적용한다. 여러 지번에 걸친 단지는 대장이 일부만 담고 있어 금지하면 굶는다
+LEDGER_PATH = output_dir / "19.1.building_ledger.txt"
 
 UNASSIGNED = -1
 
@@ -141,6 +156,45 @@ print(f"  탐색 반경 (계수 {RADIUS_K:.0f}): 중앙값 {np.median(radius):.0
 
 
 # ============================================================================
+# 1b. 건축물대장 동명칭
+# ============================================================================
+
+print("\n===== 1b. 건축물대장 동명칭 =====")
+
+
+def normalize_dong(value):
+    """'제904동' '904동' '904' -> '904'. 지번 안에서 이 키는 사실상 유일하다"""
+    text = str(value).strip().upper()
+    text = re.sub(r"^제", "", text)
+    text = re.sub(r"동$", "", text)
+    text = re.sub(r"\s+", "", text)
+    return re.sub(r"^0+(?=\d)", "", text)
+
+
+if LEDGER_PATH.exists():
+    ledger = pd.read_csv(LEDGER_PATH, sep="\t")
+    ledger = ledger[ledger["hhld_cnt"] > 0].copy()
+    ledger["dong_key"] = ledger["dong_nm"].apply(normalize_dong)
+    ledger = ledger[ledger["dong_key"] != ""]          # 단독동은 동명칭이 없다
+    ledger_names = ledger.groupby("join_key")["dong_key"].apply(set)
+    ledger_count = ledger.groupby("join_key").size()
+else:
+    ledger_names, ledger_count = pd.Series(dtype=object), pd.Series(dtype=int)
+    print("  [주의] 대장이 없다. 이름 근거 없이 배정한다 (19를 먼저 돌릴 것)")
+
+anchor_keys = master["join_key"].to_numpy()
+anchor_name_set = [ledger_names.get(k, frozenset()) for k in anchor_keys]
+# 대장이 등록 동수를 다 담았는지 — 금지 규칙을 적용해도 되는 단지인가
+anchor_ledger_full = np.array([
+    ledger_count.get(k, 0) >= (d if not np.isnan(d) else np.inf)
+    for k, d in zip(anchor_keys, anchors["reg_dong"].to_numpy())
+])
+n_named = sum(1 for s in anchor_name_set if s)
+print(f"  동명칭 확보 단지 {n_named}/{len(anchors)} ({100 * n_named / len(anchors):.1f}%)")
+print(f"  그중 대장이 등록 동수를 다 담은 단지 {int(anchor_ledger_full.sum())} (금지 규칙 적용 대상)")
+
+
+# ============================================================================
 # 2. 아파트 동 · 단지 경계 로드
 # ============================================================================
 
@@ -179,9 +233,14 @@ print(f"  단지 경계 폴리곤 {len(boundaries)}개")
 # 3. 용량 제약 배정
 # ============================================================================
 # 후보 쌍 (동, 앵커, 거리)을 만들고 우선순위대로 소진한다.
-#   1순위: 같은 경계 폴리곤 안 (거리 오름차순)
-#   2순위: MAX_DIST_M 안의 최근접 (거리 오름차순)
-# 앵커의 잔여 용량이 0이면 건너뛴다. 동은 한 번만 배정된다.
+#   0순위: OSM 이름이 그 앵커의 대장 동명칭 목록에 있음 (가장 강한 근거)
+#   1순위: 같은 경계 폴리곤 안
+#   2순위: 반경 안의 최근접
+# 각 순위 안에서는 거리 오름차순. 앵커의 잔여 용량이 0이면 건너뛴다.
+#
+# 금지 규칙: OSM 이름이 있는데 그 앵커의 대장 목록에 없으면 쌍 자체를 버린다.
+# 단 대장이 등록 동수를 다 담은 단지에만 적용한다. 여러 지번에 걸친 단지는
+# 대장이 일부만 담고 있어 금지하면 자기 동까지 못 받는다.
 
 print("\n===== 3. 용량 제약 배정 =====")
 
@@ -205,7 +264,21 @@ anchor_xy = np.column_stack([anchors.geometry.x, anchors.geometry.y])
 building_xy = np.column_stack([building_points.geometry.x, building_points.geometry.y])
 
 # --- 후보 쌍 생성 ---
+building_name_key = [
+    None if pd.isna(v) else normalize_dong(v) for v in buildings["name"]]
+
 pairs = []   # (우선순위, 거리, 동 index, 앵커 index)
+
+
+def pair_priority(building_idx, anchor_idx, base_priority):
+    """이름 근거가 있으면 0순위로 올리고, 이름이 어긋나면 None으로 버린다"""
+    name = building_name_key[building_idx]
+    names = anchor_name_set[anchor_idx]
+    if name is None or not names:
+        return base_priority
+    if name in names:
+        return 0
+    return None if anchor_ledger_full[anchor_idx] else base_priority
 
 anchors_by_boundary = (anchor_boundary.dropna().astype(int)
                        .reset_index().groupby("boundary_id")["index"].apply(list))
@@ -220,7 +293,9 @@ for boundary_id, building_idx in (building_boundary.dropna().astype(int)
         building_xy[building_idx][:, None, :] - anchor_xy[candidate_idx][None, :, :], axis=2)
     for row, b in enumerate(building_idx):
         for col, a in enumerate(candidate_idx):
-            pairs.append((0, dist[row, col], b, a))
+            priority = pair_priority(b, a, 1)
+            if priority is not None:
+                pairs.append((priority, dist[row, col], b, a))
 
 # 전역 최대 반경으로 한 번 조회한 뒤 앵커별 반경으로 거른다
 near_dist, near_idx = cKDTree(anchor_xy).query(
@@ -229,18 +304,21 @@ for b in range(len(buildings)):
     for d, a in zip(near_dist[b], near_idx[b]):
         if a >= len(anchors):
             break
-        if d <= radius[a]:
-            pairs.append((1, d, b, a))
+        if d > radius[a]:
+            continue
+        priority = pair_priority(b, a, 2)
+        if priority is not None:
+            pairs.append((priority, d, b, a))
 
 pairs.sort(key=lambda p: (p[0], p[1]))
-print(f"  후보 쌍 {len(pairs)}개 (경계 {sum(1 for p in pairs if p[0] == 0)} / "
-      f"최근접 {sum(1 for p in pairs if p[0] == 1)})")
+print(f"  후보 쌍 {len(pairs)}개 (이름 {sum(1 for p in pairs if p[0] == 0)} / "
+      f"경계 {sum(1 for p in pairs if p[0] == 1)} / 최근접 {sum(1 for p in pairs if p[0] == 2)})")
 
 # --- greedy 소진 ---
 owner = np.full(len(buildings), UNASSIGNED)
 method = np.full(len(buildings), "none", dtype=object)
 remaining = capacity.copy()
-PRIORITY_NAME = {0: "boundary", 1: "nearest"}
+PRIORITY_NAME = {0: "ledger_name", 1: "boundary", 2: "nearest"}
 
 for priority, dist, b, a in pairs:
     if owner[b] != UNASSIGNED or remaining[a] <= 0:
@@ -252,8 +330,10 @@ assigned = owner != UNASSIGNED
 buildings["aptSeq"] = np.where(assigned, anchors["aptSeq"].to_numpy()[owner], None)
 buildings["boundary_id"] = building_boundary.to_numpy()
 buildings["assign_method"] = method
+# 근거가 다르면 정확도가 다르다. 20이 등급별 실측을 낸다
 buildings["assign_confidence"] = np.select(
-    [method == "boundary", method == "nearest"], ["HIGH", "LOW"], default=None)
+    [method == "ledger_name", method == "boundary", method == "nearest"],
+    ["NAME", "HIGH", "LOW"], default=None)
 buildings["dist_m"] = np.where(
     assigned, np.linalg.norm(building_xy - anchor_xy[owner], axis=1), np.nan)
 
@@ -293,8 +373,8 @@ complex_agg = (buildings[buildings["aptSeq"].notna()]
         n_with_height=("height_m", lambda s: int(s.notna().sum())),
         n_height_imputed=("height_source", lambda s: int((s == "complex_median").sum())),
         n_by_boundary=("assign_method", lambda s: int((s == "boundary").sum())),
-        confidence=("assign_confidence", lambda s: "HIGH" if (s == "HIGH").all() else
-                    ("LOW" if (s == "LOW").all() else "MIXED")),
+        confidence=("assign_confidence",
+                    lambda s: s.iloc[0] if s.nunique() == 1 else "MIXED"),
         max_height_m=("height_m", "max"),
         max_levels=("levels", "max"),
         osm_year_median=("build_year", "median"),
@@ -319,7 +399,7 @@ dong_accuracy = 100 * exact.mean() if len(comparable) else 0.0
 n_over = int((comparable["dong_diff"] > 0).sum())
 print(f"\n  등록 동수 대조 {len(comparable)}건: 정확 {int(exact.sum())} ({dong_accuracy:.1f}%)")
 print(f"    과다 {n_over}건 / 과소 {int((comparable['dong_diff'] < 0).sum())}건")
-for label in ["HIGH", "MIXED", "LOW"]:
+for label in ["NAME", "HIGH", "MIXED", "LOW"]:
     sub = comparable[comparable["confidence"] == label]
     if len(sub):
         print(f"    {label:5s} n={len(sub):5d}  정확 {100 * (sub['dong_diff'] == 0).mean():5.1f}%  "
