@@ -60,6 +60,31 @@
 #              compute_horizon 등)는 그대로 두고 건물 단위 청크를 여러
 #              프로세스(fork)에 나눠 호출하는 방식만 추가했다. 알고리즘
 #              변경이 아니라 같은 계산을 병렬 실행한 것이다.
+#
+#              [일조 포화 결함 수정] winter_sunlight_hours(09~15시 총합, 상한
+#              6.08h) 하나로 정렬하면 LOW 21.4%/MID 30.4%/HIGH 62.7%가 만점을
+#              받아 상위 500위가 전부 동점이 됐다. 원인은 지표 자체가 법정
+#              일조권 기준 어느 쪽도 아니었던 데 있다 - 09~15시 창을 쓰면서
+#              "총합"을 재는 것은 두 법정 기준(아래) 중 어느 것도 아니다.
+#              한국 일조권 수인한도 판단 기준(대법원 판례 · 환경분쟁조정위원회,
+#              동지일 기준)은 다음 둘 중 하나를 충족하면 침해로 보지 않는다:
+#                기준1: 09:00~15:00(6시간) 중 "연속" 2시간 이상 일조
+#                기준2: 08:00~16:00(8시간) 중 "총합" 4시간 이상 일조
+#              (출처: 찾기쉬운 생활법령정보 easylaw.go.kr "일조권 방해 분쟁",
+#               서울고등법원 1996.3.29. 선고 94나11806 판결 등 다수 후속 판례)
+#              그래서 관측점당 세 지표를 낸다:
+#                winter_sunlight_hours    기존 유지 (09~15시 총합, 상한 6.08h).
+#                                         두 법정 기준 어디에도 대응하지 않지만
+#                                         하위 호환을 위해 남긴다.
+#                winter_continuous_hours 09~15시 중 연속 최대 노출 시간.
+#                                         기준1의 실측값.
+#                winter_total_hours_8_16 08~16시 총 일조 시간(상한 약 8.08h).
+#                                         기준2의 실측값.
+#              horizon profile(72방위 최대 앙각)은 태양 궤적과 무관하게
+#              관측점당 1회만 계산한다. 세 지표는 그 profile 하나를 09~15시
+#              궤적과 08~16시 궤적 각각에 대조해 뽑아낸다 - compute_horizon
+#              호출 횟수는 그대로다(3배로 늘리지 않음). 연속-최대 구간 계산은
+#              05에 없는 로직이라 05를 건드리지 않고 이 파일에 새로 추가한다.
 # ============================================================================
 
 # ============================================================================
@@ -96,11 +121,33 @@ SEARCH_RADIUS_M = horizon_prototype.SEARCH_RADIUS_M
 TALL_BUILDING_M = horizon_prototype.TALL_BUILDING_M
 TALL_SEARCH_RADIUS_M = horizon_prototype.TALL_SEARCH_RADIUS_M
 WINTER_SOLSTICE = horizon_prototype.WINTER_SOLSTICE
+N_BINS = horizon_prototype.N_BINS               # winter_continuous_hours 계산에 필요 (아래)
+BIN_WIDTH_DEG = horizon_prototype.BIN_WIDTH_DEG
 build_occluder_cache = horizon_prototype.build_occluder_cache
 compute_horizon = horizon_prototype.compute_horizon
 sun_track = horizon_prototype.sun_track
 sunlight_hours = horizon_prototype.sunlight_hours
 view_metrics = horizon_prototype.view_metrics
+
+
+def continuous_exposed_hours(profile, sun_azimuth, sun_elevation, interval_minutes=5):
+    """태양 궤적 시계열을 profile과 대조해 "연속" 노출 최대 시간을 구한다.
+
+    05.sunlight_hours()는 노출 총합만 낸다. 법정 기준1(09~15시 중 연속
+    2시간 이상)은 총합이 아니라 최장 연속 구간이 필요해 05를 건드리지 않고
+    여기 새로 추가한다. exposed 판정 로직 자체는 05.sunlight_hours()와
+    동일 - bin 분해 + (태양고도 > 지평선 프로파일) & (태양고도 > 0).
+    """
+    bins = (sun_azimuth / BIN_WIDTH_DEG).astype(int) % N_BINS
+    exposed = (sun_elevation > profile[bins]) & (sun_elevation > 0)
+    if not exposed.any():
+        return 0.0
+    # 앞뒤에 False를 붙여 경계에서도 run이 잡히게 한 뒤, 0->1/1->0 전이 지점 간
+    # 거리로 각 연속 구간 길이를 구한다 (시계열이므로 자정 넘어가는 wrap 불필요).
+    padded = np.concatenate(([False], exposed, [False])).astype(int)
+    starts = np.where(np.diff(padded) == 1)[0]
+    ends = np.where(np.diff(padded) == -1)[0]
+    return (ends - starts).max() * interval_minutes / 60.0
 
 BUILDING_ASSIGNED_PATH = output_dir / "15.2.building_assigned.txt"
 OSM_BUILDINGS_PATH = output_dir / "12.1.osm_buildings.txt"
@@ -255,7 +302,9 @@ tree = STRtree(occluder_gdf.geometry.values)
 tall_indices = np.where(occluder_gdf["height_m"].to_numpy() >= TALL_BUILDING_M)[0]
 print(f"  {TALL_BUILDING_M}m 이상 초고층: {len(tall_indices)}동 (거리 무관 항상 후보)")
 
-sun_azimuth, sun_elevation = sun_track(WINTER_SOLSTICE)
+sun_azimuth, sun_elevation = sun_track(WINTER_SOLSTICE)                       # 09~15시 (기존, 기준1용)
+sun_azimuth_8_16, sun_elevation_8_16 = sun_track(
+    WINTER_SOLSTICE, start="08:00", end="16:00")                              # 08~16시 (기준2용)
 
 
 # ============================================================================
@@ -304,6 +353,8 @@ def _process_building(row_pos):
             continue   # 이 동은 그 층대를 갖지 않는다
 
         obs_z = 0.0 + (repr_floor - 1) * FLOOR_HEIGHT_M + EYE_HEIGHT_M
+        # horizon profile은 태양 궤적과 무관 -> 관측점당 1회만 계산하고
+        # 세 일조 지표 모두 이 profile 하나를 재사용해 뽑는다 (3배 계산 금지).
         profile = compute_horizon(obs_xy, obs_z, candidates, occluder_cache, occluder_centroids_xy)
         metrics = view_metrics(profile)
 
@@ -315,6 +366,10 @@ def _process_building(row_pos):
             "levels": levels,
             "n_candidates": len(candidates),
             "winter_sunlight_hours": round(sunlight_hours(profile, sun_azimuth, sun_elevation), 2),
+            "winter_continuous_hours": round(
+                continuous_exposed_hours(profile, sun_azimuth, sun_elevation), 2),
+            "winter_total_hours_8_16": round(
+                sunlight_hours(profile, sun_azimuth_8_16, sun_elevation_8_16), 2),
             **metrics,
         })
     return building_records
@@ -348,6 +403,8 @@ complex_metrics = (obs_df
     .agg(
         n_obs=("osm_id", "count"),
         winter_sunlight_hours=("winter_sunlight_hours", "median"),
+        winter_continuous_hours=("winter_continuous_hours", "median"),
+        winter_total_hours_8_16=("winter_total_hours_8_16", "median"),
         view_block_pct=("view_block_pct", "median"),
         open_angle_mean=("open_angle_mean", "median"),
     )
@@ -359,7 +416,8 @@ complex_metrics = (obs_df
 print(f"  단지 x 층대 조합: {len(complex_metrics)}개 / 단지 {complex_metrics['aptSeq'].nunique()}개")
 print("\n  층대별 지표 분포 (중앙값 기준 describe):")
 print(complex_metrics.groupby("floor_band")[
-    ["winter_sunlight_hours", "view_block_pct", "open_angle_mean"]].median().to_string())
+    ["winter_sunlight_hours", "winter_continuous_hours", "winter_total_hours_8_16",
+     "view_block_pct", "open_angle_mean"]].median().to_string())
 
 
 # ============================================================================
@@ -370,17 +428,23 @@ print("\n===== 5. 자체 검증 =====")
 
 assert not complex_metrics.duplicated(subset=["aptSeq", "floor_band"]).any(), \
     "aptSeq x floor_band 키 중복 발생"
-assert complex_metrics[["winter_sunlight_hours", "view_block_pct", "open_angle_mean"]].notna().all().all(), \
+SUN_METRICS = ["winter_sunlight_hours", "winter_continuous_hours", "winter_total_hours_8_16"]
+assert complex_metrics[SUN_METRICS + ["view_block_pct", "open_angle_mean"]].notna().all().all(), \
     "집계 지표에 NaN 존재"
 
-band_summary = (complex_metrics
-    .groupby("floor_band")["winter_sunlight_hours"]
-    .median()
-    .reindex(["LOW", "MID", "HIGH"]))
-monotonic = band_summary["HIGH"] >= band_summary["MID"] >= band_summary["LOW"]
-print(f"  층대별 winter_sunlight_hours 중앙값: {band_summary.to_dict()}")
-print(f"  [{'PASS' if monotonic else 'FAIL'}] 층이 높을수록 일조 증가 (단조성)")
-assert monotonic, "층↑ -> 일조↑ 단조성 위반"
+# 단조성(층↑ -> 일조↑)은 세 일조 지표 모두에 대해 확인한다 - 지표를 늘리며
+# 새로 추가한 두 지표가 기존과 다른 방식으로 어긋나지 않는지 보는 것이 목적.
+monotonic = True
+for metric in SUN_METRICS:
+    band_summary = (complex_metrics
+        .groupby("floor_band")[metric]
+        .median()
+        .reindex(["LOW", "MID", "HIGH"]))
+    metric_ok = band_summary["HIGH"] >= band_summary["MID"] >= band_summary["LOW"]
+    monotonic &= metric_ok
+    print(f"  층대별 {metric} 중앙값: {band_summary.to_dict()}")
+    print(f"  [{'PASS' if metric_ok else 'FAIL'}] 층이 높을수록 {metric} 증가 (단조성)")
+assert monotonic, "층↑ -> 일조↑ 단조성 위반 (세 지표 중 하나 이상)"
 
 print("  [PASS] 자기 건물 차폐 후보 제외 (관측점별 assert 통과)")
 print("  [PASS] aptSeq x floor_band 키 유일성")
