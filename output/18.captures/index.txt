@@ -1,0 +1,6 @@
+﻿confidence	aptSeq	apt_name	gu	n_dong	reg_dong	dong_diff	prescreen	kakao_map_url	capture
+HIGH	11350-41	상계주공7(고층)	노원구	21.0	21.0	0.0	거리상한	https://map.kakao.com/link/map/상계주공7(고층),37.660676910032,127.061495568943	HIGH_11350-41_상계주공7(고층).png
+HIGH	11350-182	태강아파트(아이파크)	노원구	21.0	21.0	0.0		https://map.kakao.com/link/map/태강아파트(아이파크),37.6233646903823,127.082122210605	HIGH_11350-182_태강아파트(아이파크).png
+LOW	11140-1300	서울역센트럴자이	중구	14.0	14.0	0.0	층수편차10F 준공편차13년	https://map.kakao.com/link/map/서울역센트럴자이,37.5547908528642,126.964454371144	LOW_11140-1300_서울역센트럴자이.png
+LOW	11500-20	성원	강서구	3.0	3.0	0.0		https://map.kakao.com/link/map/성원,37.5559565805522,126.872154343908	LOW_11500-20_성원.png
+MIXED	11410-4085	DMC래미안e편한세상	서대문구	21.0	51.0	-30.0	층수편차28F 거리상한 과소30동	https://map.kakao.com/link/map/DMC래미안e편한세상,37.5747334832097,126.907916083955	MIXED_11410-4085_DMC래미안e편한세상.png
