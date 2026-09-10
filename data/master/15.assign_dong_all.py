@@ -32,6 +32,8 @@
 # 0. 환경 설정
 # ============================================================================
 
+import sys
+
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -50,8 +52,27 @@ COMPLEX_RESULT = output_dir / "15.1.complex_final.txt"
 BUILDING_RESULT = output_dir / "15.2.building_assigned.txt"
 
 METRIC_CRS = "EPSG:5179"
-MAX_DIST_M = 300         # 경계로 못 푸는 동에만 적용하는 최근접 상한
-N_NEIGHBORS = 8          # 용량이 차면 차순위 앵커로 넘어가므로 초판보다 넉넉히 본다
+# 최근접 경로의 반경. 고정값 300m는 대단지에서 구조적으로 모자랐다 —
+# DMC래미안e편한세상(등록 51동)은 앵커에서 단지 끝까지가 300m를 넘어 30동을
+# 놓쳤고, 못 가져온 29동의 최소 거리가 301m였다.
+# 정확 배정 5,994건에서 앵커→최원거리 동의 p90을 등록 동수별로 재보니
+# 1동 136m / 6-8동 211m / 13-20동 367m / 21-35동 455m로 sqrt(동수)에 비례했다.
+# 그 측정 자체가 300m 상한 아래 절단된 값이므로 계수에 여유를 둔다.
+# 반경을 크게 풀어도 과다는 등록 동수 상한이 막는다(그것이 원래 300m의 역할이었다).
+#
+# 계수 K 교정 (0/170/350, 하한 300m 고정):
+#   고정300  커버 73.2%  동수일치 93.4%  연도독립 94.2%  13동+ 일치 64.9%
+#   K=170    커버 73.3%  동수일치 94.4%  연도독립 93.6%  13동+ 일치 73.8%  <- 채택
+#   K=350    커버 74.9%  동수일치 94.9%  연도독립 93.0%  13동+ 일치 73.5%
+# 동수일치는 상한 때문에 순환 지표라 믿을 수 없다. 배정에 쓰지 않은 OSM
+# start_date vs 등록 사용승인일 대조(연도독립)가 실제 정밀도다. K를 350까지
+# 밀면 커버리지 1.6%p를 얻지만 대단지 효과는 더 없고 연도독립만 깎인다.
+RADIUS_BASE = 60.0
+RADIUS_K = float(sys.argv[1]) if len(sys.argv) > 1 else 170.0
+RADIUS_MIN = float(sys.argv[2]) if len(sys.argv) > 2 else 300.0
+RADIUS_MAX = 1200.0
+RADIUS_UNKNOWN = 300.0   # 등록 정보 미매칭 단지는 종전 고정값을 쓴다
+N_NEIGHBORS = 12         # 반경이 커져 후보 앵커가 늘었다. 용량이 차면 차순위로 넘어간다
 YEAR_TOLERANCE = 2       # 검증 전용. 배정에는 쓰지 않는다
 YEAR_RANGE = (1930, 2027)  # OSM start_date에 '19997', '202' 같은 오타 태그가 있다
 MIN_HEIGHT_M = 5.0       # levels 15인데 height 4m 같은 태그 오류를 걸러낸다
@@ -105,10 +126,18 @@ share = master.groupby("join_key")["aptSeq"].transform("size")
 capacity = (anchors["reg_dong"] / share.to_numpy()).to_numpy()
 capacity = np.where(np.isnan(capacity), np.inf, np.ceil(capacity))
 
+# 단지 규모에 비례한 반경. 구조가 다른 단지를 하나의 원으로 재던 문제를 없앤다
+radius = np.where(
+    np.isnan(anchors["reg_dong"].to_numpy()), RADIUS_UNKNOWN,
+    np.clip(RADIUS_BASE + RADIUS_K * np.sqrt(anchors["reg_dong"].to_numpy()),
+            RADIUS_MIN, RADIUS_MAX))
+
 n_capped = int(np.isfinite(capacity).sum())
 print(f"  단지 앵커 {len(anchors)}개 / 등록 동수 확보 {n_capped} "
       f"({100 * n_capped / len(anchors):.1f}%)")
 print(f"  상한 없는 단지 {len(anchors) - n_capped}개 (등록 정보 미매칭 — 과다 배정 가능)")
+print(f"  탐색 반경 (계수 {RADIUS_K:.0f}): 중앙값 {np.median(radius):.0f}m, "
+      f"최소 {radius.min():.0f}m, 최대 {radius.max():.0f}m")
 
 
 # ============================================================================
@@ -193,13 +222,15 @@ for boundary_id, building_idx in (building_boundary.dropna().astype(int)
         for col, a in enumerate(candidate_idx):
             pairs.append((0, dist[row, col], b, a))
 
+# 전역 최대 반경으로 한 번 조회한 뒤 앵커별 반경으로 거른다
 near_dist, near_idx = cKDTree(anchor_xy).query(
-    building_xy, k=N_NEIGHBORS, distance_upper_bound=MAX_DIST_M)
+    building_xy, k=N_NEIGHBORS, distance_upper_bound=radius.max())
 for b in range(len(buildings)):
     for d, a in zip(near_dist[b], near_idx[b]):
         if a >= len(anchors):
             break
-        pairs.append((1, d, b, a))
+        if d <= radius[a]:
+            pairs.append((1, d, b, a))
 
 pairs.sort(key=lambda p: (p[0], p[1]))
 print(f"  후보 쌍 {len(pairs)}개 (경계 {sum(1 for p in pairs if p[0] == 0)} / "
