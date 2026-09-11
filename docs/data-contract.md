@@ -29,7 +29,9 @@
 | `apt_seq` `name` `lat` `lng` `built_year` | 100% | |
 | `polygon_matched` `match_confidence` | 100% | 아래 §3 |
 | `total_households` `building_count` | 96.6% | 건축물대장 기준. 결측 316건 |
-| `bjd_code` `far` `bcr` `parking_per_hh` | **0%** | 건축물대장 캐시에 원본이 있으나 파싱 미반영 |
+| `bjd_code` | 90.2% | 19.1과 지번(join_key) 매칭 성공 단지. 나머지 9.8%(900단지)는 지번 자체를 못 찾음 — 채움률의 상한 |
+| `far` `bcr` | 63.7% | 지번 대표값(동마다 반복 기재된 값 중 0이 아닌 최댓값 하나) 기준. 지번은 매칭됐어도 표제부에 값이 아예 없는 경우가 있어 90.2%보다 낮음 |
+| `parking_per_hh` | 63.0% | 옥내외 자주식·기계식 4종 중 1개 이상이 기재된 지번 기준. 소수 단지(34개, `parking_per_hh` > 5)는 여러 아파트가 같은 지번을 공유해 대표값이 부풀려 보임 — 지번 단위 값을 등록 단위로 나눈 구조적 한계 |
 
 ### `complex_metrics`
 
@@ -39,12 +41,19 @@
 |---|---|---|
 | `sun_hours_avg` `sun_hours_best` `view_open_avg` | 70.4% | horizon 배치. 6,450단지 |
 | `station_dist_m` `station_walk_min_est` | 100% | 지하철 **출입구**까지 직선거리. 도보 시간은 추정치(`_est`) |
-| `elem_school_m` `mart_m` `park_m` | 100% | 최근접 직선거리 |
-| `cvs_500m` `restaurant_500m` | 100% | 반경 500m 개수 |
+| `elem_school_m` `mart_m` | 100% | 최근접 직선거리 |
+| `park_m` `park_area_m2` | 100% | 24.3 공원 **폴리곤** 기준 재계산. `park_m`이 가리키는 공원과 `park_area_m2`가 항상 같은 공원(폴리곤 인덱스 공유). 기존 22.1(POI node 기준) 대비 median 26.7m 더 가까움 — node는 공원의 대표점 1개까지 거리였고 폴리곤은 경계까지 거리라서 구조적으로 짧아짐 |
+| `mid_school_m` `high_school_m` | 100% | 24.6 `is_middle`/`is_high`(isced:level 태그 우선, 이름 보완) 기준 최근접. NEIS 없이 OSM 태그만으로 급별 구분 가능 |
+| `dept_store_m` `supermarket_m` | 100% | 24.5 `shop` 원본 태그(`department_store`/`supermarket`) 기준 최근접 |
+| `cvs_500m` `restaurant_500m` `nightlife_300m` | 100% | 반경 내 개수(0건은 결측 아님). `nightlife_300m`은 24.4(bar/pub/nightclub) 반경 300m |
+| `road_centerline_m` `rail_centerline_m` | 100% | 26.1. 도로는 간선·보조간선 중 최솟값, 철도는 지상 구간만 |
+| `road_arterial_dist_m` `road_secondary_dist_m` | 100% | 26.1. 위계별(간선/보조간선) 거리. 스키마 외 추가 컬럼 |
+| `station_ridership_daily` | 88.0% | 최근접 역 일평균 승하차. 중앙값 29,089명 |
+| `station_congestion_peak` | 85.8% | 평일 08~09시 최대 혼잡도(%). 스키마 외 추가 컬럼 |
 
-**빈 것 (20개 컬럼, 전량 NULL)**
+**빈 것 (전량 NULL)**
 
-`river_view_ratio` `road_centerline_m` `rail_centerline_m` `station_elev_diff` `station_ridership_daily` `traffic_weekday` `traffic_weekend` `elem_safe_route` `mid_school_m` `high_school_m` `daycare_500m` `tertiary_hosp_m` `general_hosp_m` `clinic_1km` `pediatric_1km` `dept_store_m` `supermarket_m` `park_area_m2` `nightlife_300m` `dawn_delivery`
+`river_view_ratio` `station_elev_diff` `traffic_weekday` `traffic_weekend` `elem_safe_route` `daycare_500m` `tertiary_hosp_m` `general_hosp_m` `clinic_1km` `pediatric_1km` `dawn_delivery`
 
 ### `horizon_profile`
 
@@ -111,6 +120,7 @@
 | 소음 | "도로 중심선까지 N m" | "소음 N dB" — 캘리브레이션 라벨이 없어 폐기됐다 (`algorithms.md` §6.3) |
 | 일조 | "동지 08~16시 총 N시간" | 기준 시각을 빼고 "일조 N시간"만 쓰지 말 것 |
 | 커버리지 | "분석 가능 단지 6,450 / 9,160" | "서울 전역 완전 검색" — 성립하지 않는다 |
+| 승하차 | "1~8호선 기준" 또는 미표기 | 9호선·신분당선 역 근처 단지에 "승하차 정보 없음"을 빈 값으로 두지 말 것. 사유 표기 |
 
 ---
 
@@ -119,20 +129,26 @@
 | 한계 | 영향 |
 |---|---|
 | DEM 미확보, 지면을 평지(z=0)로 가정 | 경사지에서 차폐가 과소/과대 추정 |
-| 도로·철도 중심선 미수집 | 소음원 근접도 전량 결측 |
-| 병원 등급·어린이집·교통량 미수집 | 해당 필터 제공 불가 |
+| 승하차·혼잡도는 **서울교통공사 운영 노선만** | 9호선·공항철도·신분당선·GTX·경의중앙선·수인분당선·우이신설선과 경기 연장 구간은 발행처가 달라 데이터가 없다. 역 317개 중 245개 매칭(77.3%). 표기 오류가 아니라 운영주체 범위 차이다 |
+| 병원 등급·어린이집 미수집 | 해당 필터 제공 불가 |
+| 교통량 **폐기** | 서울 관측 지점이 139개뿐이라 300m 기준 커버리지 4.6%. 소음원 근접도는 `road_centerline_m`(100% 채움)으로 대체한다 (`decisions.md` 44~45) |
 | 조망 대상(한강·공원·산) 미판정 | `river_view` 등 전량 결측 |
 | 일조는 동지 기준 단일 계절 | 봄가을 미계산 (`plan.md` §8.2 절단 2순위) |
+| 건축물대장 표제부 자체가 부분 결측 | `far`/`bcr`/`parking_per_hh`는 19.1과 매칭된 지번(90.2%) 중에서도 63% 안팎만 표제부에 실제 값이 있음. 오래된 건축물은 미기재 — 0으로 채우지 않고 결측 유지 |
+| 학교 급별(초/중/고) OSM 태그 커버리지 82.6% | 나머지 17.4%(211개교)는 `isced:level` 태그도 이름도 없어 급별 판정 불가 — 최근접 계산에서 제외(구 단위 공백은 없음을 확인) |
 
 ---
 
 ## 8. 재생성 방법
 
 ```bash
-.venv/bin/python data/master/15.assign_dong_all.py      # 동 배정
-.venv/bin/python -u models/horizon/21.horizon_batch.py  # 일조·조망 (약 90초)
-.venv/bin/python models/horizon/22.access_metrics.py    # 접근성
-.venv/bin/python data/master/23.build_complex_metrics.py # 최종 3테이블
+.venv/bin/python data/master/15.assign_dong_all.py         # 동 배정
+.venv/bin/python -u models/horizon/21.horizon_batch.py     # 일조·조망 (약 90초)
+.venv/bin/python models/horizon/22.access_metrics.py       # 접근성
+.venv/bin/python data/collect/19.collect_building_ledger.py # 건축물대장 수집
+.venv/bin/python data/collect/24.collect_osm_extra.py      # 도로·철도·공원·야간상권·상점 수집
+.venv/bin/python models/horizon/26.transit_metrics.py      # 교통(승하차·혼잡도·중심선) — 22.1 필요
+.venv/bin/python data/master/23.build_complex_metrics.py   # 최종 3테이블
 ```
 
 `output/` 아래 대용량 중간 산출물은 `.gitignore` 대상이다. 재생성 경로는 각 스크립트 헤더에 있다.
