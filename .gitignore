@@ -21,6 +21,11 @@ output/19.1.building_ledger.txt
 # horizon 관측점 원본 (3MB, 65,751행). 디버깅용이며 21을 90초 돌리면 재생성된다.
 # 집계본 21.1.complex_metrics.txt 는 downstream 입력이므로 커밋한다
 output/21.2.observation_points.txt
+# OSM 도로(2.2MB)·공원(1MB) 원본. 24를 다시 돌리면 재생성된다 —
+# output/raw/osm_extra/ 캐시가 있으면 20초, 없으면 Overpass 재수집 약 8분.
+# 이들에서 파생된 26.1.transit_metrics.txt 가 downstream 입력이므로 그쪽을 커밋한다
+output/24.1.osm_roads.txt
+output/24.3.osm_parks.txt
 
 # Python
 __pycache__/
