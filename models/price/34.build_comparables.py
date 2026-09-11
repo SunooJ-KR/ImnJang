@@ -29,6 +29,7 @@ COMPLEX_PATH = output_dir / "23.1.complex.txt"
 METRICS_PATH = output_dir / "23.2.complex_metrics.txt"
 CELLS_PATH = output_dir / "32.1.price_cells.txt"
 COLDSTART_PATH = output_dir / "33.1.coldstart_estimates.txt"
+EXCLUDED_PATH = output_dir / "33.3.excluded_complexes.txt"
 RESULT_PATH = output_dir / "34.1.comparables.txt"
 
 RESULT_COLUMNS = [
@@ -60,7 +61,7 @@ def month_period(values: pd.Series) -> pd.PeriodIndex:
     return pd.PeriodIndex(numeric.astype("string"), freq="M")
 
 
-def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.Index]:
+def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.Index, pd.Index]:
     """단지·환경·가격 셀·cold-start 셀을 읽고 비교 대상 단위로 정리한다."""
     complex_df = pd.read_csv(COMPLEX_PATH, sep="\t", low_memory=False)
     metrics = pd.read_csv(METRICS_PATH, sep="\t", low_memory=False)
@@ -70,11 +71,17 @@ def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.Index]:
     coldstart_cells = pd.read_csv(
         COLDSTART_PATH, sep="\t", usecols=["apt_seq", "area_type"], low_memory=False,
     )
+    excluded = pd.read_csv(
+        EXCLUDED_PATH, sep="\t", usecols=["apt_seq", "name", "exclude_reason", "matched_keyword"],
+        low_memory=False,
+    )
     require_unique(complex_df, ["apt_seq"], "complex")
     require_unique(metrics, ["apt_seq"], "complex_metrics")
+    require_unique(excluded, ["apt_seq"], "33.3 excluded_complexes")
 
     complex_df["apt_seq"] = complex_df["apt_seq"].astype(str)
     metrics["apt_seq"] = metrics["apt_seq"].astype(str)
+    excluded["apt_seq"] = excluded["apt_seq"].astype(str)
     for target_cells, source in ((price_cells, "CELL"), (coldstart_cells, "COLDSTART")):
         target_cells["apt_seq"] = target_cells["apt_seq"].astype(str)
         target_cells["area_type"] = pd.to_numeric(target_cells["area_type"], errors="coerce")
@@ -86,6 +93,9 @@ def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.Index]:
     if overlapping_apts:
         raise ValueError(f"32.1과 33.1의 대상 단지가 겹칩니다: {len(overlapping_apts):,}개")
     targets = pd.concat([price_cells, coldstart_cells], ignore_index=True)
+    excluded_targets = set(targets["apt_seq"]).intersection(excluded["apt_seq"])
+    if excluded_targets:
+        raise ValueError(f"33.3 제외 단지가 비교 대상에 남아 있습니다: {len(excluded_targets):,}개")
 
     numeric_complex = ["lat", "lng", "built_year", "total_households"]
     for column in numeric_complex:
@@ -102,7 +112,7 @@ def load_inputs() -> tuple[pd.DataFrame, pd.DataFrame, pd.Index]:
         raise ValueError(f"비교 대상 중 단지 기본 테이블에 없는 apt_seq가 {len(missing_targets):,}개 있습니다.")
     if targets.empty:
         raise ValueError("가격 셀·cold-start 셀과 단지 기본 테이블에 공통 apt_seq가 없습니다.")
-    return complexes, targets, pd.Index(price_cells["apt_seq"].unique())
+    return complexes, targets, pd.Index(price_cells["apt_seq"].unique()), pd.Index(excluded["apt_seq"].unique())
 
 
 def load_recent_trades(known_complexes: set[str]) -> tuple[pd.DataFrame, pd.Period]:
@@ -344,7 +354,7 @@ def build_comparables(complexes: pd.DataFrame, targets: pd.DataFrame, trades: pd
 
 
 def print_validation(output: pd.DataFrame, targets: pd.DataFrame, price_cell_apts: pd.Index,
-                     stage_counts: dict[str, int]) -> None:
+                     excluded_apts: pd.Index, stage_counts: dict[str, int]) -> None:
     """산출물 계약과 비교사례 제한을 자체 검증하고 0곳 현황을 보고한다."""
     print("\n===== 4. 자체 검증 =====")
     self_excluded = output.empty or output["comp_apt_seq"].ne(output["apt_seq"]).all()
@@ -357,6 +367,9 @@ def print_validation(output: pd.DataFrame, targets: pd.DataFrame, price_cell_apt
     per_target = output.groupby(["apt_seq", "area_type"], observed=True).size()
     max_ten = per_target.le(MAX_COMPARABLES).all()
     comp_from_price_cells = output.empty or output["comp_apt_seq"].isin(price_cell_apts).all()
+    excluded_in_output = output.empty or (
+        ~output["apt_seq"].isin(excluded_apts) & ~output["comp_apt_seq"].isin(excluded_apts)
+    ).all()
     coldstart_targets = targets.loc[targets["target_source"].eq("COLDSTART")]
     coldstart_apts = pd.Index(coldstart_targets["apt_seq"].unique())
     coldstart_compared_apts = pd.Index(
@@ -375,6 +388,8 @@ def print_validation(output: pd.DataFrame, targets: pd.DataFrame, price_cell_apt
          f"초과 {(per_target.gt(MAX_COMPARABLES).sum() if not per_target.empty else 0):,}조합"),
         ("comp_apt_seq는 모두 32.1 가격 셀 단지", comp_from_price_cells,
          f"위반 {(~output['comp_apt_seq'].isin(price_cell_apts)).sum() if not output.empty else 0:,}건"),
+        ("34.1의 33.3 제외 단지 0건", excluded_in_output,
+         f"위반 {(output['apt_seq'].isin(excluded_apts).sum() + output['comp_apt_seq'].isin(excluded_apts).sum()) if not output.empty else 0:,}건"),
         ("33.1 cold-start 단지 중 비교사례 1곳 이상 비율 > 0%", coldstart_has_comparable,
          f"{coldstart_apts.isin(coldstart_compared_apts).sum():,} / {len(coldstart_apts):,} ({coldstart_coverage * 100:.2f}%)"),
     ]
@@ -422,7 +437,7 @@ def print_validation(output: pd.DataFrame, targets: pd.DataFrame, price_cell_apt
 
 def main() -> None:
     print("===== 1. 입력 및 기준월 =====")
-    complexes, targets, price_cell_apts = load_inputs()
+    complexes, targets, price_cell_apts, excluded_apts = load_inputs()
     trades, latest_month = load_recent_trades(set(complexes["apt_seq"]))
     trades = attach_district_index(trades, latest_month)
     print(f"  기준월: {latest_month} / 최근 24개월 거래: {len(trades):,}건")
@@ -433,7 +448,7 @@ def main() -> None:
     output.to_csv(RESULT_PATH, sep="\t", index=False)
     print(f"  저장: {RESULT_PATH.relative_to(work_dir)} ({len(output):,}행)")
 
-    print_validation(output, targets, price_cell_apts, stage_counts)
+    print_validation(output, targets, price_cell_apts, excluded_apts, stage_counts)
 
 
 if __name__ == "__main__":

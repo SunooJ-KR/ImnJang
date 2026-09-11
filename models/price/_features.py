@@ -107,10 +107,71 @@ def transformed_feature(frame: pd.DataFrame, source: str, use_log: bool) -> pd.S
     return values.astype(float)
 
 
+def normalize_administrative_code(values: pd.Series, width: int = 5) -> pd.Series:
+    """Float로 읽힌 행정코드를 정수 문자열로 바꾸고 zero-pad한다."""
+    numeric = pd.to_numeric(values, errors="coerce")
+    valid = numeric.notna() & np.isfinite(numeric) & numeric.mod(1).eq(0) & numeric.ge(0)
+    result = pd.Series(pd.NA, index=values.index, dtype="string")
+    result.loc[valid] = numeric.loc[valid].astype("int64").astype(str).str.zfill(width)
+    return result
+
+
+def make_full_bjd_key(bjd_code: pd.Series, sgg_code: pd.Series) -> pd.Series:
+    """시군구 5자리와 법정동 뒤 5자리를 결합한 10자리 법정동 키를 만든다."""
+    bjd = normalize_administrative_code(bjd_code)
+    sgg = normalize_administrative_code(sgg_code)
+    return (sgg + bjd).where(sgg.notna() & bjd.notna(), pd.NA).astype("string")
+
+
+def add_location_fe_columns(
+    frame: pd.DataFrame, scheme: str, dense_bjd_keys: set[str] | None = None,
+) -> pd.DataFrame:
+    """선택한 지역 통제 사양에 필요한 범주형 열을 추가한다.
+
+    ``full_bjd``는 완전 법정동 더미만 사용한다. ``hierarchical``는 자치구 더미와
+    충분한 train 표본을 가진 법정동 더미를 함께 사용하며, 나머지는 자치구에 흡수한다.
+    """
+    result = frame.copy()
+    if scheme == "full_bjd":
+        result["location_bjd"] = result["bjd_full_key"].astype("string").fillna("MISSING")
+    elif scheme == "hierarchical":
+        if dense_bjd_keys is None:
+            raise ValueError("hierarchical 지역 통제에는 train에서 확정한 dense 법정동 키가 필요합니다.")
+        result["location_sgg"] = result["sgg_code"].astype("string").fillna("MISSING")
+        bjd = result["bjd_full_key"].astype("string")
+        # 법정동은 자치구에 nested되어 있으므로 각 자치구의 한 법정동(또는 sparse
+        # 묶음)을 reference로 빼야 자치구 더미와 완전 공선성이 생기지 않는다.
+        reference_by_sgg = {
+            sgg: min(key for key in dense_bjd_keys if key.startswith(sgg))
+            for sgg in {key[:5] for key in dense_bjd_keys}
+        }
+        is_reference = bjd.eq(result["location_sgg"].map(reference_by_sgg))
+        # build_design은 범주를 정렬한 뒤 첫 수준을 버리므로 reference가 반드시
+        # 첫 수준이 되도록 0-prefix를 둔다.
+        result["location_bjd"] = bjd.where(
+            bjd.isin(dense_bjd_keys) & ~is_reference, "00000_REFERENCE"
+        ).fillna("00000_REFERENCE")
+    else:
+        raise ValueError(f"알 수 없는 지역 통제 사양: {scheme}")
+    return result
+
+
+def location_category_columns(scheme: str) -> list[str]:
+    """지역 통제 사양의 design-matrix 범주형 열 이름을 반환한다."""
+    if scheme == "full_bjd":
+        return ["location_bjd"]
+    if scheme == "hierarchical":
+        return ["location_sgg", "location_bjd"]
+    raise ValueError(f"알 수 없는 지역 통제 사양: {scheme}")
+
+
 def build_design(
-    frame: pd.DataFrame, features: dict[str, tuple[str, bool]], context: dict | None = None,
+    frame: pd.DataFrame,
+    features: dict[str, tuple[str, bool]],
+    context: dict | None = None,
+    location_columns: list[str] | None = None,
 ) -> tuple[pd.DataFrame, dict]:
-    """train context로 평균대체, 결측지시자, 층대·월·행정동 fixed effect를 고정한다."""
+    """train context로 평균대체, 결측지시자, 층대·월·지역 fixed effect를 고정한다."""
     if context is None:
         transformed = {name: transformed_feature(frame, source, use_log) for name, (source, use_log) in features.items()}
         means = {name: values.mean() for name, values in transformed.items()}
@@ -129,7 +190,7 @@ def build_design(
                 seen_masks[signature] = name
         floor_levels = ["LOW"] + [x for x in sorted(frame["floor_band"].dropna().unique()) if x != "LOW"]
         month_values = sorted(frame["deal_ym"].astype(str).unique(), reverse=True)
-        category_columns = ["floor_band", "deal_ym", "bjd_code"]
+        category_columns = ["floor_band", "deal_ym"] + (location_columns or ["bjd_code"])
         if "jeonse_level" in frame.columns:
             category_columns.append("jeonse_level")
         context = {
@@ -138,7 +199,8 @@ def build_design(
             "levels": {
                 "floor_band": floor_levels,
                 "deal_ym": [month_values[0]] + month_values[1:],
-                "bjd_code": sorted(frame["bjd_code"].astype(str).fillna("MISSING").unique()),
+                **{column: sorted(frame[column].astype(str).fillna("MISSING").unique()) for column in category_columns
+                   if column not in {"floor_band", "deal_ym", "jeonse_level"}},
                 **({"jeonse_level": ["NONE", "SALE_CELL", "RENT_COMPLEX", "RENT_CELL"]}
                    if "jeonse_level" in category_columns else {}),
             },
@@ -170,6 +232,20 @@ def build_design(
                 indicator = f"miss_{name}"
                 if indicator in design and np.array_equal(design[indicator].to_numpy(), design[unknown_column].to_numpy()):
                     dropped_collinear_columns.append(indicator)
+        # 결측 indicator와 지역 FE의 MISSING 더미처럼 서로 완전히 같은 이진 열은
+        # 어느 범주 조합에서도 공선성을 만들 수 있다. 앞서 만든 수치 feature/결측
+        # indicator를 우선 보존하고, 뒤에 생성된 dummy만 제외한다.
+        seen_binary_columns: dict[bytes, str] = {}
+        for column in design.columns:
+            raw_values = design[column].to_numpy(dtype=float)
+            if not np.isin(raw_values, [0.0, 1.0]).all():
+                continue
+            values = raw_values.astype(np.uint8)
+            signature = values.tobytes()
+            if signature in seen_binary_columns:
+                dropped_collinear_columns.append(column)
+            else:
+                seen_binary_columns[signature] = column
         context["dropped_collinear_columns"] = dropped_collinear_columns
     design = design.drop(columns=context["dropped_collinear_columns"], errors="ignore")
     if design.isna().any().any() or not np.isfinite(design.to_numpy()).all():

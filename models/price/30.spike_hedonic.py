@@ -22,8 +22,12 @@ from _features import (
     M2_FEATURES,
     PHYSICAL_FEATURES,
     REDEVELOP_FEATURES,
+    add_location_fe_columns,
     bool_to_float,
     build_design,
+    location_category_columns,
+    make_full_bjd_key,
+    normalize_administrative_code,
     transformed_feature,
 )
 
@@ -35,12 +39,14 @@ TRADES_PATH = output_dir / "11.1.trades_sale.txt"
 COMPLEX_PATH = output_dir / "23.1.complex.txt"
 METRICS_PATH = output_dir / "23.2.complex_metrics.txt"
 PROFILE_PATH = output_dir / "23.3.horizon_profile.txt"
+GEOCODED_PATH = output_dir / "14.1.geocoded_master.txt"
 COMPARISON_PATH = output_dir / "30.1.spike_model_comparison.txt"
 COEFFICIENTS_PATH = output_dir / "30.2.spike_coefficients.txt"
 BASELINE_PATH = output_dir / "30.3.baseline_breakdown.txt"
 
 BOOTSTRAP_REPS = 1_000
 BOOTSTRAP_SEED = 20260911
+MIN_BJD_TRAIN_ROWS = 30
 
 # A--F는 완전히 같은 train/test 표본으로 비교한다. B는 값이 아니라 profile 매칭 성공만 넣는다.
 ABLATION_FEATURES = {
@@ -75,10 +81,56 @@ def ensure_unique(frame: pd.DataFrame, key: str, label: str) -> pd.DataFrame:
     return frame
 
 
+def modal_code(values: pd.Series):
+    """오입력 행 하나가 전체 단지의 자치구를 바꾸지 않도록 최빈 code를 선택한다."""
+    valid = normalize_administrative_code(values).dropna()
+    return valid.value_counts().index[0] if not valid.empty else pd.NA
+
+
+def add_canonical_sgg(complex_df: pd.DataFrame, trades: pd.DataFrame) -> pd.DataFrame:
+    """14.1의 gu와 11.1의 sggCd를 결합해 23.1 단지별 자치구 code를 보강한다."""
+    geocoded = ensure_unique(pd.read_csv(GEOCODED_PATH, sep="\t", usecols=["aptSeq", "gu"]), "aptSeq", "14.1")
+    geocoded = geocoded.rename(columns={"aptSeq": "apt_seq"})
+    sale_codes = trades[["aptSeq", "sggCd", "gu"]].copy()
+    sale_codes["sgg_code"] = normalize_administrative_code(sale_codes["sggCd"])
+    gu_to_sgg = sale_codes.dropna(subset=["gu", "sgg_code"]).groupby("gu")["sgg_code"].agg(modal_code)
+    apt_to_sgg = sale_codes.groupby("aptSeq")["sgg_code"].agg(modal_code)
+    result = complex_df.merge(geocoded, on="apt_seq", how="left", validate="one_to_one")
+    result["sgg_code"] = result["gu"].map(gu_to_sgg).fillna(result["apt_seq"].map(apt_to_sgg))
+    result["sgg_code"] = result["sgg_code"].fillna(result["apt_seq"].astype("string").str.slice(0, 5))
+    result["sgg_code"] = normalize_administrative_code(result["sgg_code"])
+    if result["sgg_code"].isna().any():
+        raise ValueError("23.1 단지의 자치구 code를 보강하지 못했습니다.")
+    return result.drop(columns="gu")
+
+
+def location_key_audit(frame: pd.DataFrame) -> dict:
+    """완전 법정동 키의 범위와 자치구 혼입 여부를 검증한다."""
+    valid = frame.dropna(subset=["bjd_full_key"])
+    mixed = int(valid.groupby("bjd_full_key")["sgg_code"].nunique().gt(1).sum())
+    return {
+        "full_key_unique": int(valid["bjd_full_key"].nunique()),
+        "full_key_rows": len(valid),
+        "bjd_missing_rows": int(frame["bjd_full_key"].isna().sum()),
+        "mixed_sgg_keys": mixed,
+    }
+
+
+def dense_bjd_keys(train: pd.DataFrame, minimum_rows: int = MIN_BJD_TRAIN_ROWS) -> set[str]:
+    counts = train["bjd_full_key"].dropna().value_counts()
+    return set(counts[counts.ge(minimum_rows)].index.astype(str))
+
+
+def complex_holdout(frame: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    hashes = pd.util.hash_pandas_object(frame["apt_seq"].astype(str), index=False).to_numpy(dtype=np.uint64) % 5
+    return frame.loc[hashes != 0].copy(), frame.loc[hashes == 0].copy()
+
+
 def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Period]:
     """최근 24개월 거래를 결합한다. 이 단계에서는 가격 outlier를 제거하지 않는다."""
     trades = pd.read_csv(TRADES_PATH, sep="\t", low_memory=False)
     complex_df = ensure_unique(pd.read_csv(COMPLEX_PATH, sep="\t"), "apt_seq", "complex")
+    complex_df = add_canonical_sgg(complex_df, trades)
     metrics = ensure_unique(pd.read_csv(METRICS_PATH, sep="\t"), "apt_seq", "complex_metrics")
     profile = pd.read_csv(PROFILE_PATH, sep="\t")
     if profile.duplicated(["apt_seq", "floor_band"]).any():
@@ -129,7 +181,7 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
         default="UNKNOWN",
     )
 
-    keep_complex = ["apt_seq", "bjd_code", "built_year", "total_households", "far", "bcr", "parking_per_hh",
+    keep_complex = ["apt_seq", "bjd_code", "sgg_code", "built_year", "total_households", "far", "bcr", "parking_per_hh",
                     "redevelop_type", "redevelop_stage"]
     trades = trades.merge(complex_df[keep_complex], on="apt_seq", how="left", validate="many_to_one")
     trades = trades.merge(metrics, on="apt_seq", how="left", validate="many_to_one")
@@ -156,11 +208,18 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
         raise ValueError("정비사업 매칭 거래에 추진단계 결측이 있습니다.")
     if not trades.loc[trades["is_redevelop"].eq(0), ["redevelop_type", "redevelop_stage"]].isna().all().all():
         raise ValueError("정비사업 미매칭 단지의 유형 또는 단계가 결측이 아닙니다.")
+    trades["bjd_full_key"] = make_full_bjd_key(trades["bjd_code"], trades["sgg_code"])
+    location_audit = location_key_audit(trades)
+    if location_audit["full_key_unique"] < 300:
+        raise AssertionError(f"완전 법정동 키 고유값 부족: {location_audit['full_key_unique']}")
+    if location_audit["mixed_sgg_keys"]:
+        raise AssertionError(f"완전 법정동 키의 자치구 혼입: {location_audit['mixed_sgg_keys']}")
     trades["bjd_code"] = trades["bjd_code"].astype("string").fillna("MISSING")
     trades["price_per_m2"] = pd.to_numeric(trades["deal_amount_manwon"], errors="coerce") / pd.to_numeric(
         trades["excluUseAr"], errors="coerce"
     )
     trades["y"] = np.log(trades["price_per_m2"])
+    trades.attrs["location_audit"] = location_audit
     return trades, start, train_end, latest
 
 
@@ -199,12 +258,17 @@ def apply_train_outlier_rule(train_raw: pd.DataFrame, test_raw: pd.DataFrame) ->
     return train, test, audit
 
 
-def fit_ols(frame: pd.DataFrame, features: dict[str, tuple[str, bool]], context: dict | None = None):
-    """bjd fixed effect와 단지 cluster-robust SE를 사용한 OLS를 적합한다."""
-    design, context = build_design(frame, features, context)
-    result = sm.OLS(frame["y"].astype(float), design).fit(
-        cov_type="cluster", cov_kwds={"groups": frame["apt_seq"].astype(str), "use_correction": True}
-    )
+def fit_ols(
+    frame: pd.DataFrame,
+    features: dict[str, tuple[str, bool]],
+    context: dict | None = None,
+    location_columns: list[str] | None = None,
+    cluster_robust: bool = True,
+):
+    """지역 fixed effect와 단지 cluster-robust SE를 사용한 OLS를 적합한다."""
+    design, context = build_design(frame, features, context, location_columns)
+    model = sm.OLS(frame["y"].astype(float), design)
+    result = model.fit(cov_type="cluster", cov_kwds={"groups": frame["apt_seq"].astype(str), "use_correction": True}) if cluster_robust else model.fit()
     return result, design, context
 
 
@@ -217,13 +281,40 @@ def original_scale_metrics(actual: pd.Series, predicted: np.ndarray) -> dict[str
             "r2": float(1 - np.sum((actual_values - predicted_values) ** 2) / np.sum((actual_values - actual_values.mean()) ** 2))}
 
 
-def fit_and_score(train: pd.DataFrame, test: pd.DataFrame, features: dict[str, tuple[str, bool]]) -> dict:
+def fit_and_score(
+    train: pd.DataFrame, test: pd.DataFrame, features: dict[str, tuple[str, bool]], location_columns: list[str], cluster_robust: bool = True,
+) -> dict:
     """한 feature 조합을 train에만 적합하고 동일한 test에서 평가한다."""
-    result, _, context = fit_ols(train, features)
+    result, _, context = fit_ols(train, features, location_columns=location_columns, cluster_robust=cluster_robust)
     test_design, _ = build_design(test, features, context)
     prediction = np.exp(result.predict(test_design))
     return {"result": result, "context": context, "prediction": prediction,
             "oot": original_scale_metrics(test["price_per_m2"], prediction)}
+
+
+def evaluate_location_controls(train: pd.DataFrame, test: pd.DataFrame) -> tuple[dict, list[dict]]:
+    """완전 법정동과 sparse 법정동을 자치구에 흡수한 계층 FE를 같은 split에서 비교한다."""
+    hold_train, hold_test = complex_holdout(train)
+    candidates = []
+    for scheme in ["full_bjd", "hierarchical"]:
+        fit_dense = dense_bjd_keys(hold_train) if scheme == "hierarchical" else set()
+        hold_fit = add_location_fe_columns(hold_train, scheme, fit_dense)
+        hold_eval = add_location_fe_columns(hold_test, scheme, fit_dense)
+        hold = fit_and_score(hold_fit, hold_eval, M2_FEATURES, location_category_columns(scheme), cluster_robust=False)["oot"]["mape"]
+        oot_dense = dense_bjd_keys(train) if scheme == "hierarchical" else set()
+        oot_fit = add_location_fe_columns(train, scheme, oot_dense)
+        oot_eval = add_location_fe_columns(test, scheme, oot_dense)
+        oot = fit_and_score(oot_fit, oot_eval, M2_FEATURES, location_category_columns(scheme), cluster_robust=False)["oot"]["mape"]
+        candidates.append({
+            "scheme": scheme,
+            "complex_holdout_mape_pct": hold,
+            "out_of_time_mape_pct": oot,
+            "dense_bjd_keys": len(oot_dense) if scheme == "hierarchical" else int(train["bjd_full_key"].nunique()),
+            "sparse_min_train_rows": MIN_BJD_TRAIN_ROWS if scheme == "hierarchical" else 0,
+        })
+    # 단지 holdout을 우선으로 하고, 동률이면 OOT를 쓴다. 두 split 모두 사전에 고정돼 있다.
+    chosen = min(candidates, key=lambda item: (item["complex_holdout_mape_pct"], item["out_of_time_mape_pct"]))
+    return chosen, candidates
 
 
 def joint_wald_test(result, terms: list[str]) -> dict[str, float]:
@@ -293,15 +384,15 @@ def baseline_predictions(train: pd.DataFrame, test: pd.DataFrame) -> tuple[dict[
     last_cell = ordered_train.groupby("cell_key")["price_per_m2"].last()
     last_cell_date = ordered_train.groupby("cell_key")["deal_date"].last()
     cell_n = train.groupby("cell_key").size()
-    bjd_area_median = train.groupby(["bjd_code", "area_type"])["price_per_m2"].median()
-    bjd_median = train.groupby("bjd_code")["price_per_m2"].median()
+    bjd_area_median = train.groupby(["bjd_full_key", "area_type"])["price_per_m2"].median()
+    bjd_median = train.groupby("bjd_full_key")["price_per_m2"].median()
     b1 = test["cell_key"].map(cell_mean).fillna(test["apt_seq"].map(complex_mean)).fillna(global_mean)
     exact_last = test["cell_key"].map(last_cell)
     complex_fallback = test["apt_seq"].map(complex_mean)
     b2 = exact_last.fillna(complex_fallback).fillna(global_mean)
-    b3_keys = pd.MultiIndex.from_frame(test[["bjd_code", "area_type"]])
+    b3_keys = pd.MultiIndex.from_frame(test[["bjd_full_key", "area_type"]])
     b3 = pd.Series(bjd_area_median.reindex(b3_keys).to_numpy(), index=test.index)
-    b3 = b3.fillna(test["bjd_code"].map(bjd_median)).fillna(global_mean)
+    b3 = b3.fillna(test["bjd_full_key"].map(bjd_median)).fillna(global_mean)
     detail = pd.DataFrame(index=test.index)
     detail["b2_source"] = np.select([exact_last.notna(), complex_fallback.notna()], ["exact_cell_last_trade", "complex_mean_fallback"], default="global_mean_fallback")
     detail["train_cell_n"] = test["cell_key"].map(cell_n).fillna(0).astype(int)
@@ -364,11 +455,19 @@ def main() -> None:
     if train.empty:
         raise ValueError("train outlier 정제 후 거래가 없습니다.")
 
-    # A--F: 같은 정제 train/test 표본, 같은 bjd FE·층대·계약월 통제.
+    location_audit = raw.attrs["location_audit"]
+    selected_location, location_candidates = evaluate_location_controls(train, test)
+    location_scheme = selected_location["scheme"]
+    dense_keys = dense_bjd_keys(train) if location_scheme == "hierarchical" else set()
+    train = add_location_fe_columns(train, location_scheme, dense_keys)
+    test = add_location_fe_columns(test, location_scheme, dense_keys)
+    location_columns = location_category_columns(location_scheme)
+
+    # A--F: 같은 정제 train/test 표본, 같은 지역 FE·층대·계약월 통제.
     fitted: dict[str, dict] = {}
     comparison_rows: list[dict] = []
     for key, features in ABLATION_FEATURES.items():
-        fitted[key] = fit_and_score(train, test, features)
+        fitted[key] = fit_and_score(train, test, features, location_columns)
         result, oot = fitted[key]["result"], fitted[key]["oot"]
         comparison_rows.append({"model": ABLATION_LABELS[key], "train_n": int(result.nobs), "test_n": len(test),
                                 "train_R2": result.rsquared, "train_adj_R2": result.rsquared_adj,
@@ -383,7 +482,7 @@ def main() -> None:
     if train_cc.empty or test_cc.empty:
         raise ValueError("complete-case train 또는 test 표본이 비어 있습니다.")
     for key, features in [("G_M2_complete_case", M2_FEATURES), ("G_M3_complete_case", M2_FEATURES | PHYSICAL_FEATURES)]:
-        fitted[key] = fit_and_score(train_cc, test_cc, features)
+        fitted[key] = fit_and_score(train_cc, test_cc, features, location_columns)
         result, oot = fitted[key]["result"], fitted[key]["oot"]
         comparison_rows.append({"model": ABLATION_LABELS[key], "train_n": int(result.nobs), "test_n": len(test_cc),
                                 "train_R2": result.rsquared, "train_adj_R2": result.rsquared_adj,
@@ -433,7 +532,13 @@ def main() -> None:
         f"- test 셀 중 train에 없는 셀: {outlier_audit['test_fallback_cells']:,}/{outlier_audit['test_cells']:,}개; 해당 test 행 {outlier_audit['test_fallback_rows']:,}/{len(test):,}건 ({outlier_audit['test_fallback_rows'] / len(test) * 100:.2f}%). 이 행에는 train 전체 cutoff를 부여했지만 제거하지 않았습니다.",
         f"- train에서 적합한 cutoff 밖에 있는 test 행은 {outlier_audit['test_outside_train_cutoff_n']:,}건으로 flag만 남기고 모두 유지했습니다.",
         "- 명시적 자체 검증: 이상치 cutoff 계산에는 test 기간 가격 데이터가 쓰이지 않았습니다. test는 가격 기준으로 0건 제거했으며, 가격<=0·면적<=0 같은 명백한 오류만 split 전에 제거했습니다.",
-        "- 모든 회귀는 train에만 적합했으며, 표의 R²/adj. R²는 train in-sample 값, MAPE는 out-of-time test 값입니다. 모든 모델은 bjd fixed effect, 층대, 계약월, 단지 cluster-robust SE를 사용합니다.", "",
+        "- 모든 회귀는 train에만 적합했으며, 표의 R²/adj. R²는 train in-sample 값, MAPE는 out-of-time test 값입니다. 모든 모델은 선택된 지역 fixed effect, 층대, 계약월, 단지 cluster-robust SE를 사용합니다.", "",
+        "## 법정동 완전 키 및 지역 통제 선택",
+        f"- 10자리 완전 법정동 키(sggCd 5자리 + bjd_code 5자리 zero-pad) 고유값: {location_audit['full_key_unique']:,}; 키 보유 거래 {location_audit['full_key_rows']:,}건, bjd_code 결측 거래 {location_audit['bjd_missing_rows']:,}건.",
+        f"- 한 완전 키에 자치구가 2개 이상 섞인 경우: {location_audit['mixed_sgg_keys']}건.",
+        "- (a) 완전 법정동 더미와 (b) 자치구 더미 + 법정동 더미를 단지 hash 80/20 holdout 및 OOT에서 비교했습니다. (b)는 train 거래 30건 미만 법정동을 자치구에 흡수합니다. 30건은 더미 한 개당 최소 관측치가 지나치게 적은 법정동을 분리 추정하지 않기 위한 사전 기준입니다.",
+        pd.DataFrame(location_candidates).to_csv(sep="\t", index=False, float_format="%.6f").rstrip(),
+        f"- 채택: {location_scheme}; 선택 우선순위는 단지 holdout MAPE, 동률 시 OOT MAPE입니다. 계층 사양의 최종 dense 법정동 수는 {len(dense_keys):,}개입니다.", "",
         "## Ablation (A--F, H--I는 완전히 동일한 정제 train/test 표본)", comparison.to_csv(sep="\t", index=False, float_format="%.6f").rstrip(),
         "- M2_reference_minus_model_MAPE_pp가 양수이면 해당 모델의 out-of-time MAPE가 해당 행의 M2 기준보다 낮습니다. 이 값의 유의성을 주장하지 않습니다.",
         f"- G complete-case 표본: train {len(train_cc):,}/{len(train):,}건 ({len(train_cc)/len(train)*100:.2f}%), test {len(test_cc):,}/{len(test):,}건 ({len(test_cc)/len(test)*100:.2f}%). 물리 feature가 모두 실제 존재하는 행만 남겼으므로 G의 물리항에는 평균대체가 없습니다.", "",
