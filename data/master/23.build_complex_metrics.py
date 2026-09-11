@@ -67,6 +67,7 @@ PARKS_PATH = output_dir / "24.3.osm_parks.txt"
 NIGHTLIFE_PATH = output_dir / "24.4.osm_nightlife.txt"
 SHOPS_PATH = output_dir / "24.5.osm_shops.txt"
 SCHOOLS_PATH = output_dir / "24.6.osm_schools.txt"
+HOSPITALS_PATH = output_dir / "27.1.hospitals.txt"
 
 OUT_COMPLEX = output_dir / "23.1.complex.txt"
 OUT_METRICS = output_dir / "23.2.complex_metrics.txt"
@@ -87,11 +88,13 @@ CONFIDENCE_RANK = {"LEVEL_MISMATCH": 0, "LOW": 1, "NAME": 2, "HIGH": 3}
 RANK_TO_LABEL = {v: k for k, v in CONFIDENCE_RANK.items()}
 
 # 스펙에는 있으나 이번 입력으로도 만들 수 없는 컬럼 (전량 NULL)
+# 근거 데이터가 없어 전량 NULL로 두는 컬럼. 0이나 추정치로 채우지 않는다.
+#   traffic_*   : 교통량 폐기 (관측 지점 139개, 300m 커버리지 4.6% — decisions.md 44)
+#   daycare_500m: 어린이집 API 키 미확보
+#   river_view_ratio / elem_safe_route / dawn_delivery: 미계산
 NULL_ONLY_METRICS = [
     "river_view_ratio", "traffic_weekday", "traffic_weekend",
-    "elem_safe_route", "daycare_500m",
-    "tertiary_hosp_m", "general_hosp_m", "clinic_1km", "pediatric_1km",
-    "dawn_delivery",
+    "elem_safe_route", "daycare_500m", "dawn_delivery",
 ]
 NULL_ONLY_HORIZON = [
     "repr_floor", "obs_height", "sun_hours_spring", "open_span_max",
@@ -387,6 +390,36 @@ metrics_out["dept_store_m"] = metrics_out["apt_seq"].map(dept_store_by_apt)
 metrics_out["supermarket_m"] = metrics_out["apt_seq"].map(supermarket_by_apt)
 metrics_out["mid_school_m"] = metrics_out["apt_seq"].map(mid_school_by_apt)
 metrics_out["high_school_m"] = metrics_out["apt_seq"].map(high_school_by_apt)
+
+# --- 의료(27.1, 심평원 요양기관 19,905건) ---
+# 등급은 clCdNm 원본값을 그대로 쓴다. 스키마의 tertiary/general은 각각
+# '상급종합'/'종합병원'에 대응한다. clinic_1km은 '의원'만 세며 치과의원·한의원은
+# 제외한다 — 스키마가 별도 컬럼을 두지 않았고 일반 진료 접근성이 취지이기 때문이다.
+# pediatric_1km은 기관명에 '소아'가 들어가는지로 근사한 값이다(27 헤더 참고).
+# 진료과목별 필드가 응답에 없어 이 이상 정확히 가를 수 없다.
+hospitals_df = pd.read_csv(HOSPITALS_PATH, sep="\t").dropna(subset=["lat", "lon"])
+
+
+def hospital_xy(mask):
+    subset = hospitals_df[mask]
+    return to_xy(subset["lon"], subset["lat"])
+
+
+tertiary_xy = hospital_xy(hospitals_df["class_nm"] == "상급종합")
+general_xy = hospital_xy(hospitals_df["class_nm"] == "종합병원")
+clinic_xy = hospital_xy(hospitals_df["class_nm"] == "의원")
+pediatric_xy = hospital_xy(hospitals_df["is_pediatric"].astype(bool))
+
+metrics_out["tertiary_hosp_m"] = pd.Series(
+    nearest_point_dist_m(tertiary_xy), index=anchor_apt_seq).reindex(metrics_out["apt_seq"]).to_numpy()
+metrics_out["general_hosp_m"] = pd.Series(
+    nearest_point_dist_m(general_xy), index=anchor_apt_seq).reindex(metrics_out["apt_seq"]).to_numpy()
+metrics_out["clinic_1km"] = pd.Series(
+    count_within_radius_m(clinic_xy, 1000), index=anchor_apt_seq).reindex(metrics_out["apt_seq"]).to_numpy()
+metrics_out["pediatric_1km"] = pd.Series(
+    count_within_radius_m(pediatric_xy, 1000), index=anchor_apt_seq).reindex(metrics_out["apt_seq"]).to_numpy()
+print(f"  의료: 상급종합 {len(tertiary_xy)} / 종합병원 {len(general_xy)} / "
+      f"의원 {len(clinic_xy)} / 소아 표방 {len(pediatric_xy)}")
 
 for col in NULL_ONLY_METRICS:
     metrics_out[col] = np.nan

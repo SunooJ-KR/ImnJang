@@ -50,10 +50,12 @@
 | `road_arterial_dist_m` `road_secondary_dist_m` | 100% | 26.1. 위계별(간선/보조간선) 거리. 스키마 외 추가 컬럼 |
 | `station_ridership_daily` | 88.0% | 최근접 역 일평균 승하차. 중앙값 29,089명 |
 | `station_congestion_peak` | 85.8% | 평일 08~09시 최대 혼잡도(%). 스키마 외 추가 컬럼 |
+| `tertiary_hosp_m` `general_hosp_m` | 100% | 상급종합(14곳) / 종합병원까지 최근접. 중앙값 2.7km / 1.5km |
+| `clinic_1km` `pediatric_1km` | 100% | 반경 1km 내 의원 수(중앙값 72) / 소아 표방 기관 수(중앙값 3) |
 
 **빈 것 (전량 NULL)**
 
-`river_view_ratio` `station_elev_diff` `traffic_weekday` `traffic_weekend` `elem_safe_route` `daycare_500m` `tertiary_hosp_m` `general_hosp_m` `clinic_1km` `pediatric_1km` `dawn_delivery`
+`river_view_ratio` `station_elev_diff` `traffic_weekday` `traffic_weekend` `elem_safe_route` `daycare_500m` `dawn_delivery`
 
 ### `horizon_profile`
 
@@ -130,7 +132,8 @@
 |---|---|
 | DEM 미확보, 지면을 평지(z=0)로 가정 | 경사지에서 차폐가 과소/과대 추정 |
 | 승하차·혼잡도는 **서울교통공사 운영 노선만** | 9호선·공항철도·신분당선·GTX·경의중앙선·수인분당선·우이신설선과 경기 연장 구간은 발행처가 달라 데이터가 없다. 역 317개 중 245개 매칭(77.3%). 표기 오류가 아니라 운영주체 범위 차이다 |
-| 병원 등급·어린이집 미수집 | 해당 필터 제공 불가 |
+| 어린이집 미수집 | `daycare_500m` 결측. info.childcare.go.kr 개발계정 키 필요 |
+| **소아과는 기관명 근사** | 심평원 응답에 진료과목별 필드가 없다(의과·치과·한방 구분뿐). `pediatric_1km`은 기관명에 '소아'가 들어가는 477곳으로 근사했고, 종합병원 안의 소아과는 놓친다 |
 | 교통량 **폐기** | 서울 관측 지점이 139개뿐이라 300m 기준 커버리지 4.6%. 소음원 근접도는 `road_centerline_m`(100% 채움)으로 대체한다 (`decisions.md` 44~45) |
 | 조망 대상(한강·공원·산) 미판정 | `river_view` 등 전량 결측 |
 | 일조는 동지 기준 단일 계절 | 봄가을 미계산 (`plan.md` §8.2 절단 2순위) |
