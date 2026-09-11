@@ -146,11 +146,20 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
         errors="coerce",
     ).fillna(trades["deal_period"].dt.to_timestamp())
 
-    # M2의 층 통제는 profile 매칭 여부와 독립적이어야 한다. profile의 최고층 proxy를
-    # 쓰면 floor_band=UNKNOWN 자체가 profile availability의 완전한 대리변수가 된다.
+    # 가격 셀(32)과 같은 HIGH repr_floor 최고층 proxy의 삼등분 규칙을 쓴다.
+    # profile이 없거나 거래 층이 결측이면 UNKNOWN으로 남긴다.
+    high_floor_proxy = profile.loc[profile["floor_band"].eq("HIGH"), ["apt_seq", "repr_floor"]].copy()
+    high_floor_proxy["repr_floor"] = pd.to_numeric(high_floor_proxy["repr_floor"], errors="coerce")
+    if high_floor_proxy["apt_seq"].duplicated().any():
+        raise ValueError("horizon_profile의 HIGH repr_floor가 apt_seq별로 유일하지 않습니다.")
+    high_floor_proxy = high_floor_proxy.set_index("apt_seq")["repr_floor"]
     floor = pd.to_numeric(trades["floor"], errors="coerce")
+    max_floor = trades["apt_seq"].map(high_floor_proxy)
+    has_proxy = max_floor.notna() & max_floor.gt(0)
     trades["floor_band"] = np.select(
-        [floor.le(5), floor.between(6, 15), floor.gt(15)],
+        [has_proxy & floor.le(max_floor / 3),
+         has_proxy & floor.gt(max_floor / 3) & floor.le(max_floor * 2 / 3),
+         has_proxy & floor.gt(max_floor * 2 / 3)],
         ["LOW", "MID", "HIGH"],
         default="UNKNOWN",
     )
@@ -551,7 +560,7 @@ def main() -> None:
         f"- VIF에서 제외된 상수열: {diag['constant_columns_excluded_from_vif']}",
         f"- 중복으로 제거한 물리 결측지시자: {diag['dropped_duplicate_physical_indicators']}",
         f"- floor_band_UNKNOWN과 완전 공선성으로 회귀 및 joint test에서 제외한 물리 결측지시자: {diag['dropped_collinear_physical_columns']}",
-        "- B는 실제 층수의 고정 구간(LOW<=5, MID=6-15, HIGH>=16)만 통제한 A에 profile availability를 추가한 모델입니다. 따라서 B의 증분은 profile 매칭 성공이라는 선택 효과 자체를 나타냅니다.",
+        "- B는 층대(HIGH repr_floor 최고층 proxy의 삼등분)만 통제한 A에 profile availability를 추가한 모델입니다. 따라서 B의 증분은 profile 매칭 성공이라는 선택 효과 자체를 나타냅니다.",
         "", "### VIF",
         vif_table.to_csv(sep="\t", index=False, float_format="%.6f").rstrip(), "", "### Correlation matrix",
         correlation.to_csv(sep="\t", float_format="%.6f").rstrip(), "", "## 물리 계수의 실질 크기 (F 모델, train; cluster-robust 95% CI)",
