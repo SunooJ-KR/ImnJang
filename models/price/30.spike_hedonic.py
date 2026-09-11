@@ -65,6 +65,10 @@ PHYSICAL_FEATURES = {
     "park_view": ("park_view", False),
     "mountain_view": ("mountain_view", False),
 }
+REDEVELOP_FEATURES = {
+    "is_redevelop": ("is_redevelop", False),
+    "redevelop_stage_advanced": ("redevelop_stage_advanced", False),
+}
 M2_FEATURES = BASE_FEATURES | LOCATION_FEATURES
 
 # A--F는 완전히 같은 train/test 표본으로 비교한다. B는 값이 아니라 profile 매칭 성공만 넣는다.
@@ -76,6 +80,8 @@ ABLATION_FEATURES = {
     "E_openness_3": M2_FEATURES
     | {name: PHYSICAL_FEATURES[name] for name in ["open_angle_mean", "view_block_pct", "open_span_max"]},
     "F_M3_all_physical": M2_FEATURES | PHYSICAL_FEATURES,
+    "H_M2_redevelop": M2_FEATURES | REDEVELOP_FEATURES,
+    "I_M3_redevelop": M2_FEATURES | PHYSICAL_FEATURES | REDEVELOP_FEATURES,
 }
 ABLATION_LABELS = {
     "A_M2": "A. M2 (기준)",
@@ -86,6 +92,8 @@ ABLATION_LABELS = {
     "F_M3_all_physical": "F. M3 (물리 feature 전체)",
     "G_M2_complete_case": "G-1. complete-case M2",
     "G_M3_complete_case": "G-2. complete-case M3",
+    "H_M2_redevelop": "H. M2 + 정비사업 신호만",
+    "I_M3_redevelop": "I. M3 + 정비사업 신호 (= 전체)",
 }
 
 
@@ -147,7 +155,8 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
         default="UNKNOWN",
     )
 
-    keep_complex = ["apt_seq", "bjd_code", "built_year", "total_households", "far", "bcr", "parking_per_hh"]
+    keep_complex = ["apt_seq", "bjd_code", "built_year", "total_households", "far", "bcr", "parking_per_hh",
+                    "redevelop_type", "redevelop_stage"]
     trades = trades.merge(complex_df[keep_complex], on="apt_seq", how="left", validate="many_to_one")
     trades = trades.merge(metrics, on="apt_seq", how="left", validate="many_to_one")
     physical = profile.drop(columns=["repr_floor", "obs_height", "sun_hours_spring"], errors="ignore")
@@ -165,6 +174,14 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
         trades[column] = bool_to_float(trades[column])
     for column in ["far", "bcr", "parking_per_hh"]:
         trades[column] = pd.to_numeric(trades[column], errors="coerce")
+    # 23.1의 유형·단계 결측은 비매칭이며, 비매칭 사유(구역 아님/대표 지번 차이)는
+    # 구분할 수 없다. 회귀 signal은 지번 완전일치 재건축 추진 단지의 조건부 지표다.
+    trades["is_redevelop"] = trades["redevelop_type"].notna().astype(float)
+    trades["redevelop_stage_advanced"] = trades["redevelop_stage"].isin(["관리처분", "착공"]).astype(float)
+    if not trades.loc[trades["is_redevelop"].eq(1), "redevelop_stage"].notna().all():
+        raise ValueError("정비사업 매칭 거래에 추진단계 결측이 있습니다.")
+    if not trades.loc[trades["is_redevelop"].eq(0), ["redevelop_type", "redevelop_stage"]].isna().all().all():
+        raise ValueError("정비사업 미매칭 단지의 유형 또는 단계가 결측이 아닙니다.")
     trades["bjd_code"] = trades["bjd_code"].astype("string").fillna("MISSING")
     trades["price_per_m2"] = pd.to_numeric(trades["deal_amount_manwon"], errors="coerce") / pd.to_numeric(
         trades["excluUseAr"], errors="coerce"
@@ -404,13 +421,13 @@ def grouped_baseline_comparison(test: pd.DataFrame, detail: pd.DataFrame, b2: pd
     return pd.DataFrame(rows)
 
 
-def coefficient_table(result) -> pd.DataFrame:
+def coefficient_table(result, model_name: str) -> pd.DataFrame:
     """log-price 계수를 가격 변화율과 cluster-robust 95% CI로 함께 변환한다."""
     rows = []
     for term in result.params.index:
         beta, se = float(result.params[term]), float(result.bse[term])
         ci_low, ci_high = beta - 1.96 * se, beta + 1.96 * se
-        rows.append({"model": "F_M3_all_physical (train only)", "term": term, "coefficient_log_price": beta,
+        rows.append({"model": model_name, "term": term, "coefficient_log_price": beta,
                      "cluster_robust_se": se, "coefficient_ci95_low": ci_low, "coefficient_ci95_high": ci_high,
                      "p_value": float(result.pvalues[term]), "price_change_pct_per_unit": (np.exp(beta) - 1) * 100,
                      "price_change_pct_ci95_low": (np.exp(ci_low) - 1) * 100,
@@ -422,6 +439,15 @@ def coefficient_table(result) -> pd.DataFrame:
 
 def main() -> None:
     raw, start, train_end, latest = load_pre_split_sample()
+    complex_redevelop = ensure_unique(
+        pd.read_csv(COMPLEX_PATH, sep="\t", usecols=["apt_seq", "redevelop_type", "redevelop_stage"]),
+        "apt_seq", "complex 정비사업",
+    )
+    n_complexes_total = len(complex_redevelop)
+    n_redevelop_complexes = int(complex_redevelop["redevelop_type"].notna().sum())
+    n_redevelop_advanced = int(complex_redevelop["redevelop_stage"].isin(["관리처분", "착공"]).sum())
+    if not complex_redevelop.loc[complex_redevelop["redevelop_type"].isna(), "redevelop_stage"].isna().all():
+        raise ValueError("23.1 정비사업 미매칭 단지의 추진단계가 결측이 아닙니다.")
     train_raw = raw.loc[raw["deal_period"].le(train_end)].copy()
     test_raw = raw.loc[raw["deal_period"].gt(train_end)].copy()
     if train_raw.empty or test_raw.empty:
@@ -476,7 +502,12 @@ def main() -> None:
     wald = joint_wald_test(m3_fit["result"], physical_terms)
     bootstrap = paired_block_bootstrap_mape(test, m2_fit["prediction"], m3_fit["prediction"])
     correlation, vif_table, diag = physical_diagnostics(train, m3_fit["context"])
-    coefficients = coefficient_table(m3_fit["result"])
+    coefficients_f = coefficient_table(m3_fit["result"], "F_M3_all_physical (train only)")
+    redevelop_coefficients = coefficient_table(
+        fitted["I_M3_redevelop"]["result"], "I_M3_redevelop (train only)"
+    ).query("term in @REDEVELOP_FEATURES")
+    # 30.2에는 기존 F 전체 계수와 새 I의 정비사업 signal 계수를 함께 남긴다.
+    coefficients = pd.concat([coefficients_f, redevelop_coefficients], ignore_index=True)
     coefficients.to_csv(COEFFICIENTS_PATH, sep="\t", index=False, float_format="%.8g")
 
     baselines, b2_detail = baseline_predictions(train, test)
@@ -484,7 +515,7 @@ def main() -> None:
     source_table = grouped_baseline_comparison(test, b2_detail, baselines["B2_last_train_trade"], m3_fit["prediction"], "b2_source")
     elapsed_table = grouped_baseline_comparison(test, b2_detail, baselines["B2_last_train_trade"], m3_fit["prediction"], "elapsed_bin")
     cell_n_table = grouped_baseline_comparison(test, b2_detail, baselines["B2_last_train_trade"], m3_fit["prediction"], "cell_n_bin")
-    physical_coefficients = coefficients.loc[coefficients["physical_feature"]].copy()
+    physical_coefficients = coefficients_f.loc[coefficients_f["physical_feature"]].copy()
 
     report = [
         "# 물리·입지 hedonic spike 결과 (누수 방지 재검증)", "", "## 표본·split·이상치 규칙",
@@ -497,9 +528,18 @@ def main() -> None:
         f"- train에서 적합한 cutoff 밖에 있는 test 행은 {outlier_audit['test_outside_train_cutoff_n']:,}건으로 flag만 남기고 모두 유지했습니다.",
         "- 명시적 자체 검증: 이상치 cutoff 계산에는 test 기간 가격 데이터가 쓰이지 않았습니다. test는 가격 기준으로 0건 제거했으며, 가격<=0·면적<=0 같은 명백한 오류만 split 전에 제거했습니다.",
         "- 모든 회귀는 train에만 적합했으며, 표의 R²/adj. R²는 train in-sample 값, MAPE는 out-of-time test 값입니다. 모든 모델은 bjd fixed effect, 층대, 계약월, 단지 cluster-robust SE를 사용합니다.", "",
-        "## Ablation (A--F는 완전히 동일한 정제 train/test 표본)", comparison.to_csv(sep="\t", index=False, float_format="%.6f").rstrip(),
+        "## Ablation (A--F, H--I는 완전히 동일한 정제 train/test 표본)", comparison.to_csv(sep="\t", index=False, float_format="%.6f").rstrip(),
         "- M2_reference_minus_model_MAPE_pp가 양수이면 해당 모델의 out-of-time MAPE가 해당 행의 M2 기준보다 낮습니다. 이 값의 유의성을 주장하지 않습니다.",
         f"- G complete-case 표본: train {len(train_cc):,}/{len(train):,}건 ({len(train_cc)/len(train)*100:.2f}%), test {len(test_cc):,}/{len(test):,}건 ({len(test_cc)/len(test)*100:.2f}%). 물리 feature가 모두 실제 존재하는 행만 남겼으므로 G의 물리항에는 평균대체가 없습니다.", "",
+        "## 정비사업 signal의 정의·해석 한계",
+        "- is_redevelop=1은 31.1에서 정비사업 구역 대표 지번과 단지 지번이 완전일치한 경우입니다. 0은 비매칭이며, 재건축 구역이 아님과 대표 지번 차이로 인한 매칭 실패를 구분하지 못합니다.",
+        "- redevelop_stage_advanced=1은 관리처분·착공, 그 외 매칭된 추진단계는 0입니다. 미매칭도 0이나 is_redevelop과 함께 넣었으므로, 이 항의 해석은 is_redevelop=1인 단지 안에서의 단계 차이라는 조건부 해석입니다.",
+        f"- 지번 완전일치 단지는 {n_redevelop_complexes:,}/{n_complexes_total:,} ({n_redevelop_complexes / n_complexes_total * 100:.2f}%)이며, advanced 단계는 {n_redevelop_advanced:,}단지입니다.",
+        "- 31의 자체 검증 기준 재개발 구역 매칭은 5/302 (1.7%)에 그쳤습니다. 따라서 is_redevelop 계수는 '정비사업 구역' 일반의 효과가 아니라 사실상 '재건축 추진 아파트 단지'의 효과입니다.",
+        "- 매칭 단지가 150개뿐이므로 cluster-robust CI의 폭을 함께 보고하며, 넓은 CI는 정밀한 효과 추정을 뒷받침하지 못합니다.", "",
+        "## 정비사업 signal 계수 (I 모델, train; cluster-robust 95% CI)",
+        redevelop_coefficients[["term", "coefficient_log_price", "cluster_robust_se", "p_value", "price_change_pct_per_unit", "price_change_pct_ci95_low", "price_change_pct_ci95_high", "interpretation"]].to_csv(sep="\t", index=False, float_format="%.8g").rstrip(),
+        "- 가격 변화율은 exp(계수)-1로 변환했습니다. is_redevelop은 0→1, redevelop_stage_advanced는 매칭 단지 내 non-advanced→advanced의 조건부 비교입니다.", "",
         "## 물리 feature 전체의 cluster-robust joint Wald test (F 모델, train)",
         f"- H0: 물리항 및 유지된 물리 결측지시자의 계수가 모두 0; F({wald['df_num']:.0f}, {wald['df_denom']:.0f}) = {wald['f_stat']:.6f}, p = {wald['p_value']:.6g}; 항 수 = {wald['n_terms']}",
         f"- 검정 포함 항: {wald['terms']}", "",

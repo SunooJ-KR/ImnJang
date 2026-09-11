@@ -11,7 +11,7 @@
 - 명시적 자체 검증: 이상치 cutoff 계산에는 test 기간 가격 데이터가 쓰이지 않았습니다. test는 가격 기준으로 0건 제거했으며, 가격<=0·면적<=0 같은 명백한 오류만 split 전에 제거했습니다.
 - 모든 회귀는 train에만 적합했으며, 표의 R²/adj. R²는 train in-sample 값, MAPE는 out-of-time test 값입니다. 모든 모델은 bjd fixed effect, 층대, 계약월, 단지 cluster-robust SE를 사용합니다.
 
-## Ablation (A--F는 완전히 동일한 정제 train/test 표본)
+## Ablation (A--F, H--I는 완전히 동일한 정제 train/test 표본)
 model	train_n	test_n	train_R2	train_adj_R2	out_of_time_MAPE_pct	out_of_time_MAE_manwon_per_m2	out_of_time_R2	increment_reference	delta_R2_vs_M2_reference	delta_adj_R2_vs_M2_reference	M2_reference_minus_model_MAPE_pp
 A. M2 (기준)	85611	37154	0.427252	0.426509	28.630769	509.987426	0.290153	A. M2 (기준)	0.000000	0.000000	0.000000
 B. M2 + physical profile availability만	85611	37154	0.427496	0.426746	28.620901	510.192603	0.288941	A. M2 (기준)	0.000243	0.000237	0.009868
@@ -19,10 +19,25 @@ C. M2 + river_view만	85611	37154	0.478550	0.477861	27.072876	483.267662	0.35005
 D. M2 + sun_hours_winter만	85611	37154	0.428875	0.428120	28.584413	509.344557	0.291775	A. M2 (기준)	0.001623	0.001611	0.046356
 E. M2 + 개방도 3종만	85611	37154	0.435455	0.434696	28.309229	505.578962	0.299766	A. M2 (기준)	0.008203	0.008187	0.321540
 F. M3 (물리 feature 전체)	85611	37154	0.494935	0.494226	26.438277	473.818981	0.366087	A. M2 (기준)	0.067683	0.067718	2.192492
+H. M2 + 정비사업 신호만	85611	37154	0.481609	0.480924	27.900137	495.313571	0.336958	A. M2 (기준)	0.054357	0.054415	0.730632
+I. M3 + 정비사업 신호 (= 전체)	85611	37154	0.538671	0.538012	25.884168	461.916679	0.404320	A. M2 (기준)	0.111418	0.111504	2.746601
 G-1. complete-case M2	64464	27774	0.458177	0.457310	28.069990	510.446182	0.320948	G-1. complete-case M2	0.000000	0.000000	0.000000
 G-2. complete-case M3	64464	27774	0.537303	0.536513	25.689833	467.069328	0.417638	G-1. complete-case M2	0.079126	0.079203	2.380157
 - M2_reference_minus_model_MAPE_pp가 양수이면 해당 모델의 out-of-time MAPE가 해당 행의 M2 기준보다 낮습니다. 이 값의 유의성을 주장하지 않습니다.
 - G complete-case 표본: train 64,464/85,611건 (75.30%), test 27,774/37,154건 (74.75%). 물리 feature가 모두 실제 존재하는 행만 남겼으므로 G의 물리항에는 평균대체가 없습니다.
+
+## 정비사업 signal의 정의·해석 한계
+- is_redevelop=1은 31.1에서 정비사업 구역 대표 지번과 단지 지번이 완전일치한 경우입니다. 0은 비매칭이며, 재건축 구역이 아님과 대표 지번 차이로 인한 매칭 실패를 구분하지 못합니다.
+- redevelop_stage_advanced=1은 관리처분·착공, 그 외 매칭된 추진단계는 0입니다. 미매칭도 0이나 is_redevelop과 함께 넣었으므로, 이 항의 해석은 is_redevelop=1인 단지 안에서의 단계 차이라는 조건부 해석입니다.
+- 지번 완전일치 단지는 150/9,160 (1.64%)이며, advanced 단계는 32단지입니다.
+- 31의 자체 검증 기준 재개발 구역 매칭은 5/302 (1.7%)에 그쳤습니다. 따라서 is_redevelop 계수는 '정비사업 구역' 일반의 효과가 아니라 사실상 '재건축 추진 아파트 단지'의 효과입니다.
+- 매칭 단지가 150개뿐이므로 cluster-robust CI의 폭을 함께 보고하며, 넓은 CI는 정밀한 효과 추정을 뒷받침하지 못합니다.
+
+## 정비사업 signal 계수 (I 모델, train; cluster-robust 95% CI)
+term	coefficient_log_price	cluster_robust_se	p_value	price_change_pct_per_unit	price_change_pct_ci95_low	price_change_pct_ci95_high	interpretation
+is_redevelop	0.54360559	0.051267593	2.8765251e-26	72.220524	55.756095	90.42535	1단위 증가(이진 변수는 0→1) 시 가격 변화율
+redevelop_stage_advanced	-0.13640516	0.12782929	0.28593188	-12.751094	-32.087534	12.090931	1단위 증가(이진 변수는 0→1) 시 가격 변화율
+- 가격 변화율은 exp(계수)-1로 변환했습니다. is_redevelop은 0→1, redevelop_stage_advanced는 매칭 단지 내 non-advanced→advanced의 조건부 비교입니다.
 
 ## 물리 feature 전체의 cluster-robust joint Wald test (F 모델, train)
 - H0: 물리항 및 유지된 물리 결측지시자의 계수가 모두 0; F(9, 5774) = 23.464229, p = 8.71048e-40; 항 수 = 9

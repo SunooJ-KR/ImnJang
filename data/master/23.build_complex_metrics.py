@@ -74,6 +74,7 @@ SCHOOLS_PATH = output_dir / "24.6.osm_schools.txt"
 HOSPITALS_PATH = output_dir / "27.1.hospitals.txt"
 VIEW_PATH = output_dir / "29.1.view_metrics.txt"
 COMPLEX_VIEW_PATH = output_dir / "29.2.complex_view.txt"
+REDEVELOP_PATH = output_dir / "31.1.complex_redevelop.txt"
 
 OUT_COMPLEX = output_dir / "23.1.complex.txt"
 OUT_METRICS = output_dir / "23.2.complex_metrics.txt"
@@ -134,6 +135,19 @@ print(f"  29.1 층대 조망:    {len(view_df)}행")
 print(f"  29.2 단지 조망:    {len(complex_view_df)}행")
 assert not view_df.duplicated(["aptSeq", "floor_band"]).any(), "29.1 키 중복"
 assert complex_view_df["aptSeq"].is_unique, "29.2 aptSeq 중복"
+
+# 31.1은 정비사업 구역의 대표 지번과 단지 지번이 완전히 일치한 경우만 담는다.
+# 따라서 여기서 매칭되지 않은 단지는 '재건축 구역이 아님'과 '대표 지번이 달라
+# 매칭에 실패함'을 구분할 수 없다. redevelop_type/stage는 False, 0, '없음'으로
+# 채우지 않고 결측으로 보존한다.
+redevelop_df = pd.read_csv(REDEVELOP_PATH, sep="\t", dtype={"aptSeq": str})
+required_redevelop_columns = {"aptSeq", "redevelop_type", "redevelop_stage"}
+missing_redevelop_columns = required_redevelop_columns - set(redevelop_df.columns)
+assert not missing_redevelop_columns, f"31.1 필수 컬럼 없음: {sorted(missing_redevelop_columns)}"
+assert redevelop_df["aptSeq"].is_unique, "31.1에 aptSeq 중복이 있다"
+assert redevelop_df[["redevelop_type", "redevelop_stage"]].notna().all().all(), \
+    "31.1 매칭 행에 정비사업 유형 또는 단계 결측이 있다"
+print(f"  31.1 정비사업 지번 완전일치: {len(redevelop_df)}단지")
 
 
 # ============================================================================
@@ -251,10 +265,15 @@ complex_out["far"] = apt_join_key.map(ledger_rep["far"]).to_numpy()
 complex_out["bcr"] = apt_join_key.map(ledger_rep["bcr"]).to_numpy()
 parking_total = apt_join_key.map(parking_total_by_key)
 complex_out["parking_per_hh"] = (parking_total / complex_out["total_households"]).to_numpy()
+complex_out = complex_out.merge(
+    redevelop_df[["aptSeq", "redevelop_type", "redevelop_stage"]].rename(columns={"aptSeq": "apt_seq"}),
+    on="apt_seq", how="left", validate="one_to_one",
+)
 
 complex_out = complex_out[[
     "apt_seq", "name", "bjd_code", "lat", "lng", "built_year", "total_households",
-    "building_count", "far", "bcr", "parking_per_hh", "polygon_matched", "match_confidence",
+    "building_count", "far", "bcr", "parking_per_hh", "redevelop_type", "redevelop_stage",
+    "polygon_matched", "match_confidence",
 ]]
 
 complex_out.to_csv(OUT_COMPLEX, sep="\t", index=False)
@@ -520,6 +539,14 @@ print("  미계산 컬럼이 0/추정치로 채워지지 않았으며, 신규 �
 assert (complex_out["bcr"].dropna() >= 0).all(), "complex.bcr에 음수가 있다"
 assert (complex_out["far"].dropna() >= 0).all(), "complex.far에 음수가 있다"
 assert (complex_out["parking_per_hh"].dropna() >= 0).all(), "complex.parking_per_hh에 음수가 있다"
+# 31.1에 없는 단지는 비매칭 사유를 식별할 수 없으므로 두 정비사업 컬럼 모두 결측이어야 한다.
+redevelop_matched = complex_out["apt_seq"].isin(redevelop_df["aptSeq"])
+assert complex_out.loc[redevelop_matched, ["redevelop_type", "redevelop_stage"]].notna().all().all(), \
+    "정비사업 매칭 단지의 유형 또는 단계가 결측이다"
+assert complex_out.loc[~redevelop_matched, ["redevelop_type", "redevelop_stage"]].isna().all().all(), \
+    "정비사업 미매칭 단지가 결측 이외의 값으로 채워졌다"
+print(f"  정비사업 유형·단계: 지번 완전일치 {int(redevelop_matched.sum())}건만 채움, "
+      f"나머지 {int((~redevelop_matched).sum())}건은 결측 보존")
 for col in ["road_centerline_m", "road_arterial_dist_m", "road_secondary_dist_m", "rail_centerline_m",
             "mid_school_m", "high_school_m", "dept_store_m", "supermarket_m", "park_m", "park_area_m2"]:
     assert (metrics_out[col].dropna() >= 0).all(), f"complex_metrics.{col}에 음수가 있다"
