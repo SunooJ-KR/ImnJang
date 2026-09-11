@@ -1,0 +1,39 @@
+# 33.2 cold-start 전세 feature 평가
+
+## A. 데이터 정합
+- A1 11.2→11.1 교집합 7,592단지 (11.2 85.59%, 11.1 96.31%); 11.2→23.1 8,870단지 (11.2 100.00%, 23.1 96.83%). 형식 불일치 0행.
+- A2 11.2이나 23.1 미존재 행 제외 52,113; A3 excluUseAr <=0/결측/>300m² 제외 8.
+
+## J/K/L 동일 split
+variant	family	D4_spec	OOT_MAPE_pct	holdout_MAPE_pct	<=20	21~100	101+
+J: I (전세 없음)	LightGBM	linear	15.055260	15.580892	21.037516	18.766517	15.340362
+K: 순수 전세 / 자치구 교호	LightGBM	sgg interaction	12.627095	9.721717	19.408206	14.304255	9.312355
+L: 5% 환산 / 자치구 교호	LightGBM	sgg interaction	12.193801	9.591102	18.843649	12.689980	9.264487
+- 주 지표는 단지 holdout이며 1,142단지/18,177행을 안정 hash 80/20으로 분리했습니다. D4 linear와 자치구×전세가 교호항은 각각 holdout으로 선택했습니다.
+- 전세 feature 채택: L: 5% 환산 / 자치구 교호 / LightGBM.
+
+## B/C 전세 처리
+- B1 순수 전세 732,200행 및 보증부월세 환산을 모두 평가; 환산식=보증금+월세×12/0.05 (연 5% 고정).
+- B2 셀 대표값은 평균이 아닌 expanding 중앙값. 단지×면적×분기 하위10% 비중: PURE 30.79%, CONVERTED 24.65%. contractType/preDeposit 부재로 갱신계약 완전 탐지는 불가하며 저가 갱신계약이 남을 수 있습니다.
+- B4 준공월 부재로 준공연도 1월 proxy부터 12개월 이내 is_move_in_period을 feature에 포함. B5 1/99% cutoff는 train rent만으로 적합 (PURE 128,141행, CONVERTED 160,558행 제거).
+- C1 자치구×월 중앙값 전세 index로 기준월 보정. C2 평가 feature/index source 최대월=2026-02; test 기간 rent는 사용하지 않았습니다. C3 최종 추정은 2026-08 이전 최근 rent 사용.
+
+## conformal
+- nominal 80% 구간의 log 상대오차 10/90 분위 -0.126060, 0.222557. inner_fit은 80% 단지×2024-09~2025-11 (4,321단지/58,086행), inner_cal은 hash calibration 단지×2025-12~2026-02 (557단지/2,252행)입니다.
+- inner_cal coverage 79.93%, test coverage 79.55%, 차이 -0.38%p. inner_cal 기간은 3개월입니다.
+- 명목 수준	log 하한	log 상한	inner_cal coverage	test coverage
+- 70%	-0.094435	0.183244	69.98%	69.37%
+- 80%	-0.126060	0.222557	79.93%	79.55%
+- 90%	-0.192927	0.300928	89.96%	91.44%
+
+## cold-start
+- 2,318 단지 중 sale/rent 면적·층대 합집합 2,315단지/6,730행; 면적 미발견 3개. A4 면적 출처 {'RENT': 3378, 'BOTH': 952, 'SALE': 386}.
+- jeonse_level {'RENT_CELL': 5998, 'RENT_COMPLEX': 482, 'SALE_CELL': 154, 'NONE': 96}; B3 전세/추정매매가>1.0 플래그 403행(제거 안 함).
+- est_confidence {'LOW': 4512, 'MEDIUM': 1384, 'HIGH': 834}; <=20세대는 holdout 외삽 위험으로 LOW 강등.
+
+## 자체 검증
+- [PASS] A1 aptSeq key 체계: malformed 0
+- [PASS] 33.1/32.1 apt_seq 겹침 0건: 0
+- [PASS] test coverage nominal 80% ±8%p: 79.55%
+- [PASS] test 전세 feature test기간 데이터 미사용: 최대 2026-02
+- [PASS] 전세 채택시 J보다 holdout 개선: J 15.58 / 후보 9.59

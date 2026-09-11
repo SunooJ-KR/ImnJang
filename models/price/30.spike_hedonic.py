@@ -17,6 +17,16 @@ import pandas as pd
 import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
+from _features import (
+    I_MODEL_FEATURES,
+    M2_FEATURES,
+    PHYSICAL_FEATURES,
+    REDEVELOP_FEATURES,
+    bool_to_float,
+    build_design,
+    transformed_feature,
+)
+
 
 work_dir = Path(__file__).resolve().parents[2]
 output_dir = work_dir / "output"
@@ -32,45 +42,6 @@ BASELINE_PATH = output_dir / "30.3.baseline_breakdown.txt"
 BOOTSTRAP_REPS = 1_000
 BOOTSTRAP_SEED = 20260911
 
-BASE_FEATURES = {
-    "log_area_m2": ("excluUseAr", True),
-    "built_year": ("built_year", False),
-    "log_total_households": ("total_households", True),
-}
-LOCATION_FEATURES = {
-    "log_station_dist_m": ("station_dist_m", True),
-    "log_station_ridership_daily": ("station_ridership_daily", True),
-    "log_elem_school_m": ("elem_school_m", True),
-    "log_mid_school_m": ("mid_school_m", True),
-    "log_general_hosp_m": ("general_hosp_m", True),
-    "log_park_m": ("park_m", True),
-    "log_park_area_m2": ("park_area_m2", True),
-    "cvs_500m": ("cvs_500m", False),
-    "restaurant_500m": ("restaurant_500m", False),
-    "nightlife_300m": ("nightlife_300m", False),
-    "log_dept_store_m": ("dept_store_m", True),
-    "log_mart_m": ("mart_m", True),
-    "log_road_arterial_dist_m": ("road_arterial_dist_m", True),
-    "log_rail_centerline_m": ("rail_centerline_m", True),
-    "far": ("far", False),
-    "bcr": ("bcr", False),
-    "parking_per_hh": ("parking_per_hh", False),
-}
-PHYSICAL_FEATURES = {
-    "sun_hours_winter": ("sun_hours_winter", False),
-    "open_angle_mean": ("open_angle_mean", False),
-    "view_block_pct": ("view_block_pct", False),
-    "open_span_max": ("open_span_max", False),
-    "river_view": ("river_view", False),
-    "park_view": ("park_view", False),
-    "mountain_view": ("mountain_view", False),
-}
-REDEVELOP_FEATURES = {
-    "is_redevelop": ("is_redevelop", False),
-    "redevelop_stage_advanced": ("redevelop_stage_advanced", False),
-}
-M2_FEATURES = BASE_FEATURES | LOCATION_FEATURES
-
 # A--F는 완전히 같은 train/test 표본으로 비교한다. B는 값이 아니라 profile 매칭 성공만 넣는다.
 ABLATION_FEATURES = {
     "A_M2": M2_FEATURES,
@@ -81,7 +52,7 @@ ABLATION_FEATURES = {
     | {name: PHYSICAL_FEATURES[name] for name in ["open_angle_mean", "view_block_pct", "open_span_max"]},
     "F_M3_all_physical": M2_FEATURES | PHYSICAL_FEATURES,
     "H_M2_redevelop": M2_FEATURES | REDEVELOP_FEATURES,
-    "I_M3_redevelop": M2_FEATURES | PHYSICAL_FEATURES | REDEVELOP_FEATURES,
+    "I_M3_redevelop": I_MODEL_FEATURES,
 }
 ABLATION_LABELS = {
     "A_M2": "A. M2 (기준)",
@@ -95,12 +66,6 @@ ABLATION_LABELS = {
     "H_M2_redevelop": "H. M2 + 정비사업 신호만",
     "I_M3_redevelop": "I. M3 + 정비사업 신호 (= 전체)",
 }
-
-
-def bool_to_float(series: pd.Series) -> pd.Series:
-    """True/False 문자열과 Boolean을 1/0/결측으로 변환한다."""
-    text = series.astype("string").str.strip().str.lower()
-    return text.map({"true": 1.0, "false": 0.0, "1": 1.0, "0": 0.0}).astype(float)
 
 
 def ensure_unique(frame: pd.DataFrame, key: str, label: str) -> pd.DataFrame:
@@ -232,74 +197,6 @@ def apply_train_outlier_rule(train_raw: pd.DataFrame, test_raw: pd.DataFrame) ->
         "test_cells": int(test["cell_key"].nunique()),
     }
     return train, test, audit
-
-
-def transformed_feature(frame: pd.DataFrame, source: str, use_log: bool) -> pd.Series:
-    """수치형 입력을 안전하게 변환한다. 거리·카운트 log 변수는 log1p를 쓴다."""
-    values = pd.to_numeric(frame[source], errors="coerce")
-    if use_log:
-        values = np.log1p(values.clip(lower=0))
-    return values.astype(float)
-
-
-def build_design(frame: pd.DataFrame, features: dict[str, tuple[str, bool]], context: dict | None = None) -> tuple[pd.DataFrame, dict]:
-    """train context로 평균대체, 결측지시자, 범주 dummy를 고정한다."""
-    if context is None:
-        transformed = {name: transformed_feature(frame, source, use_log) for name, (source, use_log) in features.items()}
-        means = {name: values.mean() for name, values in transformed.items()}
-        indicators: list[str] = []
-        dropped_duplicate_indicators: list[tuple[str, str]] = []
-        seen_masks: dict[bytes, str] = {}
-        for name, values in transformed.items():
-            missing = values.isna()
-            if not missing.any():
-                continue
-            signature = missing.to_numpy(dtype=np.uint8).tobytes()
-            if signature in seen_masks:
-                dropped_duplicate_indicators.append((name, seen_masks[signature]))
-            else:
-                indicators.append(name)
-                seen_masks[signature] = name
-        floor_levels = ["LOW"] + [x for x in sorted(frame["floor_band"].dropna().unique()) if x != "LOW"]
-        month_values = sorted(frame["deal_ym"].astype(str).unique(), reverse=True)
-        levels = {"floor_band": floor_levels, "deal_ym": [month_values[0]] + month_values[1:]}
-        levels["bjd_code"] = sorted(frame["bjd_code"].astype(str).fillna("MISSING").unique())
-        context = {"means": means, "indicators": indicators, "levels": levels,
-                   "dropped_duplicate_indicators": dropped_duplicate_indicators}
-
-    columns: dict[str, pd.Series] = {}
-    for name, (source, use_log) in features.items():
-        values = transformed_feature(frame, source, use_log)
-        columns[name] = values.fillna(context["means"][name])
-        if name in context["indicators"]:
-            columns[f"miss_{name}"] = values.isna().astype(float)
-    for category in ["floor_band", "deal_ym", "bjd_code"]:
-        levels = context["levels"][category]
-        values = frame[category].astype(str).where(frame[category].astype(str).isin(levels), levels[0])
-        dummies = pd.get_dummies(pd.Categorical(values, categories=levels), prefix=category, drop_first=True, dtype=float)
-        dummies.index = frame.index
-        columns.update({column: dummies[column] for column in dummies.columns})
-    design = sm.add_constant(pd.DataFrame(columns, index=frame.index), has_constant="add").astype(float)
-    # profile 부재는 floor_band=UNKNOWN과 완전히 같은 정보를 가질 수 있다. 이 경우
-    # availability 또는 물리 결측지시자를 그대로 넣으면 design matrix가 singular해진다.
-    if context.get("dropped_collinear_columns") is None:
-        dropped_collinear_columns: list[str] = []
-        unknown_column = "floor_band_UNKNOWN"
-        if unknown_column in design:
-            if "physical_profile_available" in design and np.array_equal(
-                (design["physical_profile_available"] + design[unknown_column]).to_numpy(),
-                np.ones(len(design)),
-            ):
-                dropped_collinear_columns.append("physical_profile_available")
-            for name in context["indicators"]:
-                indicator = f"miss_{name}"
-                if indicator in design and np.array_equal(design[indicator].to_numpy(), design[unknown_column].to_numpy()):
-                    dropped_collinear_columns.append(indicator)
-        context["dropped_collinear_columns"] = dropped_collinear_columns
-    design = design.drop(columns=context["dropped_collinear_columns"], errors="ignore")
-    if design.isna().any().any() or not np.isfinite(design.to_numpy()).all():
-        raise ValueError("design matrix에 결측 또는 비유한 값이 남았습니다.")
-    return design, context
 
 
 def fit_ols(frame: pd.DataFrame, features: dict[str, tuple[str, bool]], context: dict | None = None):
