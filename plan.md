@@ -311,7 +311,9 @@ API 한도 문제가 아니므로 `11`을 다시 돌리면 캐시를 건너뛰�
 | 파일 | 목적 | 상태 |
 |---|---|---|
 | `05.horizon_prototype.py` | **horizon 엔진 + 기하 버그 검증 + 벤치마크** | ✅ D1 |
-| `21.horizon_batch.py` | horizon 엔진 서울 전역 배치 → `complex_metrics` | ✅ D4 (관측점 62,705 / 82초) |
+| `21.horizon_batch.py` | horizon 엔진 서울 전역 배치 (일조 3종 + 조망) | ✅ D4 (관측점 66,657 / 86초) |
+| `22.access_metrics.py` | 역 접근성 + 생활 인프라 밀도 | ✅ D4 (9,160단지 / 0.6초) |
+| `23.build_complex_metrics.py` | 최종 3테이블 조립 (`complex` / `complex_metrics` / `horizon_profile`) | ✅ D5 |
 
 ### data/archive — 강남구 프로토타입 (실행 안 함)
 
