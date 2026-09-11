@@ -6,6 +6,10 @@
 # Description: docs/data-model-and-ui.md §7 스키마(complex / complex_metrics /
 #              horizon_profile)를 계약으로 삼아, 있는 데이터만 채우고 없는
 #              컬럼은 만들되 전량 NULL로 남긴다(plan.md R13 — 추정/0채움 금지).
+#              29의 수계·공원·산 조망과 초등학교 직선 안전경로를 병합해 이전의
+#              전량 NULL horizon/complex_metrics 컬럼을 실제 계산값으로 교체한다.
+#              mountain_view는 DEM 부재로 산 고도에서 서울 평균 지반고 30m를 뺀
+#              근사이며, elem_safe_route는 실제 보행경로가 아닌 직선 기준이다.
 #
 #              match_confidence 매핑(HIGH/MEDIUM/LOW/FAILED)은 준공년도 독립
 #              검증 실측치 기준이다(docs/decisions.md 166행대):
@@ -68,6 +72,8 @@ NIGHTLIFE_PATH = output_dir / "24.4.osm_nightlife.txt"
 SHOPS_PATH = output_dir / "24.5.osm_shops.txt"
 SCHOOLS_PATH = output_dir / "24.6.osm_schools.txt"
 HOSPITALS_PATH = output_dir / "27.1.hospitals.txt"
+VIEW_PATH = output_dir / "29.1.view_metrics.txt"
+COMPLEX_VIEW_PATH = output_dir / "29.2.complex_view.txt"
 
 OUT_COMPLEX = output_dir / "23.1.complex.txt"
 OUT_METRICS = output_dir / "23.2.complex_metrics.txt"
@@ -91,14 +97,9 @@ RANK_TO_LABEL = {v: k for k, v in CONFIDENCE_RANK.items()}
 # 근거 데이터가 없어 전량 NULL로 두는 컬럼. 0이나 추정치로 채우지 않는다.
 #   traffic_*   : 교통량 폐기 (관측 지점 139개, 300m 커버리지 4.6% — decisions.md 44)
 #   daycare_500m: 어린이집 API 키 미확보
-#   river_view_ratio / elem_safe_route / dawn_delivery: 미계산
+#   dawn_delivery: 미계산
 NULL_ONLY_METRICS = [
-    "river_view_ratio", "traffic_weekday", "traffic_weekend",
-    "elem_safe_route", "daycare_500m", "dawn_delivery",
-]
-NULL_ONLY_HORIZON = [
-    "repr_floor", "obs_height", "sun_hours_spring", "open_span_max",
-    "river_view", "park_view", "mountain_view",
+    "traffic_weekday", "traffic_weekend", "daycare_500m", "dawn_delivery",
 ]
 
 
@@ -122,11 +123,17 @@ building_df = pd.read_csv(BUILDING_ASSIGNED_PATH, sep="\t")
 geocoded_df = pd.read_csv(GEOCODED_PATH, sep="\t")
 horizon_df = pd.read_csv(HORIZON_PATH, sep="\t")
 access_df = pd.read_csv(ACCESS_PATH, sep="\t")
+view_df = pd.read_csv(VIEW_PATH, sep="\t", dtype={"aptSeq": str})
+complex_view_df = pd.read_csv(COMPLEX_VIEW_PATH, sep="\t", dtype={"aptSeq": str})
 
 assert complex_df["aptSeq"].is_unique, "15.1에 aptSeq 중복이 있다"
 print(f"  15.1 단지 마스터: {len(complex_df)}행")
 print(f"  21.1 층대 지표:   {len(horizon_df)}행 ({horizon_df['aptSeq'].nunique()}단지)")
 print(f"  22.1 접근성 지표: {len(access_df)}행")
+print(f"  29.1 층대 조망:    {len(view_df)}행")
+print(f"  29.2 단지 조망:    {len(complex_view_df)}행")
+assert not view_df.duplicated(["aptSeq", "floor_band"]).any(), "29.1 키 중복"
+assert complex_view_df["aptSeq"].is_unique, "29.2 aptSeq 중복"
 
 
 # ============================================================================
@@ -302,6 +309,9 @@ access_selected["station_walk_min_est"] = access_selected["station_dist_m"] * 1.
 # 있으면 계산되므로 폴리곤 매칭 실패 단지도 채워진다 — decisions.md #42.
 metrics_out = complex_out[["apt_seq"]].merge(sun_view_agg, on="apt_seq", how="left")
 metrics_out = metrics_out.merge(access_selected, on="apt_seq", how="left")
+metrics_out = metrics_out.merge(
+    complex_view_df[["aptSeq", "river_view_ratio", "elem_safe_route"]].rename(columns={"aptSeq": "apt_seq"}),
+    on="apt_seq", how="left")
 
 # 26.1 교통·근접도 — apt_seq 키로 이미 정렬돼 있어 그대로 병합
 transit_df = pd.read_csv(TRANSIT_PATH, sep="\t")
@@ -446,16 +456,19 @@ print(f"  저장: {OUT_METRICS} ({len(metrics_out)}행)")
 print("\n===== 6. horizon_profile 테이블 조립 =====")
 print("  주의: 스키마 PK는 (building_id, floor_band)이나 21.1은 단지×층대 집계")
 print("        (building_id 없음)이라 apt_seq×floor_band로 대체한다.")
-print("  주의: profile REAL[72]는 21이 저장하지 않아 컬럼 자체를 제외한다.")
+print("  주의: profile REAL[72] 원본은 21.3.skyline.npy(관측점 단위)에 별도 보존한다.")
 
 horizon_out = horizon_df[[
-    "aptSeq", "floor_band", "winter_total_hours_8_16", "view_block_pct", "open_angle_mean",
+    "aptSeq", "floor_band", "repr_floor", "obs_height", "winter_total_hours_8_16",
+    "sun_hours_spring", "view_block_pct", "open_angle_mean", "open_span_max",
 ]].rename(columns={
     "aptSeq": "apt_seq",
     "winter_total_hours_8_16": "sun_hours_winter",  # decisions.md #37 축과 통일
 })
-for col in NULL_ONLY_HORIZON:
-    horizon_out[col] = np.nan
+horizon_out = horizon_out.merge(
+    view_df[["aptSeq", "floor_band", "river_view", "park_view", "mountain_view"]].rename(
+        columns={"aptSeq": "apt_seq"}),
+    on=["apt_seq", "floor_band"], how="left")
 
 horizon_out = horizon_out[[
     "apt_seq", "floor_band", "repr_floor", "obs_height", "sun_hours_winter",
@@ -493,10 +506,14 @@ print(f"  polygon_matched=False: {n_unmatched_polygon}건 / match_confidence=FAI
 
 for col in NULL_ONLY_METRICS:
     assert metrics_out[col].isna().all(), f"complex_metrics.{col}이 NULL이 아닌 값을 포함한다"
-for col in NULL_ONLY_HORIZON:
-    assert horizon_out[col].isna().all(), f"horizon_profile.{col}이 NULL이 아닌 값을 포함한다"
-assert "profile" not in horizon_out.columns
-print("  결측 컬럼이 0/추정치로 채워지지 않았음을 확인")
+assert (metrics_out["river_view_ratio"].dropna().between(0, 1)).all(), \
+    "complex_metrics.river_view_ratio 범위 위반"
+assert (horizon_out["open_span_max"].dropna().between(0, 360)).all(), \
+    "horizon_profile.open_span_max 범위 위반"
+spring_longer = (horizon_out["sun_hours_spring"] > horizon_out["sun_hours_winter"]).mean()
+print(f"  춘분 일조 > 동지 일조 층대 비율: {spring_longer * 100:.1f}%")
+assert spring_longer > 0.5, "춘분 일조가 동지보다 긴 층대가 과반이 아님"
+print("  미계산 컬럼이 0/추정치로 채워지지 않았으며, 신규 조망 지표 범위를 확인")
 
 # 신규 조인분 값 범위 검증 — 음수/불일치 여부만 본다(상한은 raw 표제부 자체가
 # 건폐율 100%를 넘는 오기재를 포함하고 있어 걸지 않는다 — 위 3절 참고)

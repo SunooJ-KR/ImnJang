@@ -30,3 +30,6 @@ output/24.3.osm_parks.txt
 # Python
 __pycache__/
 *.pyc
+
+# 관측점별 72방위 스카이라인 (19MB). 21.horizon_batch.py로 90초에 재생성된다
+output/21.3.skyline.npy

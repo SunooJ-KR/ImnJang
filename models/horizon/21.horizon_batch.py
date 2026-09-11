@@ -89,6 +89,10 @@
 #              궤적과 08~16시 궤적 각각에 대조해 뽑아낸다 - compute_horizon
 #              호출 횟수는 그대로다(3배로 늘리지 않음). 연속-최대 구간 계산은
 #              05에 없는 로직이라 05를 건드리지 않고 이 파일에 새로 추가한다.
+#
+#              output/21.3.skyline.npy에는 관측점별 profile을 float32 (n, 72)
+#              배열로 저장한다. 행 순서는 21.2.observation_points.txt와 정확히
+#              동일하다. 이 배열은 후속 조망 판정의 원본이다.
 # ============================================================================
 
 # ============================================================================
@@ -160,6 +164,8 @@ MASTER_PATH = output_dir / "14.1.geocoded_master.txt"     # aptSeq -> 지번(joi
 LEDGER_PATH = output_dir / "19.1.building_ledger.txt"      # 지번/동명칭 -> 대장 지상층수
 COMPLEX_METRICS_RESULT = output_dir / "21.1.complex_metrics.txt"
 OBSERVATION_RESULT = output_dir / "21.2.observation_points.txt"
+SKYLINE_RESULT = output_dir / "21.3.skyline.npy"
+SPRING_EQUINOX = "2026-03-20"
 
 # 대표층 공식: 05.main()의 실데이터 벤치마크와 동일 (재사용, 재발명 아님)
 FLOOR_BANDS = [
@@ -316,6 +322,8 @@ print(f"  {TALL_BUILDING_M}m 이상 초고층: {len(tall_indices)}동 (거리 �
 sun_azimuth, sun_elevation = sun_track(WINTER_SOLSTICE)                       # 09~15시 (기존, 기준1용)
 sun_azimuth_8_16, sun_elevation_8_16 = sun_track(
     WINTER_SOLSTICE, start="08:00", end="16:00")                              # 08~16시 (기준2용)
+sun_azimuth_spring_8_16, sun_elevation_spring_8_16 = sun_track(
+    SPRING_EQUINOX, start="08:00", end="16:00")                               # winter와 같은 08~16시 창
 
 
 # ============================================================================
@@ -368,12 +376,26 @@ def _process_building(row_pos):
         # 세 일조 지표 모두 이 profile 하나를 재사용해 뽑는다 (3배 계산 금지).
         profile = compute_horizon(obs_xy, obs_z, candidates, occluder_cache, occluder_centroids_xy)
         metrics = view_metrics(profile)
+        # 05.view_metrics()와 같은 차폐 기준(profile > 10°)을 쓴다. 열림은
+        # profile <= 10°이며, 원형 방위축이라 0° 경계의 run도 하나로 계산한다.
+        open_bins = profile <= horizon_prototype.VIEW_BLOCK_THRESHOLD_DEG
+        if open_bins.all():
+            open_span_max = 360.0
+        elif not open_bins.any():
+            open_span_max = 0.0
+        else:
+            doubled = np.concatenate([open_bins, open_bins])
+            padded = np.concatenate(([False], doubled, [False])).astype(int)
+            starts = np.where(np.diff(padded) == 1)[0]
+            ends = np.where(np.diff(padded) == -1)[0]
+            open_span_max = float(min(N_BINS, (ends - starts).max()) * BIN_WIDTH_DEG)
 
         building_records.append({
             "aptSeq": apt_seq,
             "osm_id": osm_id,
             "floor_band": band_name,
             "repr_floor": repr_floor,
+            "obs_height": round(obs_z, 2),
             "levels": levels,
             "n_candidates": len(candidates),
             "winter_sunlight_hours": round(sunlight_hours(profile, sun_azimuth, sun_elevation), 2),
@@ -381,7 +403,11 @@ def _process_building(row_pos):
                 continuous_exposed_hours(profile, sun_azimuth, sun_elevation), 2),
             "winter_total_hours_8_16": round(
                 sunlight_hours(profile, sun_azimuth_8_16, sun_elevation_8_16), 2),
+            "sun_hours_spring": round(
+                sunlight_hours(profile, sun_azimuth_spring_8_16, sun_elevation_spring_8_16), 2),
+            "open_span_max": open_span_max,
             **metrics,
+            "_profile": profile.astype(np.float32),
         })
     return building_records
 
@@ -399,6 +425,7 @@ with MP_CONTEXT.Pool(N_WORKERS) as pool:
 
 elapsed = time.time() - loop_start
 obs_df = pd.DataFrame(records)
+skyline = np.stack(obs_df.pop("_profile").to_numpy()).astype(np.float32, copy=False)
 print(f"\n  총 {len(obs_df):,}개 관측점, {elapsed:.1f}초 "
       f"({1000 * elapsed / len(obs_df):.2f}ms/점)")
 
@@ -413,9 +440,13 @@ complex_metrics = (obs_df
     .groupby(["aptSeq", "floor_band"])
     .agg(
         n_obs=("osm_id", "count"),
+        repr_floor=("repr_floor", "median"),
+        obs_height=("obs_height", "median"),
         winter_sunlight_hours=("winter_sunlight_hours", "median"),
         winter_continuous_hours=("winter_continuous_hours", "median"),
         winter_total_hours_8_16=("winter_total_hours_8_16", "median"),
+        sun_hours_spring=("sun_hours_spring", "median"),
+        open_span_max=("open_span_max", "median"),
         view_block_pct=("view_block_pct", "median"),
         open_angle_mean=("open_angle_mean", "median"),
     )
@@ -442,6 +473,13 @@ assert not complex_metrics.duplicated(subset=["aptSeq", "floor_band"]).any(), \
 SUN_METRICS = ["winter_sunlight_hours", "winter_continuous_hours", "winter_total_hours_8_16"]
 assert complex_metrics[SUN_METRICS + ["view_block_pct", "open_angle_mean"]].notna().all().all(), \
     "집계 지표에 NaN 존재"
+assert skyline.shape == (len(obs_df), N_BINS) and skyline.dtype == np.float32, \
+    f"skyline shape/dtype 오류: {skyline.shape}, {skyline.dtype}"
+assert ((obs_df["open_span_max"] >= 0) & (obs_df["open_span_max"] <= 360)).all(), \
+    "open_span_max 범위(0~360°) 위반"
+spring_longer = (obs_df["sun_hours_spring"] > obs_df["winter_total_hours_8_16"]).mean()
+print(f"  춘분 일조 > 동지 일조 관측점 비율: {spring_longer * 100:.1f}%")
+assert spring_longer > 0.5, "춘분 일조가 동지보다 긴 관측점이 과반이 아님"
 
 # 단조성(층↑ -> 일조↑)은 세 일조 지표 모두에 대해 확인한다 - 지표를 늘리며
 # 새로 추가한 두 지표가 기존과 다른 방식으로 어긋나지 않는지 보는 것이 목적.
@@ -460,6 +498,7 @@ assert monotonic, "층↑ -> 일조↑ 단조성 위반 (세 지표 중 하나 �
 print("  [PASS] 자기 건물 차폐 후보 제외 (관측점별 assert 통과)")
 print("  [PASS] aptSeq x floor_band 키 유일성")
 print("  [PASS] 집계 지표 결측 없음")
+print("  [PASS] skyline (관측점 수, 72) float32 / open_span_max 0~360°")
 
 
 # ============================================================================
@@ -470,7 +509,9 @@ print("\n===== 6. 저장 =====")
 
 complex_metrics.to_csv(COMPLEX_METRICS_RESULT, sep="\t", index=False, lineterminator="\n")
 obs_df.to_csv(OBSERVATION_RESULT, sep="\t", index=False, lineterminator="\n")
+np.save(SKYLINE_RESULT, skyline)
 
 print(f"  단지 x 층대 지표: {COMPLEX_METRICS_RESULT}")
 print(f"  관측점 원본:      {OBSERVATION_RESULT}")
+print(f"  skyline profile:  {SKYLINE_RESULT} {skyline.shape} {skyline.dtype}")
 print(f"\n===== D4 horizon 배치 완료 (관측점 {len(obs_df):,}개, {elapsed:.1f}초) =====")
