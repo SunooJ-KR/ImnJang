@@ -1,0 +1,32 @@
+# B2 baseline 세부 분해 및 M3 비교
+
+## 공통 규칙
+- train 2024-09 ~ 2026-02 거래만으로 B2의 직전 거래가·단지 평균 fallback·global fallback을 만들었습니다. test target은 어떤 집계에도 쓰지 않았습니다.
+- B2_minus_M3_MAPE_pp가 양수이면 해당 subgroup에서 M3 MAPE가 B2보다 낮습니다. 표본이 작은 subgroup의 차이는 불확실할 수 있으므로 유의성 주장을 하지 않습니다.
+
+## 전체 baseline 성능
+baseline	mae	mape	r2
+B1_cell_mean	252.223522	16.373325	0.866457
+B2_last_train_trade	170.776943	12.552199	0.919127
+B3_bjd_area_median	572.034386	37.849528	0.152500
+
+## B2 출처별: exact cell 직전 거래가 대 fallback
+subgroup	n	sample_share_pct	B2_MAPE_pct	M3_MAPE_pct	B2_minus_M3_MAPE_pp
+exact_cell_last_trade	32665	87.917855	8.578112	26.520414	-17.942302
+complex_mean_fallback	2350	6.325026	15.229447	28.185469	-12.956022
+global_mean_fallback	2139	5.757119	70.299760	23.264407	47.035353
+
+## B2 직전 동일 셀 거래 이후 경과기간별
+subgroup	n	sample_share_pct	B2_MAPE_pct	M3_MAPE_pct	B2_minus_M3_MAPE_pp
+3-6개월	12931	34.803790	8.699631	25.820773	-17.121142
+0-3개월	11116	29.918717	6.489819	25.664009	-19.174190
+직전 동일 셀 거래 없음	4489	12.082145	41.470347	25.840592	15.629755
+6-12개월	6763	18.202616	10.894508	28.348111	-17.453602
+12개월+	1855	4.992733	11.799846	29.866048	-18.066202
+
+## train 기간 동일 단지×면적타입 셀 거래 수별
+subgroup	n	sample_share_pct	B2_MAPE_pct	M3_MAPE_pct	B2_minus_M3_MAPE_pp
+5건+	26101	70.250848	8.390178	26.359134	-17.968956
+0건 (cold-start)	4489	12.082145	41.470347	25.840592	15.629755
+1건	2878	7.746138	9.889949	27.482768	-17.592819
+2-4건	3686	9.920870	8.884623	26.911062	-18.026439

@@ -1,0 +1,74 @@
+# 물리·입지 hedonic spike 결과 (누수 방지 재검증)
+
+## 표본·split·이상치 규칙
+- 분석 기간: 2024-09 ~ 2026-08 (최근 24개월, 계약년월 기준)
+- split: train 2024-09 ~ 2026-02; test 2026-03 ~ 2026-08
+- 명백한 오류만 사전 제거한 표본: train 101,837건 / test 37,154건
+- train 가격 outlier 제거: 단지×면적타입별 train 1/99 분위로 16,226건 제거, 최종 train 85,611건
+- train 전체 fallback cutoff: 548.13 ~ 4903.02 만원/m²
+- test 셀 중 train에 없는 셀: 1,661/9,232개; 해당 test 행 3,006/37,154건 (8.09%). 이 행에는 train 전체 cutoff를 부여했지만 제거하지 않았습니다.
+- train에서 적합한 cutoff 밖에 있는 test 행은 20,047건으로 flag만 남기고 모두 유지했습니다.
+- 명시적 자체 검증: 이상치 cutoff 계산에는 test 기간 가격 데이터가 쓰이지 않았습니다. test는 가격 기준으로 0건 제거했으며, 가격<=0·면적<=0 같은 명백한 오류만 split 전에 제거했습니다.
+- 모든 회귀는 train에만 적합했으며, 표의 R²/adj. R²는 train in-sample 값, MAPE는 out-of-time test 값입니다. 모든 모델은 bjd fixed effect, 층대, 계약월, 단지 cluster-robust SE를 사용합니다.
+
+## Ablation (A--F는 완전히 동일한 정제 train/test 표본)
+model	train_n	test_n	train_R2	train_adj_R2	out_of_time_MAPE_pct	out_of_time_MAE_manwon_per_m2	out_of_time_R2	increment_reference	delta_R2_vs_M2_reference	delta_adj_R2_vs_M2_reference	M2_reference_minus_model_MAPE_pp
+A. M2 (기준)	85611	37154	0.427252	0.426509	28.630769	509.987426	0.290153	A. M2 (기준)	0.000000	0.000000	0.000000
+B. M2 + physical profile availability만	85611	37154	0.427496	0.426746	28.620901	510.192603	0.288941	A. M2 (기준)	0.000243	0.000237	0.009868
+C. M2 + river_view만	85611	37154	0.478550	0.477861	27.072876	483.267662	0.350053	A. M2 (기준)	0.051298	0.051352	1.557893
+D. M2 + sun_hours_winter만	85611	37154	0.428875	0.428120	28.584413	509.344557	0.291775	A. M2 (기준)	0.001623	0.001611	0.046356
+E. M2 + 개방도 3종만	85611	37154	0.435455	0.434696	28.309229	505.578962	0.299766	A. M2 (기준)	0.008203	0.008187	0.321540
+F. M3 (물리 feature 전체)	85611	37154	0.494935	0.494226	26.438277	473.818981	0.366087	A. M2 (기준)	0.067683	0.067718	2.192492
+G-1. complete-case M2	64464	27774	0.458177	0.457310	28.069990	510.446182	0.320948	G-1. complete-case M2	0.000000	0.000000	0.000000
+G-2. complete-case M3	64464	27774	0.537303	0.536513	25.689833	467.069328	0.417638	G-1. complete-case M2	0.079126	0.079203	2.380157
+- M2_reference_minus_model_MAPE_pp가 양수이면 해당 모델의 out-of-time MAPE가 해당 행의 M2 기준보다 낮습니다. 이 값의 유의성을 주장하지 않습니다.
+- G complete-case 표본: train 64,464/85,611건 (75.30%), test 27,774/37,154건 (74.75%). 물리 feature가 모두 실제 존재하는 행만 남겼으므로 G의 물리항에는 평균대체가 없습니다.
+
+## 물리 feature 전체의 cluster-robust joint Wald test (F 모델, train)
+- H0: 물리항 및 유지된 물리 결측지시자의 계수가 모두 0; F(9, 5774) = 23.464229, p = 8.71048e-40; 항 수 = 9
+- 검정 포함 항: sun_hours_winter, open_angle_mean, view_block_pct, open_span_max, river_view, park_view, mountain_view, miss_sun_hours_winter, miss_mountain_view
+
+## M2 대 M3 out-of-time paired block bootstrap (단지 복원추출, 1,000회)
+- 차이 정의: M2 MAPE - M3 MAPE. 관측 차이 = 2.192492 percentage points; 95% CI = [1.749996, 2.634724]; bootstrap 단지 수 = 4,981.
+- CI가 0을 포함하면 MAPE 차이에 대한 명확한 방향 주장을 하지 않습니다.
+
+## 물리 feature 공선성 진단 (F 모델의 train 변환값·유지된 결측지시자만 사용)
+- design matrix rank = 10/10; rank deficient = False; condition number = 2671.06
+- VIF에서 제외된 상수열: 없음
+- 중복으로 제거한 물리 결측지시자: miss_open_angle_mean (miss_sun_hours_winter와 동일); miss_view_block_pct (miss_sun_hours_winter와 동일); miss_open_span_max (miss_sun_hours_winter와 동일); miss_river_view (miss_sun_hours_winter와 동일); miss_park_view (miss_sun_hours_winter와 동일)
+- floor_band_UNKNOWN과 완전 공선성으로 회귀 및 joint test에서 제외한 물리 결측지시자: 없음
+- B는 실제 층수의 고정 구간(LOW<=5, MID=6-15, HIGH>=16)만 통제한 A에 profile availability를 추가한 모델입니다. 따라서 B의 증분은 profile 매칭 성공이라는 선택 효과 자체를 나타냅니다.
+
+### VIF
+feature	vif
+view_block_pct	9.154265
+open_span_max	7.026815
+open_angle_mean	3.400913
+sun_hours_winter	2.324763
+miss_mountain_view	1.191985
+miss_sun_hours_winter	1.134919
+park_view	1.134860
+river_view	1.043158
+mountain_view	1.016514
+
+### Correlation matrix
+	sun_hours_winter	open_angle_mean	view_block_pct	open_span_max	river_view	park_view	mountain_view	miss_sun_hours_winter	miss_mountain_view
+sun_hours_winter	1.000000	0.663504	-0.732207	0.626665	0.026150	0.176626	0.067038	-0.000000	-0.083029
+open_angle_mean	0.663504	1.000000	-0.817830	0.796275	0.082118	0.281758	0.113058	0.000000	-0.150488
+view_block_pct	-0.732207	-0.817830	1.000000	-0.918975	-0.038541	-0.237394	-0.086778	0.000000	0.138239
+open_span_max	0.626665	0.796275	-0.918975	1.000000	0.028517	0.236880	0.094915	0.000000	-0.145610
+river_view	0.026150	0.082118	-0.038541	0.028517	1.000000	0.160347	-0.029262	0.000000	0.052223
+park_view	0.176626	0.281758	-0.237394	0.236880	0.160347	1.000000	0.050679	0.000000	-0.161680
+mountain_view	0.067038	0.113058	-0.086778	0.094915	-0.029262	0.050679	1.000000	0.000000	-0.000000
+miss_sun_hours_winter	-0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	0.000000	1.000000	0.336435
+miss_mountain_view	-0.083029	-0.150488	0.138239	-0.145610	0.052223	-0.161680	-0.000000	0.336435	1.000000
+
+## 물리 계수의 실질 크기 (F 모델, train; cluster-robust 95% CI)
+term	coefficient_log_price	cluster_robust_se	p_value	price_change_pct_per_unit	price_change_pct_ci95_low	price_change_pct_ci95_high
+sun_hours_winter	0.0059150809	0.0049591402	0.23296205	0.59326095	-0.37976047	1.5757862
+open_angle_mean	-0.00032096952	0.00077254951	0.67779941	-0.032091802	-0.18334837	0.11939397
+view_block_pct	0.00015849714	0.0007838522	0.83975816	0.01585097	-0.13769044	0.16962845
+open_span_max	-0.00053216013	0.00020436627	0.0092155438	-0.053201856	-0.093228318	-0.013159358
+river_view	0.26911725	0.022809942	3.9854399e-32	30.880859	25.158377	36.864985
+park_view	-0.022310128	0.018133127	0.21856535	-2.2063097	-5.6209492	1.3318716
+mountain_view	-0.11350896	0.026104944	1.3727273e-05	-10.730381	-15.183039	-6.0439694
