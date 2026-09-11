@@ -24,7 +24,7 @@ import pandas as pd
 
 
 work_dir = Path(__file__).resolve().parents[2]   # 저장소 루트
-RAW_PATH = work_dir / "output" / "raw" / "redevelop" / "redevelop_2606.xlsx"
+RAW_DIR = work_dir / "output" / "raw" / "redevelop"
 MASTER_PATH = work_dir / "output" / "14.1.geocoded_master.txt"
 RESULT_PATH = work_dir / "output" / "31.1.complex_redevelop.txt"
 
@@ -45,24 +45,37 @@ EXPECTED_HEADER = {
     25: "임대",
 }
 
-EXPECTED_TYPES = {
-    "주택정비형 재개발": 164,
-    "도시정비형 재개발": 138,
-    "공동주택재건축": 126,
-    "아파트지구재건축": 40,
-    "단독주택재건축": 28,
-}
-EXPECTED_STAGES = {
-    "조합설립": 124,
-    "관리처분": 75,
-    "추진위": 73,
-    "사업시행": 66,
-    "착공": 62,
-    "구역지정": 52,
-    "건축심의": 44,
-}
 RECONSTRUCTION_TYPES = {"공동주택재건축", "아파트지구재건축"}
 REDEVELOPMENT_TYPES = {"주택정비형 재개발", "도시정비형 재개발"}
+REQUIRED_ZONE_COLUMNS = [0, 1, 2, 3]
+SEOUL_GU_NAMES = {
+    "강남구", "강동구", "강북구", "강서구", "관악구", "광진구", "구로구",
+    "금천구", "노원구", "도봉구", "동대문구", "동작구", "마포구", "서대문구",
+    "서초구", "성동구", "성북구", "송파구", "양천구", "영등포구", "용산구",
+    "은평구", "종로구", "중구", "중랑구",
+}
+
+
+def select_latest_redevelop_file():
+    """기준시점(YYMM)이 가장 최신인 정비사업 원본만 선택한다.
+
+    35.collect_regulation.py가 분기별로 ``redevelop_YYMM.xlsx``를 저장한다.
+    수정시각은 파일 복사·백업으로 바뀔 수 있으므로 사용하지 않는다.
+    """
+    candidates = []
+    for path in RAW_DIR.glob("redevelop_*.xlsx"):
+        matched = re.fullmatch(r"redevelop_(\d{2})(\d{2})\.xlsx", path.name)
+        if matched is None:
+            continue
+        year, month = (int(value) for value in matched.groups())
+        if not 1 <= month <= 12:
+            continue
+        candidates.append(((year, month), path))
+    if not candidates:
+        raise FileNotFoundError(
+            f"정비사업 원본 없음: {RAW_DIR} (35.collect_regulation.py를 먼저 실행할 것)"
+        )
+    return max(candidates, key=lambda item: item[0])[1]
 
 
 def header_at(raw_headers, column):
@@ -118,11 +131,28 @@ def add_zone_parts(zones):
     return zones
 
 
+def is_populated(series):
+    """NaN과 공백 문자열을 모두 결측으로 취급한다."""
+    return series.notna() & series.astype("string").str.strip().ne("").fillna(False)
+
+
+def filter_valid_zones(source):
+    """병합 헤더 밖의 합계·빈 행을 제외하고 실제 정비사업 구역만 남긴다."""
+    required_values_present = pd.Series(True, index=source.index)
+    for column in REQUIRED_ZONE_COLUMNS:
+        required_values_present &= is_populated(source[column])
+    seoul_gu = source[2].astype("string").str.strip().isin(SEOUL_GU_NAMES)
+    valid_mask = required_values_present & seoul_gu
+    return source.loc[valid_mask].copy(), source.loc[~valid_mask].copy()
+
+
 # ============================================================================
 # 1. 원본 읽기 및 병합 헤더 위치 검증
 # ============================================================================
 
 print("===== 1. 원본 읽기 및 헤더 위치 검증 =====")
+RAW_PATH = select_latest_redevelop_file()
+print(f"  선택 원본: {RAW_PATH.name}")
 raw_headers = pd.read_excel(RAW_PATH, header=None, nrows=4)
 header_checks = {
     f"{column}번 열 {label}": label in header_at(raw_headers, column)
@@ -131,9 +161,11 @@ header_checks = {
 for label, passed in header_checks.items():
     print(f"  [{'PASS' if passed else 'FAIL'}] {label}")
 
-# 병합 헤더 네 행을 제외한 행만 데이터로 읽는다. 열 위치는 위 검증 뒤에 사용한다.
+# 병합 헤더 네 행을 제외한 행만 읽은 뒤, 합계·빈 행은 CODE·순번·자치구·구역명이
+# 모두 있고 서울 25개 자치구에 속하는 실제 구역 행만 남긴다.
 source = pd.read_excel(RAW_PATH, header=None, skiprows=4)
-zones = source[[0, 1, 2, 3, 4, 8, 9]].copy()
+zones, excluded_rows = filter_valid_zones(source)
+zones = zones[[0, 1, 2, 3, 4, 8, 9]].copy()
 zones.columns = [
     "zone_code", "zone_order", "gu", "redevelop_zone_name", "jibun_raw",
     "redevelop_type", "redevelop_stage",
@@ -141,7 +173,9 @@ zones.columns = [
 zones["zone_code"] = zones["zone_code"].astype("string")
 zones["gu"] = zones["gu"].astype("string").str.strip()
 
-print(f"  정비사업 원본 행: {len(zones):,}건")
+print(f"  병합 헤더 제외 행: {len(source):,}건")
+print(f"  유효 정비사업 구역: {len(zones):,}건")
+print(f"  제외 행 (헤더/합계/빈 행 등): {len(excluded_rows):,}건")
 print(f"  사업유형 분포: {zones['redevelop_type'].value_counts().to_dict()}")
 print(f"  추진단계 분포: {zones['redevelop_stage'].value_counts().to_dict()}")
 
@@ -217,12 +251,13 @@ reconstruction_rate = reconstruction_matched / reconstruction_total
 redevelopment_rate = redevelopment_matched / redevelopment_total
 
 checks = [
-    ("엑셀 데이터 496행", len(zones) == 496, f"{len(zones):,}건"),
+    ("유효 정비사업 구역 100건 이상", len(zones) >= 100,
+     f"{len(zones):,}건 (병합 헤더 제외 {len(source):,}건, 제외 {len(excluded_rows):,}건)"),
     ("병합 헤더 위치", all(header_checks.values()), f"실패 {sum(not value for value in header_checks.values())}개"),
-    ("사업유형 분포", zones["redevelop_type"].value_counts().to_dict() == EXPECTED_TYPES,
-     str(zones["redevelop_type"].value_counts().to_dict())),
-    ("추진단계 분포", zones["redevelop_stage"].value_counts().to_dict() == EXPECTED_STAGES,
-     str(zones["redevelop_stage"].value_counts().to_dict())),
+    ("사업유형 결측 없음", zones["redevelop_type"].notna().all(),
+     f"결측 {int(zones['redevelop_type'].isna().sum())}건"),
+    ("추진단계 결측 없음", zones["redevelop_stage"].notna().all(),
+     f"결측 {int(zones['redevelop_stage'].isna().sum())}건"),
     ("결과는 완전일치만 포함", result["redevelop_match_method"].eq("jibun_exact").all(),
      f"{len(result):,}건"),
     ("결과의 매칭값은 모두 True", result["redevelop_matched"].eq(True).all(),
