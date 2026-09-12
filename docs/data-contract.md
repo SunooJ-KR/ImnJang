@@ -2,7 +2,7 @@
 
 > 프론트(`front/`)가 소비하는 테이블의 실제 상태를 기록한다.
 > 스키마 정의는 [`data-model-and-ui.md`](data-model-and-ui.md) §7이고, 이 문서는 **그 스키마 중 실제로 채워진 것이 무엇인지**를 말한다.
-> 갱신: D5 종료 시점. 수치는 `data/master/23.build_complex_metrics.py` 실행 결과.
+> 갱신: 2026-09-12. 제품 정의의 정본은 [`product-identity.md`](product-identity.md)다.
 
 ---
 
@@ -52,15 +52,20 @@
 | `station_congestion_peak` | 85.8% | 평일 08~09시 최대 혼잡도(%). 스키마 외 추가 컬럼 |
 | `tertiary_hosp_m` `general_hosp_m` | 100% | 상급종합(14곳) / 종합병원까지 최근접. 중앙값 2.7km / 1.5km |
 | `clinic_1km` `pediatric_1km` | 100% | 반경 1km 내 의원 수(중앙값 72) / 소아 표방 기관 수(중앙값 3) |
+| `river_view_ratio` | 70.4% | 단지 관측점 중 **한강 본류**(5km² 이상 수계) 조망 비율. 소하천은 제외 |
+| `elem_safe_route` | 100% | 초품아 근사. 단지→최근접 초등학교 **직선**이 간선도로를 교차하지 않으면 true. 실제 보행경로가 아니다 |
 
 **빈 것 (전량 NULL)**
 
-`river_view_ratio` `station_elev_diff` `traffic_weekday` `traffic_weekend` `elem_safe_route` `daycare_500m` `dawn_delivery`
+`station_elev_diff` `traffic_weekday` `traffic_weekend` `daycare_500m` `dawn_delivery`
+
+전량 NULL 컬럼은 정적 payload(`front/public/data/`)에서 제거된다. 9,160개 파일마다 반복되는 순수 낭비다.
 
 ### `horizon_profile`
 
 채워진 것: `apt_seq` `floor_band` `sun_hours_winter` `view_block_pct` `open_angle_mean` (100%)
-빈 것: `repr_floor` `obs_height` `sun_hours_spring` `open_span_max` `river_view` `park_view` `mountain_view`
+추가로 채워진 것: `repr_floor` `obs_height` `sun_hours_spring` `open_span_max` `river_view` `park_view` (100%), `mountain_view` (68.7%, DEM 부재로 표고 근사)
+빈 것: 없음
 
 `floor_band`는 `LOW` / `MID` / `HIGH` 세 값이다.
 
@@ -85,21 +90,20 @@
 
 ---
 
-## 4. 정렬 축
+## 4. 가격 표기 — `price[].source`가 문구를 가른다
 
-`docs/decisions.md` 37~38번 결정.
+정적 payload의 `price[]` 각 원소는 `source`를 갖는다. **이 축으로 문구가 완전히 갈리며 절대 섞지 않는다.**
 
-```
-1차: sun_hours_avg      (winter_total_hours_8_16 기반, 상한 8.08h)
-2차: view_open_avg      (일조 만점 단지를 가르는 축)
-3차: station_walk_min_est 등 접근성
-```
+| `source` | 화면 문구 | 함께 오는 필드 |
+|---|---|---|
+| `CELL_LAST` | "2026년 7월 실거래 3.3억" | `last_deal_ym` `last_price_manwon` |
+| `COMPLEX_MEAN` | "이 면적 거래 없음 · 단지 평균 …" | `mean_price_per_m2_24m` |
+| `MODEL` | "추정 …~… · 이 단지는 최근 2년 거래가 없습니다" + 신뢰도 배지 | `est_low` `est_high` `est_confidence` |
+| `EXCLUDED` | "임대 전용 단지로 매매 거래가 없습니다" | `reason` |
 
-**일조 단독 정렬은 상위권이 뭉친다.** 8.08h 만점 단지가 272개이며 이는 지표 결함이 아니라 물리 현상이다 — 차폐가 없는 단지는 같은 위도에서 같은 태양을 보므로 실제로 동등하다. 그 272단지의 `view_open_avg`는 256개 고유값(72~176도)으로 완전히 갈리므로 2차 축이 필요하다.
+`MODEL`은 전체 단지의 일부(2,206단지)에만 붙는다. 예측구간의 명목 수준은 80%이고 검증 기간 실측 coverage는 80.13%다. **다만 "80% 보장"이라 쓰지 말 것** — 첫 coverage 실패를 보고 방식을 바꿨으므로 test가 재사용됐다. "개발 기간에서 관측된 값"까지만 말할 수 있다.
 
-변별력 실측: `sun_hours_avg` 1,164개 고유값 / `view_open_avg` 2,763개.
-
----
+**정렬 축은 더 이상 제품의 약속이 아니다.** 이전 버전의 "일조 → 개방도 → 접근성" 1차 정렬은 검색을 돕는 보조 수단으로 강등됐다 (`product-identity.md` §2).
 
 ## 5. S1 필터 동작 확인 (실측)
 
@@ -122,6 +126,10 @@
 | 소음 | "도로 중심선까지 N m" | "소음 N dB" — 캘리브레이션 라벨이 없어 폐기됐다 (`algorithms.md` §6.3) |
 | 일조 | "동지 08~16시 총 N시간" | 기준 시각을 빼고 "일조 N시간"만 쓰지 말 것 |
 | 커버리지 | "분석 가능 단지 6,450 / 9,160" | "서울 전역 완전 검색" — 성립하지 않는다 |
+| 가격 | "최근 실거래" 또는 "추정" 라벨을 반드시 구분 | "적정시세" · "저평가" · "고평가" |
+| 조망·일조와 가격 | 따로 보여준다 | **둘을 엮는 문장 전부.** 측정 결과 예측력이 없었다 |
+| 규제 | "토지거래허가구역 (2026-08-16 기준)" | 기준일 없는 단정 |
+| 재건축 | "재건축 추진 중 (조합설립 단계)" | "재건축으로 N% 오릅니다" |
 | 승하차 | "1~8호선 기준" 또는 미표기 | 9호선·신분당선 역 근처 단지에 "승하차 정보 없음"을 빈 값으로 두지 말 것. 사유 표기 |
 
 ---

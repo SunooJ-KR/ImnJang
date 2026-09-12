@@ -153,7 +153,8 @@ front/
 - 출력: `output/34.1.comparables.txt`
 
 **인터페이스**
-- 생산: `34.1.comparables` = `apt_seq, area_type, rank, comp_apt_seq, comp_name, comp_deal_ym, comp_price_manwon, comp_price_per_m2, adj_price_per_m2, adj_reason, dist_m`
+- 입력 대상: `32.1.price_cells`와 `33.1.coldstart_estimates`의 `apt_seq × area_type`. `target_source`는 각각 `CELL`, `COLDSTART`로 기록한다. 후보는 최근 24개월 매매 거래가 있는 32.1 단지로만 제한한다.
+- 생산: `34.1.comparables` = `apt_seq, area_type, target_source, rank, comp_apt_seq, comp_name, comp_deal_ym, comp_price_manwon, comp_price_per_m2, adj_price_per_m2, adj_reason, dist_m`
 
 **선정 순서 (스펙 §7). 이 순서를 바꾸지 말 것.**
 1. 면적타입 동일 (±3m 이내)
@@ -173,6 +174,8 @@ front/
   - `adj_price_per_m2`와 `comp_price_per_m2`의 차이가 전부 20% 이내
   - `comp_apt_seq != apt_seq` (자기 자신을 비교사례로 넣지 않음)
   - 비교사례 수 분포 (중앙값·0곳 비율)
+  - `33.1` cold-start 단지 중 비교사례가 1곳 이상인 단지 비율을 출력하고, 0%이면 실패한다
+  - `comp_apt_seq`가 모두 32.1 가격 셀 단지인지 확인한다
 - [ ] **Step 3** — 실행.
 - [ ] **Step 4** — 커밋.
 
@@ -295,7 +298,7 @@ front/
 | `docs/pitch-and-roadmap.md` | §13 심사 대응을 스펙 §8의 세 숫자로 교체, SHAP 삭제 |
 | `docs/decisions.md` | 46번부터 이번 세션 결정 추가 |
 
-- [ ] **Step 1** — 위 6개 파일을 수정한다.
+- [x] **Step 1** — 위 6개 파일을 수정한다. (2026-09-12 완료)
 - [ ] **Step 2** — `grep -rn "적정시세\|저평가\|살기 좋은 순서\|임장 대체" docs/ plan.md` 로 잔존 표현을 확인한다. 0건이어야 한다.
 - [ ] **Step 3** — 커밋.
 
