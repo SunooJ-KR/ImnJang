@@ -225,15 +225,22 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
 
 def apply_train_outlier_rule(train_raw: pd.DataFrame, test_raw: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, dict]:
     """train 셀의 1/99 분위만으로 학습 표본을 정제하고, test에는 cutoff를 적용만 한다."""
+    # 보간 분위수를 작은 셀에 그대로 쓰면 n=2에서 양 끝 두 거래가 모두 사라진다.
+    # quantile(0.01)이 최솟값보다 크고 quantile(0.99)가 최댓값보다 작기 때문이다.
+    # 100건 미만 셀은 무조건 최소·최대를 잃어 실제 제거율이 1%를 크게 넘는다.
+    # 32.build_price_cells.py 와 동일하게 각 tail 제거 수를 floor(n×1%)로 정의한다.
+    group_size = train_raw.groupby("cell_key")["price_per_m2"].transform("size")
+    trim_count = np.floor(group_size * 0.01).astype(int)
+    ascending_rank = train_raw.groupby("cell_key")["price_per_m2"].rank(method="first")
+    descending_rank = train_raw.groupby("cell_key")["price_per_m2"].rank(method="first", ascending=False)
+    train = train_raw.loc[(ascending_rank > trim_count) & (descending_rank > trim_count)].copy()
+
+    # test 행을 가격으로 제거하지 않되, 기록용 cutoff 는 계속 남긴다.
     cutoffs = train_raw.groupby("cell_key")["price_per_m2"].agg(
-        lower=lambda x: x.quantile(0.01), upper=lambda x: x.quantile(0.99), n="size"
+        lower="min", upper="max", n="size"
     )
     global_lower = float(train_raw["price_per_m2"].quantile(0.01))
     global_upper = float(train_raw["price_per_m2"].quantile(0.99))
-    train_bounds = train_raw.join(cutoffs[["lower", "upper"]], on="cell_key")
-    train = train_bounds.loc[
-        train_bounds["price_per_m2"].between(train_bounds["lower"], train_bounds["upper"], inclusive="both")
-    ].drop(columns=["lower", "upper"])
 
     # test 셀에 train cutoff가 없으면 train 전체 분위수를 기록용 fallback으로 쓴다.
     # 중요한 점은 이 범위 밖인 test 행도 제거하지 않는다는 것이다.

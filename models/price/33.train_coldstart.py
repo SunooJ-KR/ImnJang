@@ -105,8 +105,12 @@ def load_base():
     return sale,complex_df,profile,TEST_END
 
 def clean_train(x):
-    cut=x.groupby(["apt_seq","area_type"]).price_per_m2.agg(lo=lambda s:s.quantile(.01),hi=lambda s:s.quantile(.99))
-    y=x.join(cut,on=["apt_seq","area_type"]); z=y.loc[y.price_per_m2.between(y.lo,y.hi)].drop(columns=["lo","hi"])
+    # 보간 분위수를 작은 셀에 쓰면 n=2에서 양 끝이 모두 사라진다(quantile(.01)>min).
+    # 100건 미만 셀은 무조건 최소·최대를 잃어 제거율이 1%를 크게 넘었다.
+    # 32.build_price_cells.py 와 동일하게 tail 제거 수를 floor(n×1%)로 고정한다.
+    g=x.groupby(["apt_seq","area_type"],observed=True).price_per_m2
+    trim=np.floor(g.transform("size")*.01).astype(int)
+    z=x.loc[(g.rank(method="first")>trim)&(g.rank(method="first",ascending=False)>trim)].copy()
     return z,{"raw":len(x),"clean":len(z),"removed":len(x)-len(z)}
 def mape(a,p): return float(np.mean(np.abs(a.to_numpy(float)-np.asarray(p))/a.to_numpy(float))*100)
 def fit(x,features,family,context=None):
