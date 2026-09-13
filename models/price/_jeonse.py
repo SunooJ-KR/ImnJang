@@ -76,12 +76,66 @@ class JeonseFeatureBuilder:
         cell = ["apt_seq", "area_type"]
         train_mask = data["deal_period"].between(self.train_start, self.train_end)
         train_data = data.loc[train_mask].copy()
-        cutoffs = train_data.groupby(cell)["rent_per_m2"].agg(lo=lambda s: s.quantile(.01), hi=lambda s: s.quantile(.99))
-        global_lo, global_hi = train_data["rent_per_m2"].quantile([.01, .99])
-        bounded = data.join(cutoffs, on=cell)
-        bounded["lo"] = bounded["lo"].fillna(global_lo)
-        bounded["hi"] = bounded["hi"].fillna(global_hi)
-        kept = bounded.loc[bounded["rent_per_m2"].between(bounded["lo"], bounded["hi"], inclusive="both")].drop(columns=["lo", "hi"])
+        # 작은 셀의 보간 quantile은 n=2에서도 양 끝 두 행을 모두 제거한다.
+        # 30/32와 같이 각 tail 제거 수를 floor(n×1%)로 고정한다.
+        train_size = train_data.groupby(cell, observed=True)["rent_per_m2"].transform("size")
+        trim_count = np.floor(train_size * 0.01).astype(int)
+        ascending_rank = train_data.groupby(cell, observed=True)["rent_per_m2"].rank(method="first")
+        descending_rank = train_data.groupby(cell, observed=True)["rent_per_m2"].rank(method="first", ascending=False)
+        train_keep = (ascending_rank > trim_count) & (descending_rank > trim_count)
+        kept_train = train_data.loc[train_keep]
+        cutoffs = kept_train.groupby(cell, observed=True)["rent_per_m2"].agg(lo="min", hi="max")
+        # 학습 셀의 cutoff를 과거 시점에 재사용하면 전세 상승기에서 오래된 정상
+        # 거래가 하한 아래로 한쪽만 잘린다. 학습 기간은 기존 cell trim을 유지하고,
+        # 그 밖의 기간은 cell×calendar year 안에서 같은 건수 기반 trim을 적용한다.
+        # 작은 연도별 cell은 floor(n×1%)=0이므로 얇은 표본을 임의로 제거하지 않는다.
+        non_train = data.loc[~train_mask].copy()
+        non_train["calendar_year"] = non_train["deal_period"].dt.year
+        yearly_cell = cell + ["calendar_year"]
+        yearly_size = non_train.groupby(yearly_cell, observed=True)["rent_per_m2"].transform("size")
+        yearly_trim_count = np.floor(yearly_size * 0.01).astype(int)
+        yearly_ascending_rank = non_train.groupby(yearly_cell, observed=True)["rent_per_m2"].rank(method="first")
+        yearly_descending_rank = non_train.groupby(yearly_cell, observed=True)["rent_per_m2"].rank(method="first", ascending=False)
+        non_train_low_removed = yearly_ascending_rank.le(yearly_trim_count)
+        non_train_high_removed = yearly_descending_rank.le(yearly_trim_count)
+        non_train_keep = ~(non_train_low_removed | non_train_high_removed)
+
+        keep_mask = pd.Series(False, index=data.index)
+        keep_mask.loc[train_data.index] = train_keep.to_numpy()
+        keep_mask.loc[non_train.index] = non_train_keep.to_numpy()
+        kept = data.loc[keep_mask].copy()
+
+        # 수정 전 방식의 과거 제거량을 counterfactual로 함께 남긴다. 이는 모델 입력에
+        # 쓰지 않으며, 시점 편향이 다시 들어오는지를 검증·보고하기 위한 audit이다.
+        legacy_global_lo, legacy_global_hi = train_data["rent_per_m2"].quantile([.01, .99])
+        legacy = data.join(cutoffs, on=cell)
+        legacy["lo"] = legacy["lo"].fillna(legacy_global_lo)
+        legacy["hi"] = legacy["hi"].fillna(legacy_global_hi)
+        history_mask = data["deal_period"].lt(self.train_start)
+        legacy_low = history_mask & legacy["rent_per_m2"].lt(legacy["lo"])
+        legacy_high = history_mask & legacy["rent_per_m2"].gt(legacy["hi"])
+        history_low = pd.Series(False, index=data.index)
+        history_high = pd.Series(False, index=data.index)
+        history_low.loc[non_train.index] = non_train_low_removed.to_numpy()
+        history_high.loc[non_train.index] = non_train_high_removed.to_numpy()
+        history_low &= history_mask
+        history_high &= history_mask
+
+        def removal_audit(low: pd.Series, high: pd.Series) -> dict:
+            removed = low | high
+            n_history = int(history_mask.sum())
+            n_removed = int(removed.sum())
+            return {
+                "rows": n_history,
+                "removed": n_removed,
+                "low": int(low.sum()),
+                "high": int(high.sum()),
+                "rate_pct": 100 * n_removed / n_history if n_history else float("nan"),
+                "low_share_pct": 100 * int(low.sum()) / n_removed if n_removed else float("nan"),
+            }
+
+        history_trim = removal_audit(history_low, history_high)
+        legacy_history_trim = removal_audit(legacy_low, legacy_high)
 
         # 자치구×월 index. source_end보다 미래 관측을 포함하지 않으며, 각 자치구
         # 중앙값 대비 상대 index로 만든다. 누락 월은 as-of forward-fill한다.
@@ -96,6 +150,10 @@ class JeonseFeatureBuilder:
         audit = {
             f"{version.lower()}_rent_positive_rows": int(len(data)),
             f"{version.lower()}_rent_outlier_removed": int(len(data) - len(kept)),
+            f"{version.lower()}_train_cell_trim_removed": int((~train_keep).sum()),
+            f"{version.lower()}_nontrain_yearly_trim_removed": int((~non_train_keep).sum()),
+            f"{version.lower()}_history_trim": history_trim,
+            f"{version.lower()}_legacy_history_cell_cutoff": legacy_history_trim,
             f"{version.lower()}_index_months": int(len(month)),
             f"{version.lower()}_index_max_period": str(source_end),
             f"{version.lower()}_low10_share": self._low10_share(kept),

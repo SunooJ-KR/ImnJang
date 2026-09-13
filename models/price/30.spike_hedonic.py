@@ -30,6 +30,7 @@ from _features import (
     normalize_administrative_code,
     transformed_feature,
 )
+from _floor_band import assign_floor_band, load_actual_max_levels
 
 
 work_dir = Path(__file__).resolve().parents[2]
@@ -39,6 +40,7 @@ TRADES_PATH = output_dir / "11.1.trades_sale.txt"
 COMPLEX_PATH = output_dir / "23.1.complex.txt"
 METRICS_PATH = output_dir / "23.2.complex_metrics.txt"
 PROFILE_PATH = output_dir / "23.3.horizon_profile.txt"
+COMPLEX_FINAL_PATH = output_dir / "15.1.complex_final.txt"
 GEOCODED_PATH = output_dir / "14.1.geocoded_master.txt"
 COMPARISON_PATH = output_dir / "30.1.spike_model_comparison.txt"
 COEFFICIENTS_PATH = output_dir / "30.2.spike_coefficients.txt"
@@ -133,6 +135,7 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
     complex_df = add_canonical_sgg(complex_df, trades)
     metrics = ensure_unique(pd.read_csv(METRICS_PATH, sep="\t"), "apt_seq", "complex_metrics")
     profile = pd.read_csv(PROFILE_PATH, sep="\t")
+    complex_final = pd.read_csv(COMPLEX_FINAL_PATH, sep="\t", low_memory=False).rename(columns={"aptSeq": "apt_seq"})
     if profile.duplicated(["apt_seq", "floor_band"]).any():
         raise ValueError("horizon_profile의 apt_seq×floor_band가 유일하지 않습니다.")
 
@@ -163,23 +166,9 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
         errors="coerce",
     ).fillna(trades["deal_period"].dt.to_timestamp())
 
-    # 가격 셀(32)과 같은 HIGH repr_floor 최고층 proxy의 삼등분 규칙을 쓴다.
-    # profile이 없거나 거래 층이 결측이면 UNKNOWN으로 남긴다.
-    high_floor_proxy = profile.loc[profile["floor_band"].eq("HIGH"), ["apt_seq", "repr_floor"]].copy()
-    high_floor_proxy["repr_floor"] = pd.to_numeric(high_floor_proxy["repr_floor"], errors="coerce")
-    if high_floor_proxy["apt_seq"].duplicated().any():
-        raise ValueError("horizon_profile의 HIGH repr_floor가 apt_seq별로 유일하지 않습니다.")
-    high_floor_proxy = high_floor_proxy.set_index("apt_seq")["repr_floor"]
-    floor = pd.to_numeric(trades["floor"], errors="coerce")
-    max_floor = trades["apt_seq"].map(high_floor_proxy)
-    has_proxy = max_floor.notna() & max_floor.gt(0)
-    trades["floor_band"] = np.select(
-        [has_proxy & floor.le(max_floor / 3),
-         has_proxy & floor.gt(max_floor / 3) & floor.le(max_floor * 2 / 3),
-         has_proxy & floor.gt(max_floor * 2 / 3)],
-        ["LOW", "MID", "HIGH"],
-        default="UNKNOWN",
-    )
+    # 15.1의 실제 최고층으로 삼등분한다. 23.3 HIGH repr_floor는 5/6 대표
+    # 관측층이므로 최고층 proxy로 사용하지 않는다.
+    trades["floor_band"] = assign_floor_band(trades, load_actual_max_levels(complex_final))
 
     keep_complex = ["apt_seq", "bjd_code", "sgg_code", "built_year", "total_households", "far", "bcr", "parking_per_hh",
                     "redevelop_type", "redevelop_stage"]
@@ -569,7 +558,7 @@ def main() -> None:
         f"- VIF에서 제외된 상수열: {diag['constant_columns_excluded_from_vif']}",
         f"- 중복으로 제거한 물리 결측지시자: {diag['dropped_duplicate_physical_indicators']}",
         f"- floor_band_UNKNOWN과 완전 공선성으로 회귀 및 joint test에서 제외한 물리 결측지시자: {diag['dropped_collinear_physical_columns']}",
-        "- B는 층대(HIGH repr_floor 최고층 proxy의 삼등분)만 통제한 A에 profile availability를 추가한 모델입니다. 따라서 B의 증분은 profile 매칭 성공이라는 선택 효과 자체를 나타냅니다.",
+        "- B는 15.1 실제 최고층의 삼등분 층대만 통제한 A에 profile availability를 추가한 모델입니다. 따라서 B의 증분은 profile 매칭 성공이라는 선택 효과 자체를 나타냅니다.",
         "", "### VIF",
         vif_table.to_csv(sep="\t", index=False, float_format="%.6f").rstrip(), "", "### Correlation matrix",
         correlation.to_csv(sep="\t", float_format="%.6f").rstrip(), "", "## 물리 계수의 실질 크기 (F 모델, train; cluster-robust 95% CI)",

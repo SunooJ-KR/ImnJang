@@ -53,6 +53,9 @@ REDEVELOP_FEATURES = {
 }
 M2_FEATURES = BASE_FEATURES | LOCATION_FEATURES
 I_MODEL_FEATURES = M2_FEATURES | PHYSICAL_FEATURES | REDEVELOP_FEATURES
+# 30의 ablation I는 물리 feature의 기여를 측정해야 하므로 I_MODEL_FEATURES를
+# 계속 쓴다. 33 서비스 가격 모델은 검증 결과에 따라 물리 feature를 제외한다.
+SERVICE_MODEL_FEATURES = M2_FEATURES | REDEVELOP_FEATURES
 
 # 전세 feature는 30/33에서 같은 design-matrix 규칙(학습 평균 대체와 결측
 # 지시자)을 쓰도록 여기에 둔다. 금액 자체가 아니라 만원/m²를 사용한다.
@@ -71,6 +74,19 @@ def model_features(include_jeonse: bool = False, sgg_interaction_levels: list[st
     test/cold-start의 새 자치구가 design matrix의 열을 늘리거나 누수를 만들지 않는다.
     """
     features = I_MODEL_FEATURES.copy()
+    if include_jeonse:
+        features |= JEONSE_FEATURES
+        for level in sgg_interaction_levels or []:
+            name = f"jeonse_x_sgg_{level}"
+            features[name] = (name, False)
+    return features
+
+
+def service_model_features(
+    include_jeonse: bool = False, sgg_interaction_levels: list[str] | None = None,
+) -> dict[str, tuple[str, bool]]:
+    """33의 M2+정비사업(+전세) 서비스 가격 모델 feature를 반환한다."""
+    features = SERVICE_MODEL_FEATURES.copy()
     if include_jeonse:
         features |= JEONSE_FEATURES
         for level in sgg_interaction_levels or []:

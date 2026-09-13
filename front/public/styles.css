@@ -155,3 +155,6 @@ table.env td { text-align: right; padding: 5px 0; }
   color: var(--muted); font-size: 12px;
 }
 .foot p { margin: 4px 0; }
+
+.comps-area { margin: 10px 0 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+.comps li span { display: block; }

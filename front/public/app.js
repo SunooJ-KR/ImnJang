@@ -29,6 +29,12 @@ function toEok(manwon) {
   return (manwon / 10000).toFixed(2).replace(/\.?0+$/, '') + '억';
 }
 
+/** 만원/㎡ × 면적 -> 억 표기. 화면의 모든 가격을 같은 단위로 맞춘다 */
+function perM2ToEok(perM2, areaType) {
+  if (perM2 === null || perM2 === undefined) return '정보 없음';
+  return toEok(perM2 * areaType);
+}
+
 /** "2026-07" -> "2026년 7월" */
 function ymLabel(ym) {
   if (!ym) return null;
@@ -135,8 +141,11 @@ function renderResults(query) {
     var row = el('li', 'result');
     var info = el('div', 'result-info');
     info.appendChild(el('strong', null, item.n));
+    // 세대수는 건축물대장 미매칭 단지에서 null 이다 (316개). 그대로 부르면 예외가 난다
+    var households = (item.h === null || item.h === undefined)
+      ? '세대수 정보 없음' : item.h.toLocaleString() + '세대';
     info.appendChild(el('span', 'muted',
-      item.g + ' ' + item.u + ' · ' + item.y + '년 · ' + item.h.toLocaleString() + '세대'));
+      item.g + ' ' + item.u + ' · ' + item.y + '년 · ' + households));
     row.appendChild(info);
 
     var button = el('button', inBasket(item.id) ? 'picked' : null,
@@ -166,10 +175,18 @@ function priceLine(entry) {
     wrap.appendChild(el('div', 'muted', '최근 2년 거래 ' + entry.n_trades_24m + '건'));
   } else if (entry.source === 'COMPLEX_MEAN') {
     wrap.appendChild(el('div', 'price-value',
-      '이 면적 거래 없음 · 단지 평균 ' + entry.mean_price_per_m2_24m + '만원/㎡'));
+      '이 면적·층대의 최근 2년 거래 없음 · 단지 평균 ' +
+      perM2ToEok(entry.mean_price_per_m2_24m, entry.area_type)));
+    wrap.appendChild(el('div', 'muted',
+      '단지 평균 ' + entry.mean_price_per_m2_24m.toLocaleString() + '만원/㎡ × ' +
+      entry.area_type + '㎡ 환산'));
   } else if (entry.source === 'MODEL') {
-    var range = '추정 ' + entry.est_low + '~' + entry.est_high + '만원/㎡';
+    var range = '추정 ' + perM2ToEok(entry.est_low, entry.area_type) + '~' +
+      perM2ToEok(entry.est_high, entry.area_type);
     wrap.appendChild(el('div', 'price-value estimated', range));
+    wrap.appendChild(el('div', 'muted',
+      entry.est_low.toLocaleString() + '~' + entry.est_high.toLocaleString() +
+      '만원/㎡ × ' + entry.area_type + '㎡ 환산'));
     wrap.appendChild(el('div', 'muted', '이 단지는 최근 2년 거래가 없습니다'));
     var badge = el('span', 'badge badge-' + String(entry.est_confidence).toLowerCase(),
       '신뢰도 ' + entry.est_confidence);
@@ -223,7 +240,7 @@ function sparkline(points) {
 var ENV_ROWS = [
   ['일조 (동지 08~16시)', function (d) { return fmt(d.env.sun_hours_avg, '시간'); }],
   ['조망 개방도', function (d) { return fmt(d.env.view_open_avg, '도'); }],
-  ['한강 조망 세대 비율', function (d) { return ratio(d.env.river_view_ratio); }],
+  ['한강 조망 관측점 비율', function (d) { return ratio(d.env.river_view_ratio); }],
   ['지하철 출입구까지', function (d) { return fmt(d.env.station_dist_m, 'm'); }],
   ['추정 도보', function (d) { return fmt(d.env.station_walk_min_est, '분'); }],
   ['초등학교까지', function (d) { return fmt(d.env.elem_school_m, 'm'); }],
@@ -292,18 +309,31 @@ function renderComplexCard(data) {
   if (!data.comparables || data.comparables.length === 0) {
     card.appendChild(el('p', 'muted', '비교할 만한 유사 단지를 찾지 못했습니다.'));
   } else {
-    var list = el('ul', 'comps');
-    data.comparables.slice(0, 5).forEach(function (c) {
-      var item = el('li');
-      item.appendChild(el('strong', null, c.name));
-      item.appendChild(el('span', 'muted',
-        ymLabel(c.deal_ym) + ' ' + toEok(c.price_manwon) +
-        ' · ' + Math.round(c.dist_m).toLocaleString() + 'm · ' + c.adj_reason));
-      list.appendChild(item);
+    // 면적타입별로 묶는다. 묶지 않고 앞 5개만 자르면 단지마다 서로 다른
+    // 면적의 사례를 보게 되어 "같은 기준 비교"가 깨진다.
+    var byArea = {};
+    data.comparables.forEach(function (c) {
+      if (!byArea[c.area_type]) byArea[c.area_type] = [];
+      byArea[c.area_type].push(c);
     });
-    card.appendChild(list);
+    Object.keys(byArea).sort(function (a, b) { return a - b; }).forEach(function (area) {
+      card.appendChild(el('div', 'comps-area', area + '㎡ 기준'));
+      var list = el('ul', 'comps');
+      byArea[area].slice(0, 5).forEach(function (c) {
+        var item = el('li');
+        item.appendChild(el('strong', null, c.name));
+        item.appendChild(el('span', 'muted',
+          ymLabel(c.deal_ym) + ' 거래 ' + toEok(c.price_manwon) +
+          ' · ' + Math.round(c.dist_m).toLocaleString() + 'm'));
+        item.appendChild(el('span', 'muted',
+          c.adj_reason + ' → ' + perM2ToEok(c.adj_price_per_m2, c.area_type)));
+        list.appendChild(item);
+      });
+      card.appendChild(list);
+    });
     card.appendChild(el('p', 'muted',
-      '보정가격은 실제로 체결된 가격이 아닙니다.'));
+      '보정가격은 실제로 체결된 가격이 아닙니다. 자치구 월별 거래단가 중앙값 ' +
+      '비율로 환산한 값이며, 거래된 단지·면적 구성이 달라지면 함께 움직입니다.'));
   }
 
   // ② 환경

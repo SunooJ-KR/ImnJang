@@ -7,8 +7,8 @@
 #              같은 단지의 최근 거래 평균으로만 보완한다. 최근 거래가 전혀 없는
 #              단지는 cold-start 모델(Task 2)의 대상이므로 이 산출물에 넣지 않는다.
 #
-#              층대는 23.3.horizon_profile의 HIGH repr_floor를 단지 최고층 proxy로
-#              사용해 최고층의 1/3 이하 LOW, 2/3 이하 MID, 초과 HIGH로 구분한다.
+#              층대는 15.1.complex_final의 실제 max_levels를 사용해 최고층의
+#              1/3 이하 LOW, 2/3 이하 MID, 초과 HIGH로 구분한다.
 # ============================================================================
 
 from __future__ import annotations
@@ -18,6 +18,8 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from _floor_band import assign_floor_band, load_actual_max_levels
+
 
 work_dir = Path(__file__).resolve().parents[2]
 output_dir = work_dir / "output"
@@ -25,6 +27,7 @@ output_dir = work_dir / "output"
 TRADES_PATH = output_dir / "11.1.trades_sale.txt"
 COMPLEX_PATH = output_dir / "23.1.complex.txt"
 PROFILE_PATH = output_dir / "23.3.horizon_profile.txt"
+COMPLEX_FINAL_PATH = output_dir / "15.1.complex_final.txt"
 CELLS_PATH = output_dir / "32.1.price_cells.txt"
 SERIES_PATH = output_dir / "32.2.price_series.txt"
 
@@ -43,38 +46,13 @@ def require_unique(frame: pd.DataFrame, keys: list[str], label: str) -> pd.DataF
     return frame
 
 
-def build_floor_proxy(profile: pd.DataFrame) -> pd.Series:
-    """단지별 HIGH repr_floor를 최고층 proxy로 반환한다."""
-    high_proxy = profile.loc[profile["floor_band"].eq("HIGH"), ["apt_seq", "repr_floor"]].copy()
-    high_proxy["repr_floor"] = pd.to_numeric(high_proxy["repr_floor"], errors="coerce")
-    high_proxy = require_unique(high_proxy, ["apt_seq"], "horizon_profile HIGH")
-    return high_proxy.set_index("apt_seq")["repr_floor"]
-
-
-def assign_floor_band(trades: pd.DataFrame, high_floor_proxy: pd.Series) -> pd.Series:
-    """HIGH repr_floor proxy의 삼등분 규칙으로 거래 층을 LOW/MID/HIGH로 구분한다."""
-    floor = pd.to_numeric(trades["floor"], errors="coerce")
-    max_floor = trades["apt_seq"].map(high_floor_proxy)
-    has_proxy = max_floor.notna() & max_floor.gt(0)
-    return pd.Series(
-        np.select(
-            [has_proxy & floor.le(max_floor / 3),
-             has_proxy & floor.gt(max_floor / 3) & floor.le(max_floor * 2 / 3),
-             has_proxy & floor.gt(max_floor * 2 / 3)],
-            ["LOW", "MID", "HIGH"],
-            default="UNKNOWN",
-        ),
-        index=trades.index,
-        dtype="string",
-    )
-
-
 def load_and_clean_trades() -> tuple[pd.DataFrame, pd.Period, pd.Period]:
     """취소·명백한 입력 오류와 단지×면적타입 가격/m² 양끝 1%를 제거한다."""
     trades = pd.read_csv(TRADES_PATH, sep="\t", low_memory=False).rename(columns={"aptSeq": "apt_seq"})
     complex_df = require_unique(pd.read_csv(COMPLEX_PATH, sep="\t", low_memory=False), ["apt_seq"], "complex")
     profile = pd.read_csv(PROFILE_PATH, sep="\t", low_memory=False)
     require_unique(profile, ["apt_seq", "floor_band"], "horizon_profile")
+    complex_final = pd.read_csv(COMPLEX_FINAL_PATH, sep="\t", low_memory=False).rename(columns={"aptSeq": "apt_seq"})
 
     # complex는 입력 계약의 단지 universe를 명시적으로 제한하는 데만 사용한다.
     known_complexes = set(complex_df["apt_seq"].astype(str))
@@ -111,8 +89,7 @@ def load_and_clean_trades() -> tuple[pd.DataFrame, pd.Period, pd.Period]:
     if trades.empty:
         raise ValueError("가격/m² 양끝 1% 정제 후 거래가 없습니다.")
 
-    high_floor_proxy = build_floor_proxy(profile)
-    trades["floor_band"] = assign_floor_band(trades, high_floor_proxy)
+    trades["floor_band"] = assign_floor_band(trades, load_actual_max_levels(complex_final))
     trades["deal_date"] = pd.to_datetime(
         dict(
             year=pd.to_numeric(trades["dealYear"], errors="coerce"),
