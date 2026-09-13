@@ -32,6 +32,7 @@ from _features import (  # noqa: E402
     build_design,
     location_category_columns,
     model_features,
+    service_model_features,
     transformed_feature,
 )
 from _jeonse import JeonseFeatureBuilder  # noqa: E402
@@ -176,7 +177,8 @@ def inputs_for_evaluation(name: str, train_frame: pd.DataFrame, predict_frame: p
 def main():
     source = load_coldstart_module()
     print("===== 1. 동일 L 데이터 준비 =====")
-    raw, complex_df, _, _ = source.load_base()
+    # 33.load_base 가 층대용 max_levels 를 추가로 반환하도록 바뀌었다
+    raw, complex_df, *_ = source.load_base()
     print(f"  기본 매매·단지 data 로드: {len(raw):,}행", flush=True)
     rent = JeonseFeatureBuilder(source.RENT_PATH, complex_df, source.TRAIN_START, source.TRAIN_END)
     print("  전세 feature builder 초기화 완료", flush=True)
@@ -194,7 +196,9 @@ def main():
     print("  train 전세 5% 환산 feature 결합 완료", flush=True)
     test, test_rent_audit = source.prepare(test, rent, "CONVERTED", source.TRAIN_END, True, sgg_levels)
     print("  test 전세 5% 환산 feature 결합 완료", flush=True)
-    features = model_features(True, sgg_levels)
+    # 33 이 실제로 배포에 쓰는 사양과 같아야 비교가 의미 있다.
+    # 물리 feature 는 예측 기여가 0으로 측정돼 서비스 모델에서 제외됐다.
+    features = service_model_features(True, sgg_levels)
     location_columns = location_category_columns(LOCATION_SCHEME)
     fit_frame, holdout_frame = source.split(train)
 
