@@ -69,7 +69,8 @@ SCHEMA = {
     "redevelop": {"type", "stage"},
     "series": {"area_type", "points"},
     # index.json 은 용량 때문에 키를 1글자로 줄였다 (front/build/36.build_payload.py)
-    "index": {"id", "n", "g", "u", "lat", "lng", "y", "h"},
+    # match_confidence 는 HIGH 가 아닐 때만 실린다 (36.build_payload.py)
+    "index": {"id", "n", "g", "u", "lat", "lng", "y", "h", "match_confidence"},
 }
 VALID_SOURCES = {"CELL_LAST", "COMPLEX_MEAN", "MODEL", "EXCLUDED"}
 
