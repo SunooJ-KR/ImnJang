@@ -40,3 +40,6 @@ output/21.3.skyline.npy
 front/docs/
 # Claude Code 로컬 설정
 CLAUDE.md
+
+# 토지거래허가 분석 거래 테이블 (11.1에서 38로 30초 내 재생성)
+output/38.1.trades_regulation.txt
