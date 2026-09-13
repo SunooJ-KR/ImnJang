@@ -39,8 +39,11 @@ export async function loadIndex(): Promise<{ payload: IndexPayload; isDemo: bool
 
 /**
  * 단지 payload를 불러온다.
- * 36.build_payload.py 는 .json.gz 로만 쓰지만, 호스팅이 Content-Encoding 을
- * 붙이지 않는 경우를 대비해 .json 을 먼저 시도한다.
+ *
+ * 36.build_payload.py 는 .json.gz 로만 쓴다. 정적 호스팅은 이 파일을
+ * Content-Type: application/gzip 으로 그냥 내려주기 때문에 브라우저가
+ * 압축을 풀지 않는다. 그래서 DecompressionStream 으로 직접 푼다.
+ * 서버가 Content-Encoding: gzip 을 붙여줬다면 이미 풀린 상태이므로 그대로 쓴다.
  */
 export async function fetchComplex(id: string): Promise<ComplexPayload> {
   const plain = await fetch(`/data/complex/${id}.json`);
@@ -48,7 +51,12 @@ export async function fetchComplex(id: string): Promise<ComplexPayload> {
 
   const gz = await fetch(`/data/complex/${id}.json.gz`);
   if (!gz.ok) throw new Error(`payload 없음: ${id}`);
-  return (await gz.json()) as ComplexPayload;
+
+  const decodedByServer = gz.headers.get("content-encoding")?.includes("gzip") ?? false;
+  if (decodedByServer || gz.body === null) return (await gz.json()) as ComplexPayload;
+
+  const unzipped = gz.body.pipeThrough(new DecompressionStream("gzip"));
+  return (await new Response(unzipped).json()) as ComplexPayload;
 }
 
 /** lat/lng 를 지도 미리보기의 % 좌표로 투영한다. VWorld 연동 시 교체 지점. */

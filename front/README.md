@@ -24,7 +24,7 @@ npm install
 | `npm run check` | 타입 검사 + 문구/스키마 검사 |
 | `npm run payload` | `build/36.build_payload.py` 실행 (Python 필요) |
 
-> `npm run start`는 Next 서버가 아니라 `npx serve out`이다. 정적 export라 서버 런타임이 없다.
+> `npm run start`는 Next 서버가 아니라 `serve out`이다. 정적 export라 서버 런타임이 없다.
 
 ## 구조
 
@@ -67,10 +67,19 @@ payload 생성:
 npm run payload           # = python ../front/build/36.build_payload.py
 ```
 
+Python은 `numpy`, `pandas`가 필요하다. 저장소 루트에 `.venv`를 두는 것을 기준으로 한다.
+
+```bash
+python -m venv .venv
+.venv/Scripts/python.exe -m pip install pandas numpy   # Windows
+```
+
 - 입력: `output/23.*`, `output/32.*`, `output/33.*`, `output/34.1`, `output/35.2`, `output/14.1`
 - 출력: `front/public/data/index.json`, `front/public/data/complex/<apt_seq>.json.gz`
-- 규모: 9,160개 단지, 약 55.9MB. `complex/`는 매 실행마다 지우고 다시 만든다
-- 끝에 자체 검증이 돌며 `index.json` gzip 500KB 상한 등을 확인한다
+- 규모: 9,160개 단지, 총 15.7MB (`index.json` gzip 207.6KB). `complex/`는 매 실행마다 지우고 다시 만든다
+- 끝에 자체 검증이 돌며 `index.json` gzip 500KB 상한 등 9개 항목을 확인한다
+
+`index.json`에는 `match_confidence`가 `HIGH`가 아닐 때만 실린다. 9,160행에 기본값을 매번 싣지 않기 위해서다. 프론트는 값이 없으면 `HIGH`로 읽는다 (`lib/format.ts`의 `matchConfidence()`).
 
 `front/public/data/`는 `.gitignore` 대상이다. 재빌드마다 전량이 바뀌므로 개발 중에는 추적하지 않고, **배포 직전에 한 번만 commit한다.**
 
@@ -134,6 +143,5 @@ vercel --prod   # production
 ## 알려진 제약
 
 - **지도는 아직 실제 배경지도가 아니다.** `SEOUL_BOUNDS` 기준 좌표 투영 미리보기다. VWorld API 키가 준비되면 `lib/data.ts`의 `projectToMap()`과 `components/map-preview.tsx`를 OpenLayers adapter로 교체한다.
-- **단지 payload가 `.json.gz`로만 생성된다 (미검증 위험).** `lib/data.ts`의 `fetchComplex()`는 `.json`을 먼저 시도하고 실패하면 `.json.gz`를 받아 파싱한다. 서버가 `Content-Encoding: gzip`을 붙이지 않으면 브라우저가 압축을 풀지 않아 파싱이 깨진다. 현재 `public/data/`가 없어 실제로 확인하지 못했다. payload를 빌드한 뒤 비교서 열기를 로컬과 Vercel preview 양쪽에서 확인할 것.
-- `index.json`에는 아직 `match_confidence`가 없다. `분석 가능` / `확인 필요` 필터는 payload에 해당 필드가 추가되어야 정확해진다.
+- **단지 payload는 `.json.gz`로만 생성된다.** 정적 호스팅은 이 파일을 `Content-Type: application/gzip`으로 그냥 내려주므로 브라우저가 압축을 풀지 않는다 (`next dev`에서 확인). 그래서 `lib/data.ts`의 `fetchComplex()`가 `DecompressionStream("gzip")`으로 직접 푼다. 서버가 `Content-Encoding: gzip`을 붙여주는 환경이면 그대로 쓴다. **Vercel preview에서 한 번 더 확인할 것** — 아직 배포해보지 않았다.
 - `npm audit`에 `postcss` 관련 경고가 뜬다. Next 15의 전이 의존성이고 빌드 타임에만 쓰인다. 해소하려면 Next 16으로 올려야 해서 지금은 두었다.
