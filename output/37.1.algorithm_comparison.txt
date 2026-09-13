@@ -1,36 +1,42 @@
 # 37.1 cold-start 알고리즘 비교
 
+## 33.2 채택 사양 (실행 시 파싱)
+- 사용 사양: 전세 variant=CONVERTED, 자치구 교호항=False.
+- 33.2 채택 선언 근거: `- 전세 feature 채택: L: 5% 환산 / linear / LightGBM.`
+- 33.2 채택 표 행 근거: `L: 5% 환산 / linear	LightGBM	linear	11.568677	9.728438	17.780491	12.397295	9.372446`
+- LightGBM holdout MAPE 대조: 33.2=9.728438%, 37=9.728438%, 차이=+0.000000%p.
+
 ## 결과
 model	holdout_MAPE_pct	oot_MAPE_pct	holdout_MAPE_le20	holdout_MAPE_21_100	holdout_MAPE_101plus	fit_seconds	predict_seconds	hyperparams
-XGBoost	9.625534	11.416777	17.844803	11.729660	9.285151	5.282247	0.038019	"{""colsample_bytree"": 0.8, ""max_depth"": 7, ""min_child_weight"": 20, ""reg_lambda"": 1.0, ""subsample"": 0.8}"
-CatBoost	9.757999	14.208308	16.738665	11.432841	9.464446	12.264967	0.053609	"{""depth"": 8, ""l2_leaf_reg"": 3.0, ""random_strength"": 1.0}"
-LightGBM	9.827639	11.665898	18.254071	12.114031	9.479672	2.101188	0.082313	"{""colsample_bytree"": 0.8, ""min_child_samples"": 30, ""num_leaves"": 31, ""reg_lambda"": 1.0, ""subsample"": 0.8}"
-RandomForest	11.099924	9.648150	17.950916	13.145002	10.790232	66.083205	0.449232	"{""max_depth"": null, ""max_features"": 0.8, ""min_samples_leaf"": 2, ""n_estimators"": 150}"
-Ridge	13.070548	15.583245	20.454348	16.506539	12.668959	3.212478	0.027824	"{""alpha"": 10.0}"
-OLS	13.234029	15.577410	20.720102	16.664969	12.840801	58.248627	0.022565	{}
+XGBoost	9.669604	11.419933	18.072623	11.639992	9.347618	4.362390	0.037190	"{""colsample_bytree"": 0.8, ""max_depth"": 7, ""min_child_weight"": 20, ""reg_lambda"": 1.0, ""subsample"": 0.8}"
+LightGBM	9.728438	11.568677	17.780491	12.397295	9.372446	2.063324	0.076389	"{""colsample_bytree"": 0.8, ""min_child_samples"": 40, ""num_leaves"": 31, ""reg_lambda"": 1.0, ""subsample"": 0.8}"
+CatBoost	9.886220	14.467011	17.377356	11.469637	9.592103	10.137001	0.051173	"{""depth"": 8, ""l2_leaf_reg"": 3.0, ""random_strength"": 1.0}"
+RandomForest	11.149258	9.614450	18.195392	13.349560	10.825782	33.077677	0.187315	"{""max_depth"": null, ""max_features"": 0.8, ""min_samples_leaf"": 2, ""n_estimators"": 150}"
+Ridge	13.730890	16.484888	20.979968	15.896168	13.416168	0.225681	0.018889	"{""alpha"": 100.0}"
+OLS	13.797271	16.196689	20.600168	15.993222	13.505725	2.718753	0.012234	{}
 
 ## 비교 조건
 - random seed: 20260911. 최근 24개월 중 train=2024-09~2026-02, test=2026-03~2026-08입니다.
-- L feature: 전세 5% 환산(CONVERTED) 및 train에서 확정한 자치구 교호항 25개를 사용했습니다. train 이상치 cutoff만 적합하여 62행을 제거했습니다.
+- L feature: 33.2에서 파싱한 전세 CONVERTED, 자치구 교호항=False 사양을 사용했습니다. train 이상치 cutoff만 적합하여 62행을 제거했습니다.
 - OLS/Ridge/RandomForest/LightGBM/XGBoost는 `_features.build_design()`의 기존 dummy 방식(층대·월·지역 FE·전세 수준)을 사용했습니다.
 - CatBoost는 dummy를 만들지 않고 완전 법정동 키(`bjd_full_key`), 자치구(`sgg_code`), `floor_band`, `jeonse_level`, `deal_ym`을 native `cat_features`로 넘겼습니다. 수치 L feature는 동일하게 사용했습니다.
 - tuning은 stable hash holdout을 제외한 fit 단지의 GroupKFold 3분할에서만 실시했습니다. model당 grid는 1회, 최대 4개 후보입니다.
 - fit_seconds는 전체 train 재적합 시간, predict_seconds는 전체 OOT test 예측 시간입니다. 환경의 CPU 부하에 따라 달라질 수 있습니다.
 
 ## 최종 hyperparameter 및 LightGBM 대비
-- XGBoost: {"colsample_bytree": 0.8, "max_depth": 7, "min_child_weight": 20, "reg_lambda": 1.0, "subsample": 0.8}; LightGBM 대비 holdout +0.202%p
-- CatBoost: {"depth": 8, "l2_leaf_reg": 3.0, "random_strength": 1.0}; LightGBM 대비 holdout +0.070%p
-- LightGBM: {"colsample_bytree": 0.8, "min_child_samples": 30, "num_leaves": 31, "reg_lambda": 1.0, "subsample": 0.8}; LightGBM 대비 holdout +0.000%p
-- RandomForest: {"max_depth": null, "max_features": 0.8, "min_samples_leaf": 2, "n_estimators": 150}; LightGBM 대비 holdout -1.272%p
-- Ridge: {"alpha": 10.0}; LightGBM 대비 holdout -3.243%p
-- OLS: {}; LightGBM 대비 holdout -3.406%p
+- XGBoost: {"colsample_bytree": 0.8, "max_depth": 7, "min_child_weight": 20, "reg_lambda": 1.0, "subsample": 0.8}; LightGBM 대비 holdout +0.059%p
+- LightGBM: {"colsample_bytree": 0.8, "min_child_samples": 40, "num_leaves": 31, "reg_lambda": 1.0, "subsample": 0.8}; LightGBM 대비 holdout +0.000%p
+- CatBoost: {"depth": 8, "l2_leaf_reg": 3.0, "random_strength": 1.0}; LightGBM 대비 holdout -0.158%p
+- RandomForest: {"max_depth": null, "max_features": 0.8, "min_samples_leaf": 2, "n_estimators": 150}; LightGBM 대비 holdout -1.421%p
+- Ridge: {"alpha": 100.0}; LightGBM 대비 holdout -4.002%p
+- OLS: {}; LightGBM 대비 holdout -4.069%p
 
 ## 결론
-- XGBoost 검토 권고: LightGBM 대비 holdout MAPE가 0.202%p 낮습니다. 다만 CatBoost의 OOT MAPE는 LightGBM보다 +2.542%p 높아 시간 일반화 원인은 추가 점검이 필요합니다. 이는 33번의 채택 model을 변경하지 않으며 별도 승인 전까지 LightGBM을 유지합니다.
+- LightGBM 유지: 최저 holdout MAPE와의 차이가 0.1%p 미만이므로 model 교체의 실무적 의미가 작습니다. 재학습 시간과 기존 운영 경로를 고려했습니다.
 
 ===== 3. 자체 검증 =====
 - [PASS] 모든 model의 holdout/test 행 수 일치: holdout=21,438, test=37,154; OLS=21438/37154, Ridge=21438/37154, RandomForest=21438/37154, LightGBM=21438/37154, XGBoost=21438/37154, CatBoost=21438/37154
 - [PASS] test 기간 데이터가 학습·tuning에 미사용: train 최대=2026-02, test 최소=2026-03
 - [PASS] 단지 holdout fit/validation 단지 비중첩: 교집합=0
 - [PASS] 완전 법정동 키 사용 및 자치구 혼입 없음: 완전 키=324, dense=236
-- [PASS] 모든 grid 후보 조합 12개 이하: OLS=1, Ridge=4, RandomForest=4, LightGBM=4, XGBoost=4, CatBoost=4
+- [PASS] 모든 grid 후보 조합 12개 이하: OLS=1, Ridge=4, RandomForest=4, LightGBM=1, XGBoost=4, CatBoost=4
