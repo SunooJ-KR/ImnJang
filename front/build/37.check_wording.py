@@ -21,7 +21,18 @@ import sys
 from pathlib import Path
 
 work_dir = Path(__file__).resolve().parents[2]
-TARGETS = [work_dir / "front/public/index.html", work_dir / "front/public/app.js"]
+front_dir = work_dir / "front"
+
+# Next.js 소스 전체를 본다. node_modules / .next / out 은 산출물이라 제외한다.
+SOURCE_DIRS = ["app", "components", "lib"]
+TARGETS = sorted(
+    path
+    for directory in SOURCE_DIRS
+    for pattern in ("*.ts", "*.tsx", "*.css")
+    for path in (front_dir / directory).rglob(pattern)
+)
+if not TARGETS:
+    sys.exit("검사 대상 소스를 찾지 못했다. front/{app,components,lib} 를 확인하라.")
 
 # 금지 표현. (정규식, 설명) — docs/product-identity.md §6
 FORBIDDEN = [
@@ -58,7 +69,8 @@ SCHEMA = {
     "redevelop": {"type", "stage"},
     "series": {"area_type", "points"},
     # index.json 은 용량 때문에 키를 1글자로 줄였다 (front/build/36.build_payload.py)
-    "index": {"id", "n", "g", "u", "lat", "lng", "y", "h"},
+    # match_confidence 는 HIGH 가 아닐 때만 실린다 (36.build_payload.py)
+    "index": {"id", "n", "g", "u", "lat", "lng", "y", "h", "match_confidence"},
 }
 VALID_SOURCES = {"CELL_LAST", "COMPLEX_MEAN", "MODEL", "EXCLUDED"}
 
@@ -82,7 +94,10 @@ if not violations:
 
 
 print("\n===== 2. 필드명 대조 =====")
-app_text = (work_dir / "front/public/app.js").read_text(encoding="utf-8")
+# 타입 선언(lib/types.ts)은 스키마 자체를 적는 곳이라 필드 접근 검사에서 제외한다
+app_text = "\n".join(
+    path.read_text(encoding="utf-8") for path in TARGETS if path.name != "types.ts"
+)
 known = set().union(*SCHEMA.values())
 unknown_fields = []
 
@@ -108,7 +123,7 @@ if not unknown_fields:
 
 
 print("\n===== 3. source 분기 완전성 =====")
-handled = set(re.findall(r"source === '([A-Z_]+)'", app_text))
+handled = set(re.findall(r"source === [\"']([A-Z_]+)[\"']", app_text))
 missing = VALID_SOURCES - handled
 if missing:
     print(f"  [FAIL] 처리하지 않은 source: {sorted(missing)}")
