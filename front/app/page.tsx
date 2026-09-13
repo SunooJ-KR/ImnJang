@@ -26,6 +26,7 @@ export default function Page() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareLoading, setCompareLoading] = useState(false);
   const [compareError, setCompareError] = useState<string | null>(null);
+  const [revealKey, setRevealKey] = useState(0);
 
   const { basket, has, toggle, clear, full } = useBasket();
   const compareRef = useRef<HTMLDivElement>(null);
@@ -88,12 +89,18 @@ export default function Page() {
     setCompareOpen(true);
     setCompareLoading(true);
     setCompareError(null);
+    // key 를 바꿔 다시 mount 시킨다. 두 번째 이후에도 등장 애니메이션과 링이 재생된다.
+    setRevealKey((current) => current + 1);
+
+    // 데이터를 기다리지 않고 먼저 내려간다. 섹션은 이미 '불러오는 중'으로 자리를 잡는다.
+    requestAnimationFrame(() => {
+      compareRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
 
     Promise.all(basket.map((entry) => fetchComplex(entry.id)))
       .then((all) => {
         setPayloads(all);
         setCompareLoading(false);
-        compareRef.current?.scrollIntoView({ behavior: "smooth" });
       })
       .catch(() => {
         setPayloads([]);
@@ -165,12 +172,23 @@ export default function Page() {
       {/* 비교서는 grid 밖에 둔다. 검색 패널이 sticky 라 같은 grid 안에 있으면
           행 경계에서 겹쳐 보인다. 여기로 빼면 항상 main 아래에 전체 폭으로 놓인다. */}
       {compareOpen && (
-        <div ref={compareRef} className="mx-auto mt-3 w-[min(1320px,100%)] scroll-mt-16">
+        <div
+          key={revealKey}
+          ref={compareRef}
+          className="animate-reveal-up reveal-ring mx-auto mt-3 w-[min(1320px,100%)] scroll-mt-16"
+        >
           <CompareSection payloads={payloads} loading={compareLoading} error={compareError} />
         </div>
       )}
 
-      <BasketBar basket={basket} full={full} onCompare={openCompare} onClear={clearBasket} />
+      <BasketBar
+        basket={basket}
+        full={full}
+        loading={compareLoading}
+        opened={compareOpen}
+        onCompare={openCompare}
+        onClear={clearBasket}
+      />
 
       <footer className="mx-auto mt-6 w-[min(1320px,100%)] border-t border-border pt-4 text-[11px] text-muted-foreground">
         <p className="my-1">

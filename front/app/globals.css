@@ -68,6 +68,8 @@
   --animate-fade-in: fade-in 180ms var(--ease-out-soft);
   --animate-rise-in: rise-in 220ms var(--ease-out-soft) both;
   --animate-slide-up: slide-up 220ms var(--ease-out-soft);
+  --animate-reveal-up: reveal-up 220ms var(--ease-out-soft) both;
+  --animate-bounce-down: bounce-down 1.6s var(--ease-out-soft) infinite;
 
   @keyframes fade-in {
     from { opacity: 0; }
@@ -82,6 +84,43 @@
   @keyframes slide-up {
     from { opacity: 0; transform: translateY(100%); }
     to { opacity: 1; transform: none; }
+  }
+
+  @keyframes reveal-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* 결과가 아래에 있다는 힌트. 아주 작게, 계속 움직여도 거슬리지 않을 만큼만. */
+  @keyframes bounce-down {
+    0%, 60%, 100% { transform: none; }
+    30% { transform: translateY(2px); }
+  }
+
+  /* 테두리를 직접 애니메이트하지 않는다. 링은 가상 요소에 미리 그려두고
+     opacity 만 움직여서 레이아웃도 페인트 비용도 건드리지 않는다. */
+  @keyframes ring-fade {
+    0% { opacity: 0; }
+    30% { opacity: 0.5; }
+    100% { opacity: 0; }
+  }
+}
+
+@layer components {
+  /* 하단에 비교서가 새로 나타났다는 것을 포인트 컬러 링으로 한 번만 알린다. */
+  .reveal-ring {
+    position: relative;
+  }
+
+  .reveal-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 0 0 3px var(--primary);
+    opacity: 0;
+    pointer-events: none;
+    animation: ring-fade 1000ms var(--ease-out-soft) 160ms;
   }
 }
 
