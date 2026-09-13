@@ -40,11 +40,13 @@ export function SearchPanel({
   onTogglePick: (item: IndexComplex) => void;
 }) {
   return (
-    // md 이상에서만 sticky + 높이 제한이다. max-h 만 걸면 내부 콘텐츠가 박스를
-    // 넘어 이웃 위로 그려질 수 있으므로 overflow-hidden 으로 함께 못박는다.
+    // md 이상에서만 sticky + 높이 제한이다.
+    // 위 62px 은 sticky 헤더, 아래 88px 은 하단 비교 바와 여백 몫이다.
+    // 이만큼 빼야 패널 아래쪽이 바에 가리거나 화면 밖으로 잘리지 않는다.
+    // max-h 만 걸면 내용이 박스를 넘어 이웃 위로 그려지므로 overflow-hidden 을 함께 건다.
     <Card
       id="search-section"
-      className="flex flex-col gap-3 p-3 md:sticky md:top-[62px] md:max-h-[calc(100dvh-78px)] md:overflow-hidden md:p-4"
+      className="flex flex-col gap-3 p-3 md:sticky md:top-[62px] md:max-h-[calc(100dvh-150px)] md:overflow-hidden md:p-4"
     >
       {/* 패널 높이가 max-h 에 걸리면 flex 자식이 전부 줄어든다.
           스크롤을 맡는 결과 리스트만 flex-1 로 두고 나머지는 shrink-0 으로 고정한다. */}
