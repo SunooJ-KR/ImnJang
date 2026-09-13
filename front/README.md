@@ -102,16 +102,28 @@ npm run check
 
 ## 배포
 
-Vercel. `vercel.json`이 framework·빌드·출력 경로를 지정한다.
+Vercel.
 
 | 항목 | 값 |
 |---|---|
-| Root Directory | `front` |
-| Framework | Next.js |
-| Build Command | `next build` |
-| Output Directory | `out` (정적 export) |
+| Root Directory | **`front`** (저장소 루트에는 `package.json`이 없다) |
+| Framework Preset | Next.js |
+| Build Command | 비워둔다 |
+| Output Directory | 비워둔다 |
+| Install Command | 비워둔다 |
 
-`/data/*`에는 `Cache-Control: public, max-age=3600`이 붙는다.
+**Build Command 와 Output Directory 를 직접 지정하지 않는다.** Next.js 빌더는
+`.next/routes-manifest.json` 을 읽은 뒤 `output: "export"` 를 스스로 감지해
+`out/` 을 서빙한다. Output Directory 를 `out` 으로 박으면 빌더가 거기서
+매니페스트를 찾다가 실패한다.
+
+```text
+The file "/vercel/path0/front/out/routes-manifest.json" couldn't be found.
+```
+
+대시보드 설정이 `vercel.json` 보다 우선하므로 둘 다 비워야 한다.
+
+`vercel.json` 은 `/data/*` 의 `Cache-Control: public, max-age=3600` 만 지정한다.
 
 CLI 배포:
 
