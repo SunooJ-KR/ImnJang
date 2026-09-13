@@ -69,7 +69,11 @@ def normalize_dong(value):
 
 
 ledger["dong_key"] = ledger["dong_nm"].apply(normalize_dong)
-ledger_names = ledger.groupby("join_key")["dong_key"].apply(set)
+# 단독동 단지는 동명칭이 비어 있다. 빈 값을 남기면 이름 집합이 {''}가 되어
+# OSM 이름이 무엇이든 불일치로 뒤집힌다. 이름으로 판정할 수 없는 단지다
+named_ledger = ledger[ledger["dong_key"] != ""]
+ledger_names = named_ledger.groupby("join_key")["dong_key"].apply(set)
+print(f"  동명칭이 있는 주거동 {len(named_ledger)} / 없는(단독동) {len(ledger) - len(named_ledger)}")
 ledger_floors = ledger.groupby("join_key")["grnd_flr_cnt"].apply(list)
 print(f"  주거동 {len(ledger)}건 / 단지(지번) {ledger['join_key'].nunique()}개")
 print(f"  지번당 동 수 중앙값 {ledger.groupby('join_key').size().median():.0f}")
@@ -173,7 +177,7 @@ print(f"  이름으로 판정된 단지 {len(decided)}개 중 정상 {int((decid
       f"({name_accuracy:.1f}%)")
 
 print("\n  15의 신뢰도 등급이 실제로 유효한가:")
-for label in ["HIGH", "MIXED", "LOW"]:
+for label in ["NAME", "HIGH", "MIXED", "LOW"]:
     sub = decided[decided["confidence"] == label]
     if len(sub):
         print(f"    {label:5s} n={len(sub):5d}  NAME_OK {100 * (sub['name_verdict']=='NAME_OK').mean():5.1f}%")
