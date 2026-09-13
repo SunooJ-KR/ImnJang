@@ -23,6 +23,9 @@ npm install
 | `npm run lint` | `next lint` |
 | `npm run check` | 타입 검사 + 문구/스키마 검사 |
 | `npm run payload` | `build/36.build_payload.py` 실행 (Python 필요) |
+| `npm run clean` | `.next`, `out` 삭제 |
+
+> **`dev`와 `build`를 동시에 돌리지 않는다.** 둘 다 `.next`를 쓰기 때문에 산출물이 섞이면 `Cannot find module './833.js'` 같은 chunk 해석 실패가 난다. 이미 났다면 `npm run clean` 후 다시 띄운다.
 
 > `npm run start`는 Next 서버가 아니라 `serve out`이다. 정적 export라 서버 런타임이 없다.
 
