@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "outputDirectory": "public",
-  "cleanUrls": true,
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "outputDirectory": "out",
   "headers": [
     {
       "source": "/data/(.*)",
