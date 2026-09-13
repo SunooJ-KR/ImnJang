@@ -1,0 +1,2136 @@
+osm_id	name	isced_level_raw	is_elementary	is_middle	is_high	level_source	lon	lat
+368624798	부천공업고등학교	3	False	False	True	isced_tag	126.767321	37.481181
+368624828	부천고등학교	3	False	False	True	isced_tag	126.766178	37.479871
+368624838	소사고등학교	3	False	False	True	isced_tag	126.799982	37.465332
+368625054	한국조리과학고등학교	3	False	False	True	isced_tag	126.8335007	37.4589238
+368924306	원미중학교	2	False	True	False	isced_tag	126.794172	37.499083
+368924308	부천남중학교	2	False	True	False	isced_tag	126.771901	37.478408
+368924315	부천일신중학교	2	False	True	False	isced_tag	126.806102	37.472937
+368924322	부천성곡중학교	2	False	True	False	isced_tag	126.81522	37.517769
+368934287	부천일신초등학교	1	True	False	False	isced_tag	126.807247	37.473426
+368934490	시흥계수초등학교	1	True	False	False	isced_tag	126.820591	37.453095
+1950734676			False	False	False	none	126.8370161	37.4872989
+4639573693	부곡초등학교	1	True	False	False	isced_tag	126.773295	37.4938111
+4639573694	부곡중학교	2	False	True	False	isced_tag	126.7747353	37.4944086
+4639583198	부명중학교	2	False	True	False	isced_tag	126.7641635	37.4980209
+4639583199	부명초등학교	1	True	False	False	isced_tag	126.7652602	37.4978742
+4643762892	정명고등학교	3	False	False	True	isced_tag	126.772544	37.4750028
+9612802398	한국글로벌중학교	2	False	True	False	isced_tag	126.8329717	37.4590362
+191953928	범박초등학교	1	True	False	False	isced_tag	126.8107964	37.4701565
+221440031	부흥초등학교	1	True	False	False	isced_tag	126.7662722	37.5072785
+221440032	중흥중학교	2	False	True	False	isced_tag	126.7744275	37.5061921
+221440033	중흥초등학교	1	True	False	False	isced_tag	126.7732142	37.5063741
+221440034	중흥고등학교	3	False	False	True	isced_tag	126.7686849	37.5082679
+231989448	소사초등학교	1	True	False	False	isced_tag	126.796719	37.4742678
+231989640	부천부일중학교	2	False	True	False	isced_tag	126.7995406	37.4665376
+249674440			False	False	False	none	126.8451218	37.5130402
+249674591			False	False	False	none	126.8513286	37.5090143
+249674990			False	False	False	none	126.8545126	37.4981795
+249675794			False	False	False	none	126.842282	37.5030045
+249852625	예림디자인고등학교	3	False	False	True	isced_tag	126.8274122	37.5001075
+249852626	오류고등학교	3	False	False	True	isced_tag	126.8282607	37.5000219
+249853447	고척고등학교	3	False	False	True	isced_tag	126.8512839	37.5086687
+249853980	서울세곡초등학교	1	True	False	False	isced_tag	126.8491389	37.5047902
+249853981	오류중학교	2	False	True	False	isced_tag	126.8460176	37.5076361
+249853982	양천고등학교	3	False	False	True	isced_tag	126.8457034	37.5088374
+249853983	서울매봉초등학교	1	True	False	False	isced_tag	126.8445846	37.5044097
+249853984	개봉중학교	2	False	True	False	isced_tag	126.8420084	37.5027838
+249853986	백암고등학교	3	False	False	True	isced_tag	126.8441373	37.5116493
+249853990	서울덕의초등학교	1	True	False	False	isced_tag	126.856657	37.5061204
+249853998	서울고척초등학교	1	True	False	False	isced_tag	126.857284	37.5007863
+249853999	경인중학교	2	False	True	False	isced_tag	126.8544258	37.4980567
+249855045			False	False	False	none	126.8280595	37.4995827
+249855049	우신중고등학교	2;3	False	True	True	isced_tag	126.8272991	37.4951339
+249855051	서울온수초등학교	1	True	False	False	isced_tag	126.8261006	37.4938234
+249855054	서서울생활과학고등학교	3	False	False	True	isced_tag	126.8282415	37.5037099
+249855055			False	False	False	none	126.8282205	37.5038387
+249855056			False	False	False	none	126.827788	37.5034325
+249855057			False	False	False	none	126.8286784	37.503068
+249855058			False	False	False	none	126.8281969	37.5032168
+249855059			False	False	False	none	126.8280719	37.5030371
+249855060	서울공연예술고등학교	3	False	False	True	isced_tag	126.8325729	37.5001503
+249933288	서울남명초등학교	1	True	False	False	isced_tag	126.8540475	37.5152798
+249933290	서울양명초등학교	1	True	False	False	isced_tag	126.8566007	37.5158246
+249933296	금옥중학교	2	False	True	False	isced_tag	126.8441646	37.5102723
+249933297	금옥여자고등학교	3	False	False	True	isced_tag	126.8452104	37.5107519
+249936416	서울신기초등학교	1	True	False	False	isced_tag	126.8541053	37.5112498
+249998689	서울오류초등학교	1	True	False	False	isced_tag	126.8423554	37.4980593
+250101539	강신중학교	2	False	True	False	isced_tag	126.8389455	37.5147168
+250367012	서울개봉초등학교	1	True	False	False	isced_tag	126.8584497	37.4894326
+250489301	서울개웅초등학교	1	True	False	False	isced_tag	126.8501027	37.4883414
+250489306	개웅중학교	2	False	True	False	isced_tag	126.8511567	37.4872874
+250489311	서울개명초등학교	1	True	False	False	isced_tag	126.8506439	37.4829649
+252231431	서울신은초등학교	1	True	False	False	isced_tag	126.8322562	37.513611
+252922846	서울오정초등학교	1	True	False	False	isced_tag	126.8263239	37.4897577
+252922847			False	False	False	none	126.8264568	37.489438
+264030009	경기예술고등학교	3	False	False	True	isced_tag	126.7613702	37.5058154
+264256957	삼정초등학교	1	True	False	False	isced_tag	126.7708302	37.5185076
+276664262	신서중학교	2	False	True	False	isced_tag	126.8557176	37.5156056
+276664505	서울계남초등학교	1	True	False	False	isced_tag	126.8601332	37.5099519
+276664506			False	False	False	none	126.8606987	37.5090031
+286014214	시온고등학교	3	False	False	True	isced_tag	126.8055574	37.4712942
+286014741	소안초등학교	1	True	False	False	isced_tag	126.8044377	37.4722979
+286014841	창영초등학교	1	True	False	False	isced_tag	126.8050021	37.474859
+300014646	광문중학교	2	False	True	False	isced_tag	126.8527957	37.4665681
+300014649	광문초등학교	1	True	False	False	isced_tag	126.8514842	37.4665282
+317148751	세종과학고등학교	3	False	False	True	isced_tag	126.8275311	37.496917
+361353385	신천초등학교	1	True	False	False	isced_tag	126.7828655	37.435088
+429848280	유한공업고등학교	3	False	False	True	isced_tag	126.8231895	37.487912
+453561396	신천중학교	2	False	True	False	isced_tag	126.7826211	37.4340887
+456485049	광명초등학교	1	True	False	False	isced_tag	126.8577204	37.480378
+465566864	대일관광고등학교	3	False	False	True	isced_tag	126.8352807	37.5111903
+465567202	강신중학교	2	False	True	False	isced_tag	126.8389531	37.5147061
+465570888	서울천왕초등학교	1	True	False	False	isced_tag	126.837048	37.4814259
+465570890	천왕중학교	2	False	True	False	isced_tag	126.8375969	37.482624
+465570893			False	False	False	none	126.8366018	37.487437
+465571974	서울하늘숲초등학교	1	True	False	False	isced_tag	126.8415904	37.4842077
+465711966	서울정진학교		False	False	False	name	126.8220974	37.4980253
+465735435	덕일전자공업고등학교	3	False	False	True	isced_tag	126.8371302	37.4902766
+465786476	서울신남초등학교	1	True	False	False	isced_tag	126.8446299	37.5160602
+465787976	신남중학교	2	False	True	False	isced_tag	126.8479023	37.5205328
+468224258	신천고등학교	3	False	False	True	isced_tag	126.7789519	37.4352318
+468224263	도원초등학교	1	True	False	False	isced_tag	126.7777868	37.4397704
+468429893	심곡초등학교	1	True	False	False	isced_tag	126.7764388	37.491772
+468721037	중동초등학교	1	True	False	False	isced_tag	126.7693434	37.4898686
+468752743	범박고등학교	3	False	False	True	isced_tag	126.8117873	37.4678629
+469313529	소래고등학교	3	False	False	True	isced_tag	126.7948978	37.4374274
+469313530	검바위초등학교	1	True	False	False	isced_tag	126.7989013	37.4326624
+469313531	시흥신일초등학교	1	True	False	False	isced_tag	126.79139	37.4326384
+470096017	부명고등학교	3	False	False	True	isced_tag	126.7610578	37.4987895
+470096023	경기국제통상고등학교	3	False	False	True	isced_tag	126.7613276	37.5000907
+471101080	옥길버들초등학교	1	True	False	False	isced_tag	126.8260316	37.4640715
+471101081	옥길중학교	2	False	True	False	isced_tag	126.8268731	37.4636383
+471346468	부천서초등학교운동장		True	False	False	name	126.7659552	37.4871344
+471711933			False	False	False	none	126.8285032	37.4993276
+472427256	부광초등학교	1	True	False	False	isced_tag	126.7620263	37.5067966
+473032606	광문고등학교	3	False	False	True	isced_tag	126.8501075	37.4648318
+473934284	경기항공고등학교	3	False	False	True	isced_tag	126.8574664	37.4735024
+474154164	부명중학교		False	True	False	name	126.7642058	37.4983426
+474593829	광명남초등학교	1	True	False	False	isced_tag	126.8539498	37.4755029
+474956302	부천송일초등학교	1	True	False	False	isced_tag	126.7625647	37.482843
+479529347	광일초등학교	1	True	False	False	isced_tag	126.8467394	37.4713485
+479529350	광남중학교	2	False	True	False	isced_tag	126.8477299	37.470598
+482283338	부천동중학교	2	False	True	False	isced_tag	126.8099185	37.4811979
+483467558	약대초등학교	1	True	False	False	isced_tag	126.7731821	37.5136924
+483467559	부천초등학교	1	True	False	False	isced_tag	126.765135	37.5145467
+483467561	내동중학교	2	False	True	False	isced_tag	126.7741238	37.5179491
+483467562	부천여월초등학교	1	True	False	False	isced_tag	126.7969229	37.5179056
+483467563	부천여월중학교	2	False	True	False	isced_tag	126.7977316	37.5171397
+483467576	부천중앙초등학교	1	True	False	False	isced_tag	126.7823326	37.4961946
+483467589	원미초등학교	1	True	False	False	isced_tag	126.7874135	37.4890373
+483467590	부천북초등학교	1	True	False	False	isced_tag	126.7889807	37.4937337
+483467595	부일초등학교	1	True	False	False	isced_tag	126.7946991	37.4986631
+483467596	소명여자중고등학교	2;3	False	True	True	isced_tag	126.7913404	37.4873018
+483611695	까치울초등학교	1	True	False	False	isced_tag	126.8139732	37.5137128
+486823924	계남중학교	2	False	True	False	isced_tag	126.7735791	37.4971152
+486823953	부천여자고등학교	3	False	False	True	isced_tag	126.761674	37.4894898
+486823954	부천중학교	2	False	True	False	isced_tag	126.7695703	37.491142
+488831172	중원초등학교	1	True	False	False	isced_tag	126.7637983	37.5116881
+488831173	중원중학교	2	False	True	False	isced_tag	126.7628579	37.5118125
+488831174	중원고등학교	3	False	False	True	isced_tag	126.7620062	37.5119289
+488843788	부천부흥중학교	2	False	True	False	isced_tag	126.7781112	37.5052135
+488843789	심원고등학교	3	False	False	True	isced_tag	126.7793523	37.5044836
+489864174	심원초등학교	1	True	False	False	isced_tag	126.7817615	37.4994521
+489864176	심원중학교	2	False	True	False	isced_tag	126.7828547	37.4996383
+489864178	원미고등학교	3	False	False	True	isced_tag	126.7824213	37.4979053
+490139668	부천신흥초등학교	1	True	False	False	isced_tag	126.7847594	37.5067069
+490139718	옥산초등학교	1	True	False	False	isced_tag	126.7795968	37.5031024
+490139882	계남초등학교	1	True	False	False	isced_tag	126.7720202	37.4986388
+490144586	계남고등학교	3	False	False	True	isced_tag	126.7716763	37.4958397
+522488064	옥길산들초등학교	1	True	False	False	isced_tag	126.8165815	37.4623858
+551560606	부천북고등학교	3	False	False	True	isced_tag	126.7891043	37.5182811
+551560607	도당고등학교	3	False	False	True	isced_tag	126.7905293	37.5185147
+551560608	도당초등학교	1	True	False	False	isced_tag	126.791886	37.5192332
+555329362	소사중학교	2	False	True	False	isced_tag	126.8021017	37.4697428
+555329363	소일초등학교	1	True	False	False	isced_tag	126.8026355	37.4689072
+555366506	동곡초등학교	1	True	False	False	isced_tag	126.8171168	37.4903074
+579229629	명문고등학교	3	False	False	True	isced_tag	126.8499644	37.4699502
+595829337	강월초등학교	1	True	False	False	isced_tag	126.8341666	37.5160713
+596117752	양천중학교	2	False	True	False	isced_tag	126.831037	37.5198793
+609551445	서울지향초등학교	1	True	False	False	isced_tag	126.8375552	37.5130452
+636525623	온신초등학교	1	True	False	False	isced_tag	126.8462939	37.4425779
+648719385	소래중학교	2	False	True	False	isced_tag	126.7965458	37.4370177
+648719386	소래초등학교	1	True	False	False	isced_tag	126.7837704	37.4436829
+648719387	대야초등학교	1	True	False	False	isced_tag	126.7896135	37.4466531
+648719388	은계중학교	2	False	True	False	isced_tag	126.8004966	37.4472276
+648719389	은계초등학교	1	True	False	False	isced_tag	126.7979304	37.4474245
+648719390	은행고등학교	3	False	False	True	isced_tag	126.8031048	37.4432444
+648719391	시흥은행중학교	2	False	True	False	isced_tag	126.80226	37.442721
+648719394	웃터골초등학교	1	True	False	False	isced_tag	126.7993235	37.4398159
+648719395	금모래초등학교	1	True	False	False	isced_tag	126.7955117	37.4417554
+667244846	부천동초등학교	1	True	False	False	isced_tag	126.8042952	37.4878802
+667858036	은계중학교	2	False	True	False	isced_tag	126.7983626	37.4315406
+689924827	부천상도중학교	2	False	True	False	isced_tag	126.7602595	37.4940732
+694074639	대흥중학교	2	False	True	False	isced_tag	126.7839382	37.4471019
+704779528	서울오류남초등학교	1	True	False	False	isced_tag	126.838498	37.4895418
+714761550	역곡초등학교	1	True	False	False	isced_tag	126.8077565	37.4906159
+754149192	서울항동초등학교	1	True	False	False	isced_tag	126.8240217	37.4771697
+767761522	항동중학교	2	False	True	False	isced_tag	126.8204938	37.4826862
+769908177	광명서초등학교	1	True	False	False	isced_tag	126.8469406	37.4781687
+782830354	부천남초등학교	1	True	False	False	isced_tag	126.7828134	37.4816424
+782830359	부천서초등학교	1	True	False	False	isced_tag	126.7659392	37.4872023
+782830361	상지초등학교	1	True	False	False	isced_tag	126.763546	37.4935445
+782830365	복사초등학교	1	True	False	False	isced_tag	126.7988935	37.4674193
+782830366	부천성주초등학교	1	True	False	False	isced_tag	126.7695119	37.4790256
+790756587	부천도원초등학교	1	True	False	False	isced_tag	126.7732026	37.4772944
+793725376	부천남중학교	2	False	True	False	isced_tag	126.7720092	37.4784097
+794225140	부천공업고등학교	3	False	False	True	isced_tag	126.7673743	37.481249
+794225746	부천고등학교		False	False	True	name	126.7661558	37.4801845
+794248500	부천여자중학교	2	False	True	False	isced_tag	126.7610333	37.4811288
+794250151	부천성주중학교	2	False	True	False	isced_tag	126.7595587	37.4806394
+815846644			False	False	False	none	126.7885035	37.494281
+825068579	부원초등학교	1	True	False	False	isced_tag	126.7913263	37.4779223
+825068963	서울신학대학교		False	False	False	name	126.7894673	37.4796955
+825069221	진영고등학교	3	False	False	True	isced_tag	126.7901768	37.4719712
+886167446	부천동여자중학교	2	False	True	False	isced_tag	126.8089401	37.4809248
+886838248	원종초등학교	1	True	False	False	isced_tag	126.8065197	37.5181208
+902194562	부천부안초등학교	1	True	False	False	isced_tag	126.8121372	37.479939
+986516902	양지초등학교	1	True	False	False	isced_tag	126.8159349	37.4805498
+1002248911	도당중학교	2	False	True	False	isced_tag	126.7864938	37.5174922
+1044715958	한국글로벌중학교/한국조리과학고등학교	2;3	False	True	True	isced_tag	126.8330511	37.4586655
+1075010962	은행고등학교	3	False	False	True	isced_tag	126.8031485	37.4432174
+1075010987	시흥은행초등학교	1	True	False	False	isced_tag	126.8009484	37.4424806
+1075263661	은빛초등학교	1	True	False	False	isced_tag	126.8052667	37.4341179
+1196300634	역곡고등학교	3	False	False	True	isced_tag	126.809872	37.4920259
+1297295125	역곡중학교	2	False	True	False	isced_tag	126.8105225	37.4911027
+1313919741	부명초등학교		True	False	False	name	126.7653303	37.4981943
+1313919742			False	False	False	none	126.7747084	37.4941551
+1524835077			False	False	False	none	126.8153031	37.5177636
+368621523	장훈고등학교	3	False	False	True	isced_tag	126.919326	37.511377
+368621681	서울여자상업고등학교	3	False	False	True	isced_tag	126.9504701	37.472691
+368622461	대영고등학교	3	False	False	True	isced_tag	126.912783	37.506226
+368623123	장훈여자상업고등학교	3	False	False	True	isced_tag	126.919129	37.511646
+368922340	영원중학교	2	False	True	False	isced_tag	126.914008	37.5156055
+368922572	영남중학교	2	False	True	False	isced_tag	126.900912	37.494176
+5752867000	영락의료과학고등학교	3	False	False	True	isced_tag	126.9448151	37.4765939
+5752867001	영락고등학교	3	False	False	True	isced_tag	126.9439846	37.4761896
+7899415687	이샘피아노		False	False	False	name	126.9009712	37.4995957
+7904817588	한양학원		False	False	False	name	126.8928708	37.51176
+10013217552	성남중학교	2	False	True	False	isced_tag	126.9274059	37.5044643
+10013217557	성남고등학교	3	False	False	True	isced_tag	126.9262267	37.5054479
+38106791	서울윤중초등학교	1	True	False	False	isced_tag	126.9228193	37.5195203
+38106821	윤중중학교	2	False	True	False	isced_tag	126.9237035	37.518861
+153512036	서울신대림초등학교	1	True	False	False	isced_tag	126.9058742	37.4918721
+172513354	서울관악초등학교	1	True	False	False	isced_tag	126.9432499	37.4805981
+172517635	영락학원		False	False	False	name	126.9447203	37.4762409
+172605568	서울청룡초등학교	1	True	False	False	isced_tag	126.951122	37.4760813
+172632303	신림중학교	2	False	True	False	isced_tag	126.9448163	37.4703188
+175946302	봉림중학교	2	False	True	False	isced_tag	126.9384661	37.480282
+176588971	문영학원		False	False	False	name	126.9516176	37.4731023
+194088593	신관중학교	2	False	True	False	isced_tag	126.9340526	37.4799788
+249675790			False	False	False	none	126.8621312	37.500413
+249675791			False	False	False	none	126.8655495	37.4993019
+249854001	고척중학교	2	False	True	False	isced_tag	126.8620164	37.5000095
+249854002	서울고산초등학교	1	True	False	False	isced_tag	126.8655536	37.4990931
+249854003	서울고원초등학교	1	True	False	False	isced_tag	126.8656524	37.4975662
+249854004	경인고등학교	3	False	False	True	isced_tag	126.8657836	37.4963034
+250488569	서울갈산초등학교	1	True	False	False	isced_tag	126.8700094	37.5118363
+250488572	서울은정초등학교	1	True	False	False	isced_tag	126.8674245	37.5113279
+250489312	서울구일초등학교	1	True	False	False	isced_tag	126.8729741	37.492621
+250489313			False	False	False	none	126.873547	37.4927024
+250489314			False	False	False	none	126.8729491	37.4928526
+250489315	구일고등학교	3	False	False	True	isced_tag	126.8739409	37.4939165
+250489316	구일중학교	2	False	True	False	isced_tag	126.8739197	37.4948937
+250489320	서울구로초등학교	1	True	False	False	isced_tag	126.8859689	37.496905
+250489324	구로중학교	2	False	True	False	isced_tag	126.8907275	37.4943732
+252130950	하안초등학교	1	True	False	False	isced_tag	126.874173	37.4628735
+252133097	가림초등학교	1	True	False	False	isced_tag	126.8790918	37.4583089
+252135981	하안북중학교	2	False	True	False	isced_tag	126.8682123	37.4645261
+252135982	하안북초등학교	1	True	False	False	isced_tag	126.8695349	37.4645583
+252138265	연서초등학교	1	True	False	False	isced_tag	126.8818814	37.4660688
+252138266	하안중학교	2	False	True	False	isced_tag	126.881073	37.4670475
+252224933	하안남초등학교	1	True	False	False	isced_tag	126.8855166	37.4618464
+252225464			False	False	False	none	126.8657546	37.4966395
+252225465			False	False	False	none	126.8653924	37.4959656
+252225466			False	False	False	none	126.8656972	37.4976157
+252225467			False	False	False	none	126.8660272	37.497211
+252638596	철산중학교	2	False	True	False	isced_tag	126.8762474	37.4700882
+252642625	안현초등학교	1	True	False	False	isced_tag	126.8677193	37.470703
+252840443	충현초등학교	1	True	False	False	isced_tag	126.8862663	37.4330986
+252840444	충현고등학교	3	False	False	True	isced_tag	126.8846226	37.4326885
+252903406	서울신미림초등학교	1	True	False	False	isced_tag	126.8795035	37.5067372
+252903408			False	False	False	none	126.8795325	37.5067958
+252903412	구현고등학교	3	False	False	True	isced_tag	126.8744589	37.5022077
+252903425			False	False	False	none	126.8903404	37.494748
+252903427			False	False	False	none	126.8913934	37.4946293
+252903428			False	False	False	none	126.8907747	37.4936234
+252993624	신도림중학교	2	False	True	False	isced_tag	126.8854194	37.5105413
+252995364	서울신도림초등학교	1	True	False	False	isced_tag	126.8829291	37.5122329
+252995374			False	False	False	none	126.8924761	37.495251
+252995375			False	False	False	none	126.8930088	37.4944429
+252995376			False	False	False	none	126.8933278	37.4947333
+252995383	서울동구로초등학교	1	True	False	False	isced_tag	126.8925715	37.4948038
+252995384			False	False	False	none	126.8903653	37.4979538
+252995385			False	False	False	none	126.8899811	37.4975345
+252995386			False	False	False	none	126.8902535	37.4972314
+252995387			False	False	False	none	126.8906193	37.4971685
+252995388	영림중학교	2	False	True	False	isced_tag	126.8906322	37.4975939
+252995390			False	False	False	none	126.8895202	37.4980341
+252995391			False	False	False	none	126.8894958	37.4984437
+252995392			False	False	False	none	126.8899124	37.4989437
+252995393			False	False	False	none	126.8892803	37.4996145
+252995394			False	False	False	none	126.8888514	37.4992403
+252995395	구로고등학교	3	False	False	True	isced_tag	126.8900449	37.4985364
+252995396	서울신구로초등학교	1	True	False	False	isced_tag	126.889266	37.4994688
+252995424	영서중학교	2	False	True	False	isced_tag	126.8944297	37.4891542
+252995425	서울영서초등학교	1	True	False	False	isced_tag	126.8950153	37.488381
+252995426			False	False	False	none	126.8950114	37.4885721
+252996789			False	False	False	none	126.8739667	37.4941826
+252996790			False	False	False	none	126.8733879	37.4937567
+252996793			False	False	False	none	126.873332	37.4946348
+252996794			False	False	False	none	126.8741154	37.4950118
+252998624	서울미래초등학교	1	True	False	False	isced_tag	126.8879663	37.5049844
+276663648	신목고등학교	3	False	False	True	isced_tag	126.8737412	37.5126267
+276663649	목일중학교	2	False	True	False	isced_tag	126.8743282	37.5133291
+276919985	서울문래초등학교	1	True	False	False	isced_tag	126.8933062	37.5187073
+276919986	서울영문초등학교	1	True	False	False	isced_tag	126.887695	37.5196923
+276919987			False	False	False	none	126.8842685	37.5202145
+277174518	서울영등포초등학교	1	True	False	False	isced_tag	126.8986542	37.5128093
+277545887	신도림고등학교	3	False	False	True	isced_tag	126.8818844	37.5139375
+278148512	서울상현초등학교	1	True	False	False	isced_tag	126.9526616	37.4949171
+279275717	삼성중학교	2	False	True	False	isced_tag	126.9430776	37.4678452
+279275718	서울삼성초등학교	1	True	False	False	isced_tag	126.9410213	37.4683081
+279275719	삼성고등학교	3	False	False	True	isced_tag	126.9435827	37.4697067
+284585432	서울신상도초등학교	1	True	False	False	isced_tag	126.9439625	37.5002798
+284585434	장승중학교	2	False	True	False	isced_tag	126.9406518	37.5035599
+284585443	구암중학교	2	False	True	False	isced_tag	126.9481473	37.4926792
+284585444	구암고등학교	3	False	False	True	isced_tag	126.9503107	37.4922689
+284585453	당곡중학교	2	False	True	False	isced_tag	126.9329795	37.4919531
+284585454	당곡고등학교	3	False	False	True	isced_tag	126.9346288	37.4919688
+284585458		2;3	False	True	True	isced_tag	126.9292076	37.5079625
+284585459	성남고등학교	2;3	False	True	True	isced_tag	126.9268082	37.5046241
+284793438	영등포고등학교	3	False	False	True	isced_tag	126.9340032	37.5083621
+284793439	영등포중학교	2	False	True	False	isced_tag	126.9336868	37.5078572
+284793440	영화초등학교	1	True	False	False	isced_tag	126.9331351	37.509112
+284793455	국사봉중학교	2	False	True	False	isced_tag	126.9446818	37.4936973
+284793456	서울상도초등학교	1	True	False	False	isced_tag	126.937234	37.4997886
+286555224	수도여자고등학교	3	False	False	True	isced_tag	126.9154505	37.4930378
+286555229	문창중학교	2	False	True	False	isced_tag	126.9218227	37.4958051
+296976581	강현중학교	2	False	True	False	isced_tag	126.9312136	37.5031908
+298285491	서울구암초등학교	1	True	False	False	isced_tag	126.9469613	37.4893636
+298992077	서울노량진초등학교	1	True	False	False	isced_tag	126.9409937	37.5112737
+300007117	가림중학교	2	False	True	False	isced_tag	126.8800065	37.4573476
+305888881	서울신길초등학교	1	True	False	False	isced_tag	126.9266377	37.5103389
+306877890	서울영본초등학교	1	True	False	False	isced_tag	126.9488247	37.510524
+306877905	서울은로초등학교	1	True	False	False	isced_tag	126.9600583	37.5031494
+308339184	서울인헌초등학교	1	True	False	False	isced_tag	126.9603378	37.4763284
+310456341	서울봉현초등학교	1	True	False	False	isced_tag	126.9551042	37.4909154
+363248235	연현중학교	2	False	True	False	isced_tag	126.8993678	37.4291551
+363248236	연현중학교	2	False	True	False	isced_tag	126.8994963	37.4291314
+363248316	연현초등학교	1	True	False	False	isced_tag	126.9024989	37.4254903
+363248318			False	False	False	none	126.9024267	37.4252355
+367771714	중앙대학교사범대학부속초등학교	1	True	False	False	isced_tag	126.9600875	37.505464
+374057332	서울관광고등학교	3	False	False	True	isced_tag	126.9432846	37.488392
+380953150	안양호암초등학교	1	True	False	False	isced_tag	126.9165645	37.4207911
+381872693	충현중학교	2	False	True	False	isced_tag	126.881789	37.4300809
+381872696	광휘고등학교	3	False	False	True	isced_tag	126.8820787	37.4284386
+384611950	서울금산초등학교	1	True	False	False	isced_tag	126.9081975	37.4416474
+384633119	금천고등학교	3	False	False	True	isced_tag	126.9056663	37.4448397
+384633120	시흥중학교	2	False	True	False	isced_tag	126.9054366	37.4458543
+384633121	국립전통예술중고등학교	2;3	False	True	True	isced_tag	126.9059739	37.4460764
+384633132	서울문백초등학교	1	True	False	False	isced_tag	126.899277	37.447057
+384633140	서울백산초등학교	1	True	False	False	isced_tag	126.905037	37.4470005
+385685256	안양해솔학교		False	False	False	name	126.9131666	37.4346991
+385685267	서울탑동초등학교	1	True	False	False	isced_tag	126.9145505	37.4527259
+385824303	서울금천초등학교	1	True	False	False	isced_tag	126.9125203	37.4545066
+385824336	서울시흥초등학교	1	True	False	False	isced_tag	126.9048447	37.4548623
+385824345	서울신흥초등학교	1	True	False	False	isced_tag	126.9087061	37.4593969
+385833474	서울동광초등학교	1	True	False	False	isced_tag	126.916118	37.4513978
+385833476	동일중학교	2	False	True	False	isced_tag	126.9168991	37.4523123
+385833477	서울매그넷고등학교	3	False	False	True	isced_tag	126.9173928	37.4515198
+385833478	동일여자고등학교	3	False	False	True	isced_tag	126.9167288	37.4508165
+385833502	한울중학교	2	False	True	False	isced_tag	126.9067572	37.4621582
+385840021	서울독산초등학교	1	True	False	False	isced_tag	126.9000419	37.4652422
+385989546	서울문교초등학교	1	True	False	False	isced_tag	126.9086732	37.4664625
+386770015	광명창의경영고등학교	3	False	False	True	isced_tag	126.8816324	37.4379589
+386770017	안서중학교	2	False	True	False	isced_tag	126.8824089	37.4380515
+386770026	서면초등학교	1	True	False	False	isced_tag	126.8803445	37.4385453
+387149338	소하고등학교	3	False	False	True	isced_tag	126.8875023	37.446979
+387149339	소하중학교	2	False	True	False	isced_tag	126.8874543	37.44804
+396334481			False	False	False	none	126.9506242	37.4922373
+407459009	서울두산초등학교	1	True	False	False	isced_tag	126.8910099	37.4672038
+407459036	가산중학교	2	False	True	False	isced_tag	126.8943641	37.4683811
+408595450	서울가산초등학교	1	True	False	False	isced_tag	126.896384	37.4780024
+408595451	세일중학교	2	False	True	False	isced_tag	126.895707	37.4744315
+408855822	서울문성초등학교	1	True	False	False	isced_tag	126.899314	37.4745551
+409779777	서울문성중학교	2	False	True	False	isced_tag	126.9081102	37.4755611
+409779778	서울영남초등학교	1	True	False	False	isced_tag	126.9093854	37.4756925
+409779779	독산고등학교	3	False	False	True	isced_tag	126.9109541	37.4761366
+409779790	한울중학교	2	False	True	False	isced_tag	126.9070304	37.4787082
+409779791	난곡중학교	2	False	True	False	isced_tag	126.910672	37.4778127
+409785631	서울난향초등학교	1	True	False	False	isced_tag	126.9177823	37.4620783
+409785632	서울정문학교		False	False	False	name	126.9164833	37.4616414
+410556000	난우중학교	2	False	True	False	isced_tag	126.9227099	37.4666749
+410680539	서울난곡초등학교	1	True	False	False	isced_tag	126.9170729	37.4692969
+410683628	남강중학교	2	False	True	False	isced_tag	126.9243633	37.4714679
+410683629	남강고등학교	3	False	False	True	isced_tag	126.9245745	37.4725201
+410974077	서울정심초등학교	1	True	False	False	isced_tag	126.9084654	37.4714404
+410982789	미성중학교	2	False	True	False	isced_tag	126.9124118	37.4752366
+410983056	서울난우초등학교	1	True	False	False	isced_tag	126.917858	37.4769391
+410983418	서울미성초등학교	1	True	False	False	isced_tag	126.9124908	37.4778979
+418093219	서울강남초등학교	1	True	False	False	isced_tag	126.9531407	37.5061548
+424947278	서울원당초등학교	1	True	False	False	isced_tag	126.9561436	37.4810702
+439436040	성보중학교	2	False	True	False	isced_tag	126.9218085	37.4806763
+439436041	남서울중학교	2	False	True	False	isced_tag	126.9214322	37.4817704
+439438509	서울신림초등학교	1	True	False	False	isced_tag	126.92743	37.4773336
+439667330	서울신우초등학교	1	True	False	False	isced_tag	126.932365	37.4626212
+439667347	서울원신초등학교	1	True	False	False	isced_tag	126.9273955	37.4668928
+439687806	서울신성초등학교	1	True	False	False	isced_tag	126.93709	37.4715743
+439880418	신림고등학교	3	False	False	True	isced_tag	126.9174652	37.4786625
+439983145	서울영일초등학교	1	True	False	False	isced_tag	126.8836805	37.4851177
+444796415	광명북고등학교		False	False	True	name	126.8671208	37.4879245
+444796416	광명북중학교	2	False	True	False	isced_tag	126.8662729	37.4873191
+464832511	양화중학교	2	False	True	False	isced_tag	126.8961462	37.5194865
+466006006	서울신서초등학교	1	True	False	False	isced_tag	126.8624287	37.5202989
+466006283	목동중학교	2	False	True	False	isced_tag	126.87147	37.5205647
+466009062	서울신목초등학교	1	True	False	False	isced_tag	126.872879	37.5169201
+466308693	서울본동초등학교	1	True	False	False	isced_tag	126.9536005	37.5100479
+466546137	동양중학교	2	False	True	False	isced_tag	126.9568228	37.5097405
+466703398	강남중학교	2	False	True	False	isced_tag	126.922401	37.5024308
+466703400	서울공업고등학교	3	False	False	True	isced_tag	126.9223877	37.5015465
+466703521	서울대림초등학교	1	True	False	False	isced_tag	126.9257378	37.5006434
+466713708			False	False	False	none	126.9055897	37.5030691
+466730053	서울대방초등학교	1	True	False	False	isced_tag	126.9193674	37.5024355
+466810207	서울도림초등학교	1	True	False	False	isced_tag	126.9071321	37.5081244
+466816586	서울우신초등학교	1	True	False	False	isced_tag	126.9118194	37.5094333
+466817139	서울영신초등학교	1	True	False	False	isced_tag	126.9184321	37.5098976
+467004012	서울영원초등학교	1	True	False	False	isced_tag	126.9022711	37.5106094
+467056456	장훈고등학교	3	False	False	True	isced_tag	126.9155258	37.5134697
+467057160	영등포여자고등학교	3	False	False	True	isced_tag	126.9151596	37.5152742
+467057161			False	False	False	none	126.9140144	37.5155958
+467290849	서울봉천초등학교	1	True	False	False	isced_tag	126.9577441	37.4829156
+467290850	봉원중학교	2	False	True	False	isced_tag	126.9581831	37.4840198
+467310135	서울신봉초등학교	1	True	False	False	isced_tag	126.9491081	37.4853188
+467317570	서울당곡초등학교	1	True	False	False	isced_tag	126.9299933	37.4899946
+467811983	서울신영초등학교	1	True	False	False	isced_tag	126.8959323	37.5004035
+467834680	서울도신초등학교	1	True	False	False	isced_tag	126.9008763	37.4987392
+467878771	영남중학교	2	False	True	False	isced_tag	126.8960336	37.4975081
+467881872	서울대동초등학교	1	True	False	False	isced_tag	126.9001492	37.4933651
+467887009	서울영림초등학교	1	True	False	False	isced_tag	126.9029799	37.4871857
+467893051	서울문창초등학교	1	True	False	False	isced_tag	126.9139063	37.4888525
+468014769	대림중학교	2	False	True	False	isced_tag	126.9075878	37.4920904
+468039363	영신고등학교	3	False	False	True	isced_tag	126.9096758	37.4975491
+468039590	서울대길초등학교	1	True	False	False	isced_tag	126.9138267	37.4982598
+468077768	서울남부초등학교	1	True	False	False	isced_tag	126.9220905	37.4848597
+468611194	삼성초등학교	1	True	False	False	isced_tag	126.9119999	37.4194166
+468928873	광명동초등학교	1	True	False	False	isced_tag	126.8631873	37.4834516
+469029234	서울안천중학교	2	False	True	False	isced_tag	126.8877415	37.4592295
+469378519	구름산초등학교	1	True	False	False	isced_tag	126.8841299	37.452808
+469378520	운산고등학교	3	False	False	True	isced_tag	126.8835945	37.4539615
+469877242	동일학원		False	False	False	name	126.916448	37.4513944
+473320628	광명북초등학교	1	True	False	False	isced_tag	126.8680735	37.4867516
+478006305	서울금나래초등학교	1	True	False	False	isced_tag	126.8962656	37.458131
+478649175	진성고등학교	3	False	False	True	isced_tag	126.8775401	37.4693186
+478649178	하일초등학교	1	True	False	False	isced_tag	126.8766969	37.4688373
+479190888	대방중학교	2	False	True	False	isced_tag	126.9138641	37.4951238
+479191496	서울보라매초등학교	1	True	False	False	isced_tag	126.9161513	37.4956184
+480204542	문일중·고등학교	3	False	False	True	isced_tag	126.898285	37.4495199
+510365579	서울구로남초등학교	1	True	False	False	isced_tag	126.8908818	37.4849892
+544701953	광신학원		False	False	False	name	126.925352	37.4641904
+546733481	광신고등학교	3	False	False	True	isced_tag	126.9258222	37.4646234
+546743572	광신중학교	2	False	True	False	isced_tag	126.9250657	37.4653347
+546743574	광신방송예술고등학교	3	False	False	True	isced_tag	126.9245944	37.4655542
+548789792	미림학원		False	False	False	name	126.9325598	37.4667002
+560245998	서울문영여자고등학교	3	False	False	True	isced_tag	126.9510605	37.4734562
+560245999	서울문영여자중학교	2	False	True	False	isced_tag	126.9515016	37.4738256
+579229624	광명고등학교	3	False	False	True	isced_tag	126.8660647	37.4783082
+579229625	광명중학교	2	False	True	False	isced_tag	126.867168	37.4783887
+579229627	광명광덕초등학교	1	True	False	False	isced_tag	126.8659181	37.4733816
+616215149	미림여자고등학교	3	False	False	True	isced_tag	126.9331834	37.4669532
+616215151	미림마이스터고등학교	3	False	False	True	isced_tag	126.9328845	37.4664577
+671227850	신길중학교	2	False	True	False	isced_tag	126.9156368	37.501987
+681793119			False	False	False	none	126.9380892	37.5186779
+681802289	윤중중학교	2	False	True	False	isced_tag	126.9241	37.5189516
+681802290			False	False	False	none	126.9228159	37.5198129
+772148033	철산초등학교	1	True	False	False	isced_tag	126.8749152	37.4694764
+772164212	광명광성초등학교	1	True	False	False	isced_tag	126.8728981	37.4783081
+799279933	서울조원초등학교	1	True	False	False	isced_tag	126.9095282	37.4841667
+800679560	서울안천초등학교	1	True	False	False	isced_tag	126.8885193	37.4582021
+1097469243	서울삼성학교		False	False	False	name	126.9461236	37.4991434
+1186667526	도덕초등학교	1	True	False	False	isced_tag	126.8702469	37.4841738
+1414215526	서울금동초등학교	1	True	False	False	isced_tag	126.9164185	37.4475438
+368623009	서문여자고등학교	3	False	False	True	isced_tag	126.9855919	37.4891744
+368623178	신동신중 정보산업고등학교	3	False	False	True	isced_tag	126.977832	37.490685
+368922835	서문여자중학교	2	False	True	False	isced_tag	126.9846168	37.4887658
+2823703470	Korea Foreign School		False	False	False	name	127.041101	37.4847147
+4346679989			False	False	False	none	127.0305797	37.5008531
+4352439393	국기원		False	False	False	name	127.0302111	37.5019759
+5133017723	서울미술고등학교	3	False	False	True	isced_tag	126.9671246	37.4770462
+7686789285	프로세스 논술학원		False	False	False	name	127.0552666	37.496701
+8319244338	횃불트리니티 신학대학원대학교		False	False	False	name	127.0336281	37.4791474
+13390408819	오디세이학교 이룸		False	False	False	name	127.0294586	37.4880788
+74013212	경기고등학교	3	False	False	True	isced_tag	127.0559474	37.5168744
+77030902	서울동작초등학교	1	True	False	False	isced_tag	126.9770042	37.4940194
+77030903	동작중학교	2	False	True	False	isced_tag	126.9773663	37.4949645
+175354773	양재고등학교	3	False	False	True	isced_tag	127.032238	37.4827538
+176731106	서울남사초등학교	1	True	False	False	isced_tag	126.9788599	37.4823361
+182695702			False	False	False	none	127.0584192	37.4903647
+216093158	서울사당초등학교	1	True	False	False	isced_tag	126.9742775	37.4740804
+217621315	관악중학교	2	False	True	False	isced_tag	126.9617922	37.4804572
+218974537	인헌중학교	2	False	True	False	isced_tag	126.9693995	37.4727546
+230067534	방배중학교	2	False	True	False	isced_tag	126.9984887	37.4944988
+230073202	서초중학교	2	False	True	False	isced_tag	127.0086505	37.4853268
+230073203	서울고등학교	3	False	False	True	isced_tag	127.0061369	37.4841696
+230282421	서초고등학교	3	False	False	True	isced_tag	127.0060424	37.4893029
+256787249	서울서래초등학교	1	True	False	False	isced_tag	126.9892392	37.4960469
+272069643	언주중학교	2	False	True	False	isced_tag	127.0468756	37.5143125
+306877904	중앙대학교사범대학부속중학교	2	False	True	False	isced_tag	126.9614462	37.5044424
+315236309	중경고등학고		False	False	False	name	126.9754892	37.5174026
+321947901	한국예술종합학교 서초동캠퍼스		False	False	False	name	127.0104522	37.4781975
+333079526	원촌중학교	2	False	True	False	isced_tag	127.0140463	37.5058602
+333079527	서울원촌초등학교	1	True	False	False	isced_tag	127.0128536	37.5059606
+350150936	개포고등학교	3	False	False	True	isced_tag	127.0592138	37.4849443
+350150937			False	False	False	none	127.059407	37.4849562
+350276263	서울포이초등학교	1	True	False	False	isced_tag	127.052377	37.475642
+350276595			False	False	False	none	127.0360316	37.4877528
+350276596	은광여자고등학교	3	False	False	True	isced_tag	127.0353156	37.4883581
+350276597	은성중학교	2	False	True	False	isced_tag	127.0361204	37.4878358
+350277268	언남고등학교	3	False	False	True	isced_tag	127.0428608	37.4725606
+350277269	언남중학교	2	False	True	False	isced_tag	127.0442287	37.4724052
+350277270			False	False	False	none	127.0436572	37.4725665
+353218845	대치중학교	2	False	True	False	isced_tag	127.0477136	37.4841488
+354317813	서울언주초등학교	1	True	False	False	isced_tag	127.0370772	37.4866457
+354317814			False	False	False	none	127.036895	37.4865408
+354878103	숙명여자중/고등학교	3	False	False	True	isced_tag	127.0530427	37.4909759
+354878679	중앙대학교 사범대학 부속고등학교	3	False	False	True	isced_tag	127.0527316	37.4921211
+354878682	서울대도초등학교	1	True	False	False	isced_tag	127.0534986	37.4926532
+361603123	서울구룡초등학교	1	True	False	False	isced_tag	127.0519967	37.4806708
+361603125			False	False	False	none	127.0516956	37.4811279
+361603127			False	False	False	none	127.0523059	37.4810138
+367420003	사당중학교	2	False	True	False	isced_tag	126.9689107	37.4875309
+367420020	서울신남성초등학교	1	True	False	False	isced_tag	126.9653149	37.4885512
+369534804	강당		False	False	False	name	127.0519489	37.4763052
+369534806	국립국악중·고등학교	3	False	False	True	isced_tag	127.0514044	37.4760195
+370327836			False	False	False	none	127.0561541	37.486102
+370327838			False	False	False	none	127.0564309	37.4864191
+370327839	구룡중학교	2	False	True	False	isced_tag	127.0563603	37.4859003
+370328182	서울개일초등학교	1	True	False	False	isced_tag	127.057986	37.4858554
+371210662	서울매헌초등학교	1	True	False	False	isced_tag	127.0420954	37.4710845
+372207065	서울개원초등학교	1	True	False	False	isced_tag	127.0590196	37.4813274
+373859248	서울역삼초등학교	1	True	False	False	isced_tag	127.0328005	37.4927985
+379417124	서울서이초등학교	1	True	False	False	isced_tag	127.0259617	37.4912081
+382451308	과천중앙고등학교	3	False	False	True	isced_tag	126.9867124	37.4227432
+382451314	과천문원중학교	2	False	True	False	isced_tag	126.9956694	37.4231935
+382451316	문원초등학교	1	True	False	False	isced_tag	126.9945611	37.4236764
+383220752	과천외국어고등학교	3	False	False	True	isced_tag	126.9885131	37.4320144
+383220753	과천여자고등학교	3	False	False	True	isced_tag	126.9886187	37.4325954
+383220764	과천중학교	2	False	True	False	isced_tag	126.9894398	37.4329893
+383220769	청계초등학교	1	True	False	False	isced_tag	126.9962745	37.4311054
+383220770	과천고등학교	3	False	False	True	isced_tag	126.9973973	37.4304969
+383273387	과천초등학교	1	True	False	False	isced_tag	126.994245	37.436666
+383278157	관문초등학교	1	True	False	False	isced_tag	127.0012818	37.4339494
+412391602			False	False	False	none	126.992669	37.5017801
+412391603	서울반포초등학교	1	True	False	False	isced_tag	126.9911336	37.5028135
+412391604	반포중학교	2	False	True	False	isced_tag	126.9921856	37.5030261
+412420711	서울신용산초등학교	1	True	False	False	isced_tag	126.9758782	37.5199892
+412713506	덜위치칼리지 서울		False	False	False	name	126.9954431	37.5041089
+412713507	서울계성초등학교	1	True	False	False	isced_tag	126.9967536	37.5045818
+412713508	신반포중학교	2	False	True	False	isced_tag	126.9961335	37.5056793
+412970155	서울잠원초등학교	1	True	False	False	isced_tag	126.9981349	37.5015819
+413360474	서울반원초등학교	1	True	False	False	isced_tag	127.0040329	37.5099729
+414371717	경원중학교	2	False	True	False	isced_tag	127.0093057	37.5110461
+417446581	언북중학교	2	False	True	False	isced_tag	127.0332316	37.5191212
+417622678	영동고등학교	3	False	False	True	isced_tag	127.0419773	37.5205328
+417666613	서울학동초등학교	1	True	False	False	isced_tag	127.0398663	37.5121276
+417726961	서울논현초등학교	1	True	False	False	isced_tag	127.026274	37.5081971
+417923178	역삼중학교	2	False	True	False	isced_tag	127.0488256	37.4955971
+417936797	서초문화예술정보학교		False	False	False	name	127.0297523	37.4876797
+417952853	도곡중학교	2	False	True	False	isced_tag	127.0450795	37.4924897
+417954851			False	False	False	none	127.0568651	37.4957171
+418110856	신동중학교	2	False	True	False	isced_tag	127.0130175	37.5162843
+418110857	서울신동초등학교	1	True	False	False	isced_tag	127.0118655	37.5168648
+418115079	서울서일초등학교	1	True	False	False	isced_tag	127.0226646	37.4848202
+418128732	서울방일초등학교	1	True	False	False	isced_tag	126.9981657	37.4852883
+418130510	이수중학교	2	False	True	False	isced_tag	126.9904017	37.4808486
+418137131	서울이수초등학교	1	True	False	False	isced_tag	126.984596	37.4780856
+418137132	동덕여자중고등학교	2;3	False	True	True	isced_tag	126.9923263	37.476001
+418140731	서울방현초등학교	1	True	False	False	isced_tag	126.9901946	37.4763164
+418149096	서울방배초등학교	1	True	False	False	isced_tag	126.9874685	37.487223
+418152239	서문여자중·고등학교	3	False	False	True	isced_tag	126.985194	37.4887894
+419509364	남성중학교	2	False	True	False	isced_tag	126.9725008	37.4787853
+419522013	서울남성초등학교	1	True	False	False	isced_tag	126.9760768	37.4843524
+419527847	서울삼일초등학교	1	True	False	False	isced_tag	126.9750444	37.4882623
+419534348			False	False	False	none	126.9779523	37.4907556
+419534349	경문고등학교	3	False	False	True	isced_tag	126.9815813	37.4921937
+419592778	인헌고등학교	3	False	False	True	isced_tag	126.9699097	37.4716263
+467306990	상현중학교	2	False	True	False	isced_tag	126.9611017	37.4939372
+467306991	상도중학교	2	False	True	False	isced_tag	126.9614921	37.4903198
+468644583	영동중학교	2	False	True	False	isced_tag	127.0252991	37.4657626
+468651666	서울우암초등학교 운동장		True	False	False	name	127.0247817	37.4717186
+475885432	서울흑석초등학교	1	True	False	False	isced_tag	126.9651559	37.5085931
+480579180	서울삼릉초등학교	1	True	False	False	isced_tag	127.0470926	37.5128893
+484858610	서울서원초등학교	1	True	False	False	isced_tag	127.0151823	37.5026559
+484858611	반포고등학교	3	False	False	True	isced_tag	127.0166306	37.5019877
+484858612	서울원명초등학교	1	True	False	False	isced_tag	127.0168716	37.5004633
+484858613	서일중학교	2	False	True	False	isced_tag	127.0223029	37.4988692
+484858614	서울서초초등학교	1	True	False	False	isced_tag	127.0240948	37.4992447
+484858615	서운중학교	2	False	True	False	isced_tag	127.0247449	37.4937751
+510394401	서울도성초등학교	1	True	False	False	isced_tag	127.0491856	37.5008711
+548803576	서울도곡초등학교	1	True	False	False	isced_tag	127.0546657	37.499045
+549692898	대청중학교	2	False	True	False	isced_tag	127.0585894	37.4901333
+564321596	서울언북초등학교	1	True	False	False	isced_tag	127.0456523	37.5199895
+582383952	서울우솔초등학교	1	True	False	False	isced_tag	127.0193804	37.4569436
+610247797	서울우면초등학교	1	True	False	False	isced_tag	127.0238035	37.4645544
+614498551	서울정애학교		False	False	False	name	127.0543007	37.5143913
+624150584	동작고등학교	3	False	False	True	isced_tag	126.9653085	37.4820583
+624150585	서울행림초등학교	1	True	False	False	isced_tag	126.9644331	37.4828873
+636898103	진선여자중학교	2	False	True	False	isced_tag	127.0484536	37.5019643
+636898107	진선여자고등학교	3	False	False	True	isced_tag	127.0469597	37.5015004
+769865784	내곡중학교	2	False	True	False	isced_tag	127.0548838	37.451954
+798218648	서울신중초등학교	1	True	False	False	isced_tag	127.00981	37.4801003
+798288395	서울우암초등학교	1	True	False	False	isced_tag	127.0245366	37.4719247
+896099331	서울나래학교		False	False	False	name	127.0517042	37.4635099
+979503303	한국과학기술원 도곡캠퍼스		False	False	False	name	127.0439849	37.4835915
+979503333	코리아외국인학교		False	False	False	name	127.0410725	37.4847151
+986132744	서울웹툰애니메이션고등학교	3	False	False	True	isced_tag	126.9884179	37.4695126
+1055428894			False	False	False	none	127.0328395	37.482825
+1087669359	양재초등학교	1	True	False	False	isced_tag	127.0320282	37.4738052
+1230033649	흑석고등학교	3	False	False	True	isced_tag	126.964472	37.5040146
+1280610372			False	False	False	none	127.0032281	37.4968088
+368621524	경기여자고등학교	3	False	False	True	isced_tag	127.065613	37.487175
+368622876	보인고등학교	3	False	False	True	isced_tag	127.1386359	37.4971396
+368622894	한림연예예술고등학교	3	False	False	True	isced_tag	127.133683	37.485062
+368725400	밀알학교		False	False	False	name	127.0821304	37.4859426
+368921633	가원중학교	2	False	True	False	isced_tag	127.122816	37.490794
+368921769	문정중학교	2	False	True	False	isced_tag	127.129598	37.488177
+368921891	세륜중학교	2	False	True	False	isced_tag	127.131342	37.508501
+368922051	오주중학교	2	False	True	False	isced_tag	127.136121	37.501183
+368922114	수서중학교	2	False	True	False	isced_tag	127.102512	37.491092
+368922450	보인중학교	2	False	True	False	isced_tag	127.1379587	37.4981895
+368928214	서울개포초등학교	1	True	False	False	isced_tag	127.0701952	37.486415
+368928398	서울문덕초등학교	1	True	False	False	isced_tag	127.127532	37.484989
+368928497	서울가동초등학교	1	True	False	False	isced_tag	127.13032	37.497148
+368928535	가주초등학교	1	True	False	False	isced_tag	127.1288653	37.4965113
+368928647	서울문정초등학교	1	True	False	False	isced_tag	127.128674	37.488909
+368928659	서울수서초등학교	1	True	False	False	isced_tag	127.101293	37.490948
+368929172	서울세륜초등학교	1	True	False	False	isced_tag	127.133715	37.518567
+368930155	서울평화초등학교	1	True	False	False	isced_tag	127.122323	37.491376
+368930484	서울오륜초등학교	1	True	False	False	isced_tag	127.134514	37.512048
+414684591	남천초등교		False	False	False	name	127.1480363	37.501433
+414684663	방산초등교		False	False	False	name	127.1211378	37.5104812
+2102386074	정상수학학원		False	False	False	name	127.0670316	37.499945
+2111824027	서울오금초등학교	1	True	False	False	isced_tag	127.1317297	37.5092227
+2111837757	문현중학교	2	False	True	False	isced_tag	127.1278834	37.4806128
+2111844405	문정고등학교	3	False	False	True	isced_tag	127.1267032	37.4852229
+2111851572	송파중학교	2	False	True	False	isced_tag	127.1299159	37.4955536
+4629739189	동북고등학교	3	False	False	True	isced_tag	127.1412407	37.5197074
+4631053071	산내들 어린이집		False	False	False	name	127.1457929	37.5109095
+4634980661	서울국제학교		False	False	False	name	127.1290508	37.4662078
+5792156692	풍문고등학교	3	False	False	True	isced_tag	127.1006265	37.4713857
+7175421028	해누리중학교	2	False	True	False	isced_tag	127.1018942	37.4981435
+7175421029	해누리초등학교	1	True	False	False	isced_tag	127.1025969	37.4983436
+10013285701	배명중학교	2	False	True	False	isced_tag	127.0957178	37.4990539
+10013285702	배명고등학교	3	False	False	True	isced_tag	127.0957357	37.4988466
+13711791206	1호관 정문		False	False	False	name	127.1287273	37.459524
+13711791207	1호관 후문		False	False	False	name	127.1288468	37.459379
+13711791208	2호관 학교식당		False	False	False	name	127.1289911	37.4586096
+13711791209	본관정문		False	False	False	name	127.1286254	37.4603116
+13711791210	본관쪽문		False	False	False	name	127.1287816	37.4601096
+13711791211	본관후문		False	False	False	name	127.1287042	37.4605853
+13711791212	지하햄버거집		False	False	False	name	127.1291315	37.4605876
+13711791214	10호관,3호관 출입문		False	False	False	name	127.1294279	37.460784
+13711791215	10호관 지하출입문		False	False	False	name	127.1293121	37.4608497
+13711791216	3호관 입구		False	False	False	name	127.1295677	37.4606437
+13711791217	6호관 입구		False	False	False	name	127.1292518	37.4602555
+13711791218	6호관 쪽문		False	False	False	name	127.129366	37.4603825
+13711791219	학생회관 정문		False	False	False	name	127.1283618	37.4582288
+13711791220	8호관 옆문		False	False	False	name	127.1292631	37.4591139
+13711791221	8호관 옆문2		False	False	False	name	127.1293263	37.458328
+13711791222	8호관 정문2		False	False	False	name	127.1292614	37.4585281
+13711791224	2호관 뒷문		False	False	False	name	127.1290091	37.4583372
+13711791225	1호관 옆문		False	False	False	name	127.1288386	37.4590832
+13711791226	2호관 정문		False	False	False	name	127.128868	37.4583205
+13711791228	6호관 후문		False	False	False	name	127.1297938	37.4603316
+13711791229	도서관 후문		False	False	False	name	127.1297486	37.4600259
+13711791230	도서관 옆문		False	False	False	name	127.1293293	37.4600177
+13711791231	도서관 엘리베이터		False	False	False	name	127.1291555	37.4598987
+13711791232	도서관 계단		False	False	False	name	127.1292471	37.4595095
+13711791233	9호관 부출입문		False	False	False	name	127.1301799	37.4600888
+13711791234	5호관 정문		False	False	False	name	127.1302466	37.4603653
+13711791235	5호관 후문		False	False	False	name	127.1308535	37.4603839
+13711791236	9호관 정문		False	False	False	name	127.1303388	37.4601398
+13711791237	9호관 쪽문		False	False	False	name	127.1308995	37.4601837
+13711791238	3호관 구름다리		False	False	False	name	127.1299513	37.4605945
+13711791239	1호관 옆문		False	False	False	name	127.1287629	37.4599438
+13711791241	학생회관 옆문2		False	False	False	name	127.1281432	37.458174
+13711791242	기숙사동 입구		False	False	False	name	127.1280398	37.4578416
+13711791243	교류센터  정문		False	False	False	name	127.1284052	37.4576671
+14091399472	3호관 입구2		False	False	False	name	127.1302962	37.4607009
+14091399487	본관후문		False	False	False	name	127.1289362	37.4603279
+14091399496	뒷문		False	False	False	name	127.1286082	37.4573197
+14091411393	입구		False	False	False	name	127.1280692	37.4581122
+14091411394	학생회관 옆문		False	False	False	name	127.1285917	37.4582061
+14091512211	2호관 옆문		False	False	False	name	127.128954	37.4588257
+14102490191	8호관 정문		False	False	False	name	127.1292016	37.4588898
+129600528	잠신중학교	2	False	True	False	isced_tag	127.087824	37.5157186
+129600542	잠신고등학교	3	False	False	True	isced_tag	127.0890015	37.5150475
+129600549	잠신초등학교	1	True	False	False	isced_tag	127.0881999	37.513978
+129600570	서울신천초등학교	1	True	False	False	isced_tag	127.0952692	37.5136194
+129600971	영동일고등학교	3	False	False	True	isced_tag	127.0898217	37.5098196
+129601135	송전초등학교	1	True	False	False	isced_tag	127.0947871	37.508428
+129601385	서울잠전초등학교	1	True	False	False	isced_tag	127.0841987	37.5067971
+129601576	석촌초등학교	1	True	False	False	isced_tag	127.1047971	37.5025276
+169411861			False	False	False	none	127.0958023	37.4983845
+169795563	방이중학교	2	False	True	False	isced_tag	127.1130206	37.5145036
+169800632	방산고등학교	3	False	False	True	isced_tag	127.1208394	37.508348
+169802448	방이 초등학교	1	True	False	False	isced_tag	127.1209692	37.5133797
+169803294			False	False	False	none	127.1138445	37.5015366
+169803364	가락 고등학교	3	False	False	True	isced_tag	127.1168653	37.501271
+169803377	가락중학교	2	False	True	False	isced_tag	127.1183164	37.5022024
+169918654	오금고등학교	3	False	False	True	isced_tag	127.1293774	37.5043393
+170055618	문정 초등학교/중학교	2	True	True	False	isced_tag	127.1293149	37.4885716
+172621014	오금중학교	2	False	True	False	isced_tag	127.1284031	37.5049301
+220547386	방산초등학교	1	True	False	False	isced_tag	127.1209667	37.5093727
+239756155	대원초등학교		True	False	False	name	127.1554217	37.4368696
+240577846	희망대초등학교	1	True	False	False	isced_tag	127.1487092	37.4467458
+240819350	성남서중학교	2	False	True	False	isced_tag	127.1546384	37.4487706
+240819372			False	False	False	none	127.1575139	37.4532343
+240822071	성남북초등학교	1	True	False	False	isced_tag	127.1510421	37.4517097
+243515060	서울대곡초등학교	1	True	False	False	isced_tag	127.0651852	37.4943898
+259578150	잠일고등학교	3	False	False	True	isced_tag	127.0825057	37.5144002
+259578151	신천중학교	2	False	True	False	isced_tag	127.0784754	37.5159887
+259580243	아주초등학교	1	True	False	False	isced_tag	127.0757788	37.5053967
+259580244	아주중학교	2	False	True	False	isced_tag	127.0762183	37.5048922
+337143594	서울언남초등학교	1	True	False	False	isced_tag	127.0614973	37.453802
+354880860	수도전기공업고등학교	3	False	False	True	isced_tag	127.0639826	37.4859507
+354882040	경기여자고등학교	3	False	False	True	isced_tag	127.0658272	37.4866857
+354882041			False	False	False	none	127.0654881	37.4869369
+370327150	개포중학교	2	False	True	False	isced_tag	127.0623157	37.4803518
+379533678	서울일원초등학교	1	True	False	False	isced_tag	127.0763754	37.4895174
+382259578			False	False	False	none	127.1035439	37.4619953
+389066999	성남여자고등학교	3	False	False	True	isced_tag	127.1445121	37.4355712
+389067007			False	False	False	none	127.1437528	37.4338926
+389067008	성남서고등학교	3	False	False	True	isced_tag	127.1471519	37.4337128
+396000303	개포디지털혁신파크		False	False	False	name	127.0652315	37.4883083
+397407578	서울송례초등학교	1	True	False	False	isced_tag	127.1385565	37.4777581
+397407579	송례중학교	2	False	True	False	isced_tag	127.1398102	37.4777185
+397647602	위례중학교	2	False	True	False	isced_tag	127.1483569	37.4771591
+397647603	위례초등학교	1	True	False	False	isced_tag	127.1494759	37.4770028
+397647604	위례고등학교	3	False	False	True	isced_tag	127.1507869	37.4767074
+417637247	봉은중학교	2	False	True	False	isced_tag	127.062666	37.5189812
+417911700	휘문중고등학교	2;3	False	True	True	isced_tag	127.0621633	37.5051209
+417911701	서울대현초등학교	1	True	False	False	isced_tag	127.0638605	37.5035774
+417978616	서울대진초등학교	1	True	False	False	isced_tag	127.0781427	37.4966427
+417981298	서울대청초등학교	1	True	False	False	isced_tag	127.087929	37.4928295
+417981299	서울영희초등학교	1	True	False	False	isced_tag	127.081282	37.4918892
+418021235			False	False	False	none	127.0962022	37.4905611
+418206345	서울가락초등학교	1	True	False	False	isced_tag	127.1078216	37.4998835
+418335463	서울송파초등학교	1	True	False	False	isced_tag	127.1107826	37.5070328
+418397238	신가초등학교	1	True	False	False	isced_tag	127.1201248	37.4999958
+418450527			False	False	False	none	127.1315867	37.508792
+418641939	서울가원초등학교	1	True	False	False	isced_tag	127.1114082	37.4890463
+418641948			False	False	False	none	127.1226355	37.4910547
+418644877			False	False	False	none	127.1303669	37.4971213
+418644878			False	False	False	none	127.1287169	37.4966341
+418644880			False	False	False	none	127.129995	37.4953217
+418647642			False	False	False	none	127.1345809	37.5120635
+418647653	창덕여자고등학교	3	False	False	True	isced_tag	127.1396057	37.5159408
+418647656			False	False	False	none	127.134457	37.5193469
+418647659	보인중·고등학교	3	False	False	True	isced_tag	127.1387577	37.49765
+418649432			False	False	False	none	127.1361891	37.501155
+418649436	서울영풍초등학교	1	True	False	False	isced_tag	127.1429478	37.4959642
+418649440	서울인공지능고등학교	3	False	False	True	isced_tag	127.1427001	37.491569
+418649442	문현중학교	2	False	True	False	isced_tag	127.1278495	37.4803824
+418649444	문현고등학교	3	False	False	True	isced_tag	127.1289544	37.4811226
+418716722	서울거여초등학교	1	True	False	False	isced_tag	127.1409365	37.5047753
+418775534			False	False	False	none	127.1271949	37.4851832
+418790734	한국육영학교		False	False	False	name	127.1324929	37.4817802
+419001642	동북중고등학교	2;3	False	True	True	isced_tag	127.1404334	37.519728
+443020655	서울국제학교		False	False	False	name	127.129022	37.4656003
+468202929			False	False	False	none	127.1476912	37.4279647
+468206325			False	False	False	none	127.1466604	37.4276217
+468207633	검단초등학교	1	True	False	False	isced_tag	127.1437203	37.4293943
+468207634	대하초등학교	1	True	False	False	isced_tag	127.1519124	37.4314475
+468303928	성일고등학교	3	False	False	True	isced_tag	127.1458673	37.4347959
+468303929	성일중학교	2	False	True	False	isced_tag	127.1448527	37.4347549
+468303930			False	False	False	none	127.1456337	37.4335954
+468303934	동광중학교	2	False	True	False	isced_tag	127.1437342	37.434823
+468303936			False	False	False	none	127.1434572	37.43369
+468303937	성남중학교	2	False	True	False	isced_tag	127.1439027	37.4324527
+468303938			False	False	False	none	127.1433331	37.4359822
+468303942	성남제일초등학교	1	True	False	False	isced_tag	127.1493935	37.4385012
+468606053			False	False	False	none	127.1331465	37.4443405
+468606598	태평초등학교	1	True	False	False	isced_tag	127.1313722	37.4446684
+468690001	풍생 중.고등학교	3	False	False	True	isced_tag	127.1311283	37.4350419
+468994220	중동고등학교	3	False	False	True	isced_tag	127.0807842	37.4931035
+469293103	서울잠실초등학교	1	True	False	False	isced_tag	127.1112703	37.5200997
+469495526	성남수정초등학교	1	True	False	False	isced_tag	127.131976	37.436592
+469654371	서울중대초등학교	1	True	False	False	isced_tag	127.1139529	37.5001091
+469681232	서울양전초등학교	1	True	False	False	isced_tag	127.070049	37.4904258
+469681233	개원중학교	2	False	True	False	isced_tag	127.071396	37.4914837
+469843951	서울자곡초등학교	1	True	False	False	isced_tag	127.0995661	37.472145
+469844315			False	False	False	none	127.1450671	37.4788313
+469964553			False	False	False	none	127.0922823	37.4718013
+469964555	서울세명초등학교	1	True	False	False	isced_tag	127.0910196	37.4685534
+471405545	수진중학교	2	False	True	False	isced_tag	127.1238999	37.4372082
+472294565	서울봉은초등학교	1	True	False	False	isced_tag	127.0608693	37.5203633
+472568552			False	False	False	none	127.1443471	37.4459316
+473246167	풍문고등학교	3	False	False	True	isced_tag	127.1007364	37.4713961
+473601483	세곡중학교	2	False	True	False	isced_tag	127.0922362	37.4720144
+477689885	정신여자고등학교	3	False	False	True	isced_tag	127.0719795	37.5087968
+477689889	정신여자중학교	2	False	True	False	isced_tag	127.0734408	37.5090341
+477828895	위례푸른초등학교	1	True	False	False	isced_tag	127.1510837	37.4704873
+529592583	보성고등학교	3	False	False	True	isced_tag	127.1347098	37.5197182
+534819207	밀알학교		False	False	False	name	127.082354	37.4857401
+536953208	삼전초등학교	1	True	False	False	isced_tag	127.0926314	37.501492
+544143892	세종고등학교	3	False	False	True	isced_tag	127.1026115	37.4900225
+548704029	서울로봇고등학교	3	False	False	True	isced_tag	127.0843467	37.4807227
+548704030	서울대모초등학교	1	True	False	False	isced_tag	127.0863135	37.4810698
+548704031	대왕중학교	2	False	True	False	isced_tag	127.0873693	37.4831341
+548704036	서울왕북초등학교	1	True	False	False	isced_tag	127.0864655	37.4861384
+548704037	중산고등학교	3	False	False	True	isced_tag	127.0807459	37.4854085
+548704038	중동중학교	2	False	True	False	isced_tag	127.0781885	37.4888423
+548803575	대명중학교	2	False	True	False	isced_tag	127.0610747	37.5060649
+549692901	서울대치초등학교	1	True	False	False	isced_tag	127.0623601	37.4909904
+557154222	금빛초등학교	1	True	False	False	isced_tag	127.1400419	37.4473121
+562624190	위례중앙초등학교	1	True	False	False	isced_tag	127.1360625	37.4718211
+562624309			False	False	False	none	127.138164	37.4717334
+562642394	위례한빛고등학교	3	False	False	True	isced_tag	127.1500468	37.4670504
+563534111			False	False	False	none	127.1291134	37.4485707
+574939337	서울버들초등학교	1	True	False	False	isced_tag	127.0891318	37.5102342
+636503087			False	False	False	none	127.072614	37.5095804
+663374706	위례한빛초등학교	1	True	False	False	isced_tag	127.1469788	37.4656291
+664690606			False	False	False	none	127.0898745	37.5099584
+664989826	해누리초중이음학교		False	False	False	name	127.1022115	37.4982166
+680882371	상원여자중학교	2	False	True	False	isced_tag	127.1583008	37.4567226
+681397546	성보경영고등학교	3	False	False	True	isced_tag	127.1590667	37.4613562
+690991715	방산중학교	2	False	True	False	isced_tag	127.1217321	37.5090764
+693284516	서울거원초등학교	1	True	False	False	isced_tag	127.1451163	37.487735
+693284517	거원중학교	2	False	True	False	isced_tag	127.1463848	37.48769
+770361866	복정고등학교	3	False	False	True	isced_tag	127.1373203	37.4613098
+776091307			False	False	False	none	127.1045802	37.4500107
+776091310	왕남초등학교	1	True	False	False	isced_tag	127.0983681	37.4284518
+779187414	석촌중학교	2	False	True	False	isced_tag	127.1213164	37.5007461
+779187446	서울마천초등학교	1	True	False	False	isced_tag	127.152314	37.4953211
+788045080	복정초등학교	1	True	False	False	isced_tag	127.1295793	37.4622681
+788045083	성수초등학교	1	True	False	False	isced_tag	127.1273997	37.4343781
+788045085	성남신흥초등학교	1	True	False	False	isced_tag	127.1437443	37.4502682
+788045088	성남여자중학교	2	False	True	False	isced_tag	127.1428898	37.4499294
+802446964	서울대왕초등학교	1	True	False	False	isced_tag	127.1055706	37.4644472
+806768362	잠일초등학교	1	True	False	False	isced_tag	127.0815579	37.5146783
+817861830	서울남천초등학교	1	True	False	False	isced_tag	127.1508084	37.5010518
+819713881	감일고등학교	3	False	False	True	isced_tag	127.1601282	37.509412
+819713884	단샘초등학교	1	True	False	False	isced_tag	127.1587572	37.5069828
+829068808	오륜중학교	2	False	True	False	isced_tag	127.1388004	37.5160478
+857253555	서울위례솔초등학교	1	True	False	False	isced_tag	127.1509257	37.4866441
+857253557	덕수고등학교 (일반고)	3	False	False	True	isced_tag	127.1468845	37.4852954
+857253567	위례숲초등학교	1	True	False	False	isced_tag	127.158159	37.4851102
+867985198	잠실중학교	2	False	True	False	isced_tag	127.0993033	37.517351
+867985199	서울잠동초등학교	1	True	False	False	isced_tag	127.1000903	37.5179268
+899375420			False	False	False	none	127.0852374	37.4808359
+905721793	서울개롱초등학교	1	True	False	False	isced_tag	127.1397312	37.4971721
+971571760	위례솔중학교	2	False	True	False	isced_tag	127.1503044	37.48738
+974855475	한림연예예술고등학교	3	False	False	True	isced_tag	127.1334696	37.4849018
+984670756			False	False	False	none	127.0636634	37.4830984
+984670762	한국외국인학교 서울캠퍼스		False	False	False	name	127.0623466	37.4857768
+988800249	태평중학교	2	False	True	False	isced_tag	127.1283858	37.4465132
+995400046	창성중학교	2	False	True	False	isced_tag	127.1534886	37.4601337
+1004913219	다니엘학교		False	False	False	name	127.0919421	37.460424
+1011006704	수서초등학교	1	True	False	False	isced_tag	127.1016388	37.4908499
+1011006705	수서중학교	2	False	True	False	isced_tag	127.1027591	37.4910246
+1020177506	서울문현초등학교	1	True	False	False	isced_tag	127.1302929	37.4826633
+1029989817	서울개현초등학교	1	True	False	False	isced_tag	127.0616847	37.480959
+1080875575	서울개포초등학교	1	True	False	False	isced_tag	127.0698038	37.4862291
+1465344873	서울율현초등학교	1	True	False	False	isced_tag	127.1083072	37.4745768
+1481080892	Seoul Scholars International		False	False	False	name	127.0651929	37.5023926
+1534506485			False	False	False	none	127.0976146	37.4986016
+1550555837			False	False	False	none	127.127218	37.4597233
+368934393	서부초등학교	1	True	False	False	isced_tag	127.162132	37.5153754
+6348740485	신구대현장		False	False	False	name	127.1673045	37.4499372
+237771356	숭신여고		False	False	False	name	127.1700934	37.4495841
+238706551			False	False	False	none	127.1626266	37.4494526
+238706559			False	False	False	none	127.1645394	37.4482292
+238706581	단남초등학교	1	True	False	False	isced_tag	127.1612546	37.4426197
+238972636	금상초등학교	1	True	False	False	isced_tag	127.166194	37.4432453
+238973937			False	False	False	none	127.1648216	37.4512802
+239728895			False	False	False	none	127.1675776	37.4382821
+239728896			False	False	False	none	127.1639771	37.4386626
+240482762	은행중학교	2	False	True	False	isced_tag	127.1718319	37.4574656
+240482764			False	False	False	none	127.1702327	37.4609106
+240482768			False	False	False	none	127.1627054	37.4540087
+240972965	대원중학교		False	True	False	name	127.1721822	37.4469874
+240972966	금광중학교		False	True	False	name	127.1710609	37.4468677
+240972973	하원초등학교		True	False	False	name	127.1698449	37.4465692
+560919927	상대원 초등학교	1	True	False	False	isced_tag	127.1813618	37.4421287
+680882370	양지초등학교	1	True	False	False	isced_tag	127.1614399	37.4594649
+819713882	신우초등학교		True	False	False	name	127.1611182	37.510926
+819713899	감일중학교	2	False	True	False	isced_tag	127.1623296	37.5010597
+819713900	감일초등학교	1	True	False	False	isced_tag	127.1622721	37.5001431
+872191516	남한산초등학교	1	True	False	False	isced_tag	127.1854949	37.4786252
+368621627	등촌고등학교	3	False	False	True	isced_tag	126.8448	37.56283
+368921735	양강중학교	2	False	True	False	isced_tag	126.8496872	37.5243771
+368921785	백석중학교	2	False	True	False	isced_tag	126.8591351	37.5482101
+368922294	양서중학교	2	False	True	False	isced_tag	126.8294307	37.5327732
+368922726	마포중학교	2	False	True	False	isced_tag	126.8528498	37.5600786
+368922787	서울경서중학교	2	False	True	False	isced_tag	126.8585097	37.5611426
+368922936	서울신원중학교	2	False	True	False	isced_tag	126.8243236	37.536732
+368922950	신정여자중학교	2	False	True	False	isced_tag	126.8564158	37.5381781
+1822577894	방원중학교	2	False	True	False	isced_tag	126.8088466	37.5757533
+4600230725	광영고등학교	3	False	False	True	isced_tag	126.8232807	37.5376683
+4600230726	광영여자고등학교	3	False	False	True	isced_tag	126.8248789	37.5378957
+4646521874	수주중학교	2	False	True	False	isced_tag	126.8165004	37.5310993
+10599297326	서울신정고등학교	3	False	False	True	isced_tag	126.857114	37.5385354
+10650867638	마포고등학교	3	False	False	True	isced_tag	126.8532825	37.5598168
+226064376	인천당산초등학교	1	True	False	False	isced_tag	126.7593794	37.5585207
+226064381	동양중학교	2	False	True	False	isced_tag	126.7608752	37.5622628
+229757369	인천계양초등학교 상야분교		True	False	False	name	126.7800187	37.5791378
+253471610	서울신강초등학교	1	True	False	False	isced_tag	126.8416503	37.5259671
+253471757	서울강서초등학교	1	True	False	False	isced_tag	126.8405267	37.5223081
+253471841	고리울초등학교	1	True	False	False	isced_tag	126.8271327	37.5270939
+253473044	화원중학교	2	False	True	False	isced_tag	126.8425332	37.536723
+263497833	삼정중학교	2	False	True	False	isced_tag	126.8106988	37.5812466
+263497837	서울삼정초등학교	1	True	False	False	isced_tag	126.8102777	37.5801498
+263497857	서울치현초등학교	1	True	False	False	isced_tag	126.8145541	37.5756346
+263497862	강서공업고등학교	3	False	False	True	isced_tag	126.8158201	37.5756006
+453476031	서울화일초등학교	1	True	False	False	isced_tag	126.84754	37.5406062
+453476035	서울화곡초등학교	1	True	False	False	isced_tag	126.8459528	37.543219
+464976593	신월중학교	2	False	True	False	isced_tag	126.8288108	37.5406067
+464976594	신화중학교	2	False	True	False	isced_tag	126.8301896	37.5406196
+464976602	서울강신초등학교	1	True	False	False	isced_tag	126.8293999	37.542844
+464978532			False	False	False	none	126.8287232	37.5491054
+464978533	서울발산초등학교	1	True	False	False	isced_tag	126.8311045	37.5500019
+464978691	화곡고등학교	3	False	False	True	isced_tag	126.8318468	37.5480489
+464978692			False	False	False	none	126.8329649	37.5486868
+464979321	서울신원초등학교	1	True	False	False	isced_tag	126.8301316	37.5295738
+464983522			False	False	False	none	126.8294862	37.5328283
+464988526			False	False	False	none	126.8242924	37.5367442
+464988527	서울금융고등학교	3	False	False	True	isced_tag	126.825765	37.5375891
+464988528			False	False	False	none	126.8240465	37.5378998
+464988777	서울양원초등학교	1	True	False	False	isced_tag	126.823517	37.5386794
+465064236	서울신정초등학교	1	True	False	False	isced_tag	126.8525327	37.5327337
+465086571	등촌중학교	2	False	True	False	isced_tag	126.8596565	37.5523392
+465220777	서울등서초등학교	1	True	False	False	isced_tag	126.8550091	37.551811
+465230300	서울등촌초등학교	1	True	False	False	isced_tag	126.8582392	37.5475799
+465230301	백석중학교	2	False	True	False	isced_tag	126.8591405	37.5482455
+465236242	서울우장초등학교	1	True	False	False	isced_tag	126.8463154	37.5490954
+465242842	서울내발산초등학교	1	True	False	False	isced_tag	126.8378882	37.5512552
+465246501	서울가곡초등학교	1	True	False	False	isced_tag	126.835737	37.5554417
+465246502	명덕여자중,고등학교 / 명덕외국어고등학교	3	False	False	True	isced_tag	126.8342349	37.5541543
+465258109	서울신월초등학교	1	True	False	False	isced_tag	126.8391233	37.5400018
+465263411	서울월정초등학교	1	True	False	False	isced_tag	126.8363197	37.5344379
+465280666	서울수명초등학교	1	True	False	False	isced_tag	126.823889	37.5525963
+465286049	서울공진초등학교	1	True	False	False	isced_tag	126.8227069	37.5577753
+465314699	송정중학교	2	False	True	False	isced_tag	126.8153744	37.5537121
+465315851	서울등명초등학교	1	True	False	False	isced_tag	126.8423116	37.5606338
+465315852	등명중학교	2	False	True	False	isced_tag	126.8432695	37.5598978
+465316163	서울공항초등학교	1	True	False	False	isced_tag	126.8215794	37.563
+465319059	서울송정초등학교	1	True	False	False	isced_tag	126.8110321	37.5624378
+465319060	공항중학교	2	False	True	False	isced_tag	126.8153865	37.5625721
+465319061	방화중학교	2	False	True	False	isced_tag	126.8066904	37.5650629
+465319062	공항고등학교		False	False	True	name	126.805667	37.5686037
+465322810	서울양천초등학교	1	True	False	False	isced_tag	126.8396623	37.5700289
+465446480	서울송화초등학교	1	True	False	False	isced_tag	126.8174737	37.5682578
+465446482	서울항공비즈니스고등학교	3	False	False	True	isced_tag	126.8174456	37.5698118
+465448428	마곡중학교	2	False	True	False	isced_tag	126.8213558	37.5679179
+465450881	서울정곡초등학교	1	True	False	False	isced_tag	126.8189648	37.5767792
+465452560	한서고등학교	3	False	False	True	isced_tag	126.8084818	37.5745216
+465452561			False	False	False	none	126.8088178	37.575771
+465482020	서울개화초등학교	1	True	False	False	isced_tag	126.8045394	37.5735992
+465488266	수명중학교	2	False	True	False	isced_tag	126.823658	37.5488964
+465542572	영등포공업고등학교	3	False	False	True	isced_tag	126.8504011	37.5692732
+465542846	성재중학교	2	False	True	False	isced_tag	126.845754	37.5693785
+465542847	동양고등학교	3	False	False	True	isced_tag	126.8475498	37.5689215
+465543205	유석초등학교	1	True	False	False	isced_tag	126.8538278	37.5605212
+465543206	마포중고등학교	2;3	False	True	True	isced_tag	126.8531676	37.5594141
+465543421	경복여자고등학교	3	False	False	True	isced_tag	126.8511556	37.5582517
+465543422	경복비즈니스고등학교	3	False	False	True	isced_tag	126.8526061	37.5580868
+465784657	서울양강초등학교	1	True	False	False	isced_tag	126.8480607	37.5240382
+465784659			False	False	False	none	126.8497218	37.5244019
+466002398	서울양동초등학교	1	True	False	False	isced_tag	126.8511565	37.5260007
+466002819	신서고등학교	3	False	False	True	isced_tag	126.8599438	37.5238192
+466002821	서울영상고등학교	3	False	False	True	isced_tag	126.860046	37.523246
+468993764	경서중학교	2	False	True	False	isced_tag	126.8585154	37.5611812
+468993765	서울가양초등학교	1	True	False	False	isced_tag	126.8590406	37.5617431
+469330105	서울등현초등학교	1	True	False	False	isced_tag	126.8477936	37.5612978
+469348145	서울서진학교		False	False	False	name	126.8502594	37.5652924
+469354217	서울등원초등학교	1	True	False	False	isced_tag	126.8498329	37.5604625
+469356661	등촌 고등학교	3	False	False	True	isced_tag	126.8449144	37.5628105
+469357638	서울탑산초등학교	1	True	False	False	isced_tag	126.8523614	37.5667438
+469610343	서울등양초등학교	1	True	False	False	isced_tag	126.8446792	37.5647963
+469718444	부천대명초등학교		True	False	False	name	126.7974889	37.5275558
+469718447			False	False	False	none	126.8005386	37.5278563
+469718462			False	False	False	none	126.7928282	37.5289726
+469718463			False	False	False	none	126.7911883	37.529669
+469718466			False	False	False	none	126.7903141	37.5304156
+469718474	오정초등학교	1	True	False	False	isced_tag	126.8074429	37.5273138
+469718475			False	False	False	none	126.8074524	37.527528
+469718476			False	False	False	none	126.8070754	37.5269493
+469718477			False	False	False	none	126.8073829	37.5269242
+469718479			False	False	False	none	126.8079865	37.5277287
+469918836	용현초등학교	1	True	False	False	isced_tag	126.838205	37.6148952
+469918837	행신중학교	2	False	True	False	isced_tag	126.8395962	37.6148918
+469918846	소만초등학교	1	True	False	False	isced_tag	126.8394947	37.6172743
+469918852	무원초등학교	1	True	False	False	isced_tag	126.8317219	37.6173874
+469918853	무원중학교	2	False	True	False	isced_tag	126.8305716	37.6173848
+470185083			False	False	False	none	126.8325286	37.5481693
+470875078	교남학교 운동장 겸 주차장		False	False	False	name	126.8525968	37.5481212
+472473748	고촌초등학교	1	True	False	False	isced_tag	126.7733673	37.6059971
+472644104	부천덕산초등학교 대장분교장		True	False	False	name	126.7910281	37.5421021
+473277339	동산초등학교	1	True	False	False	isced_tag	126.7852308	37.5310256
+473362545	부천실업고등학교	3	False	False	True	isced_tag	126.7814647	37.5279965
+474830486	마곡하늬중학교	2	False	True	False	isced_tag	126.8208447	37.5580597
+475600984	서정초등학교	1	True	False	False	isced_tag	126.8486084	37.6142689
+478393275	행신고등학교	3	False	False	True	isced_tag	126.8425796	37.616118
+478407094	행남초등학교	1	True	False	False	isced_tag	126.8425655	37.6149159
+479986514	서정중학교	2	False	True	False	isced_tag	126.84965	37.6183894
+479987421	무원고등학교	3	False	False	True	isced_tag	126.8381614	37.6187263
+479987430	토당초등학교	1	True	False	False	isced_tag	126.8260935	37.6170764
+479987431	신능중학교	2	False	True	False	isced_tag	126.8350467	37.6195285
+506060132	공항고등학교	3	False	False	True	isced_tag	126.8182527	37.5702224
+608679259	아람초등학교	1	True	False	False	isced_tag	126.8504683	37.6193057
+782830371	고강초등학교	1	True	False	False	isced_tag	126.8196863	37.5268372
+800984774	서울방화초등학교	1	True	False	False	isced_tag	126.8069185	37.5686036
+800984779	서울신곡초등학교	1	True	False	False	isced_tag	126.8558451	37.5387275
+895427752	한광고등학교	3	False	False	True	isced_tag	126.8582417	37.5384916
+946212055	고촌중학교	2	False	True	False	isced_tag	126.7681794	37.6081425
+946212063	신곡중학교	2	False	True	False	isced_tag	126.7649347	37.5994182
+946212066	신곡초등학교	1	True	False	False	isced_tag	126.7663652	37.596641
+946212078	보름초등학교	1	True	False	False	isced_tag	126.7625272	37.5945564
+991830900	행주초등학교	1	True	False	False	isced_tag	126.8249302	37.6031213
+1137018299			False	False	False	none	126.8572893	37.537959
+1144239356	등원중학교	2	False	True	False	isced_tag	126.8514935	37.5595334
+1312448171	수주고등학교		False	False	True	name	126.8151685	37.5320137
+1312448172	부천수주초등학교		True	False	False	name	126.8150438	37.5308663
+368621443	선일여자고등학교	3	False	False	True	isced_tag	126.9128206	37.6192522
+368621672	성심여자고등학교	3	False	False	True	isced_tag	126.953332	37.534815
+368621695	선정여자실업고등학교	3	False	False	True	isced_tag	126.9090447	37.6187291
+368621779	숭실고등학교	3	False	False	True	isced_tag	126.9038121	37.5933735
+368622407	상명대학교 사범대학 부속여자고등학교	3	False	False	True	isced_tag	126.9538429	37.6033425
+368622591	세현고등학교	3	False	False	True	isced_tag	126.8637889	37.5603342
+368622631	선정고등학교	3	False	False	True	isced_tag	126.9082652	37.61817
+368622651	상암고등학교	3	False	False	True	isced_tag	126.883068	37.579085
+368622703	은평고등학교	3	False	False	True	isced_tag	126.9058937	37.6089913
+368622805	선정관광고등학교	3	False	False	True	isced_tag	126.9081322	37.6185579
+368623212	일성여자중고등학교	2;3	False	True	True	isced_tag	126.9484904	37.5501725
+368921646	덕산중학교	2	False	True	False	isced_tag	126.9044229	37.6017333
+368921701	은평중학교	2	False	True	False	isced_tag	126.9090868	37.610513
+368921765	기숙사	2	False	True	False	isced_tag	126.9087183	37.6173956
+368921772	연서중학교	2	False	True	False	isced_tag	126.9100455	37.5870313
+368921927	신연중학교	2	False	True	False	isced_tag	126.9398503	37.5830111
+368921982	문래중학교	2	False	True	False	isced_tag	126.8842614	37.5201865
+368922031	염창중학교	2	False	True	False	isced_tag	126.8720028	37.5535957
+368922223	상신중학교	2	False	True	False	isced_tag	126.9064843	37.5900061
+368922312	홍은중학교	2	False	True	False	isced_tag	126.935255	37.592542
+368922418	성심여자중학교	2	False	True	False	isced_tag	126.95332	37.534842
+368922589	숭실중학교	2	False	True	False	isced_tag	126.9051943	37.5933086
+368922626	영락중학교	2	False	True	False	isced_tag	126.9248214	37.5967548
+368928442	서울동교초등학교	1	True	False	False	isced_tag	126.902587	37.558316
+368928729	선일초등학교	1	True	False	False	isced_tag	126.913292	37.6197778
+368928825	서울인왕초등학교	1	True	False	False	isced_tag	126.9451138	37.5904399
+368928992	서울한서초등학교	1	True	False	False	isced_tag	126.9495195	37.5534633
+368929369	서울홍은초등학교	1	True	False	False	isced_tag	126.9496801	37.5972694
+368929917	양원초등학교	1	True	False	False	isced_tag	126.945381	37.553822
+414683286	아현초등교		False	False	False	name	126.95724	37.55457
+414685157	염리초등교		False	False	False	name	126.9455481	37.5444694
+2670978336	상명대학교 사범대학 부속여자중학교	2	False	True	False	isced_tag	126.9540974	37.6027926
+4197979157	구산중학교	2	False	True	False	isced_tag	126.9090068	37.6093882
+4569654572	선일중학교	2	False	True	False	isced_tag	126.9127505	37.6198288
+5030511926	마포고 옛자리		False	False	False	name	126.9456392	37.5398231
+5106900872	당산초등학교	1	True	False	False	isced_tag	126.8962453	37.5394927
+5144389930	VFXLAB 학원		False	False	False	name	126.9155463	37.5616332
+5235975422			False	False	False	none	126.9172536	37.5697882
+8058134585	인왕중학교	2	False	True	False	isced_tag	126.9517882	37.5927271
+8357547948	창천중학교, 창천초등학교	1	True	True	False	isced_tag	126.9394149	37.5547609
+9288153292	아현중학교부설 방송통신중학교	2	False	True	False	isced_tag	126.95708	37.5557646
+13055792473	중앙여자고등학교		False	False	True	name	126.9527366	37.5630269
+13055792474	중앙여자중학교		False	True	False	name	126.9530616	37.5621918
+13055792479	추계초등학교		True	False	False	name	126.9533653	37.5636343
+31564868	동명여자고등학교	3	False	False	True	isced_tag	126.9246117	37.6140999
+31565093	서울불광초등학교	1	True	False	False	isced_tag	126.931012	37.6127316
+31855235	동교초등학교	1	True	False	False	isced_tag	126.9025895	37.5580873
+173001963	서울안산초등학교	1	True	False	False	isced_tag	126.9515366	37.5793087
+174106390	한성과학고등학교	3	False	False	True	isced_tag	126.9529596	37.5758378
+174108039	서울고은초등학교	1	True	False	False	isced_tag	126.9434123	37.5848137
+221499970	하비에르 국제학교		False	False	False	name	126.9559872	37.6109551
+223297135	아현중학교	2	False	True	False	isced_tag	126.9568782	37.5562467
+234995470	서울서교초등학교	1	True	False	False	isced_tag	126.9249923	37.5548779
+253469955	목운중학교	2	False	True	False	isced_tag	126.8727177	37.5270699
+253469961	서울목운초등학교	1	True	False	False	isced_tag	126.8734598	37.5269735
+263480857	광성중고등학교	2;3	False	True	True	isced_tag	126.9365818	37.5486341
+263591039	역촌초등학교	1	True	False	False	isced_tag	126.9143827	37.6016797
+276919690	서울당중초등학교	1	True	False	False	isced_tag	126.8899253	37.5260805
+276920480	관악고등학교	3	False	False	True	isced_tag	126.8829669	37.5214801
+312368852	성산중학교	2	False	True	False	isced_tag	126.9159006	37.5472141
+312529689	서울성산초등학교	1	True	False	False	isced_tag	126.9110848	37.5533657
+333669378	서울목동초등학교	1	True	False	False	isced_tag	126.8721035	37.5225049
+367474960			False	False	False	none	126.9454464	37.5516641
+369559506	이화여자대학교사범대학부속이화금란중학교	2	False	True	False	isced_tag	126.9441721	37.5626797
+369559507	서울외국인학교		False	False	False	name	126.9375233	37.5695303
+369559508	이화여자대학교사범대학부속이화금란고등학교	3	False	False	True	isced_tag	126.9472809	37.565782
+378665425	서울홍연초등학교	1	True	False	False	isced_tag	126.9310596	37.5816724
+378681119	예일여자중고등학교	2;3	False	True	True	isced_tag	126.9153285	37.6101799
+379004172			False	False	False	none	126.9088666	37.6181016
+379199227	연북중학교	2	False	True	False	isced_tag	126.9380042	37.5776333
+402093766	서울용강초등학교	1	True	False	False	isced_tag	126.9438956	37.5484104
+402093772	창천초중학교	2;3	False	True	True	isced_tag	126.9394117	37.5547358
+408408911	서울신북초등학교	1	True	False	False	isced_tag	126.9047106	37.5710457
+408408912	중암중학교	2	False	True	False	isced_tag	126.9039366	37.572137
+408408914	한국우진학교		False	False	False	name	126.9032985	37.5716409
+409684736	연희초등학교	1	True	False	False	isced_tag	126.9338843	37.5691983
+419705834			False	False	False	none	126.9090563	37.6105995
+419706906	서울구산초등학교	1	True	False	False	isced_tag	126.9094817	37.6123612
+419806026			False	False	False	none	126.9089101	37.6093381
+419823998	서울구현초등학교	1	True	False	False	isced_tag	126.9058899	37.6097725
+419834316			False	False	False	none	126.9059376	37.6089494
+426254701	상신초등학교	1	True	False	False	isced_tag	126.9049822	37.5977397
+429077764	한국한성화교중고등학교		False	False	True	name	126.9371942	37.5720282
+441139615	서울대조초등학교	1	True	False	False	isced_tag	126.9196154	37.6129121
+461466227			False	False	False	none	126.9126009	37.6196784
+461466229	서울갈현초등학교	1	True	False	False	isced_tag	126.916745	37.6192522
+462426060	서울수리초등학교	1	True	False	False	isced_tag	126.9341943	37.62021
+462681419	서울대은초등학교	1	True	False	False	isced_tag	126.9262025	37.6118688
+462684579	서울녹번초등학교	1	True	False	False	isced_tag	126.9262581	37.604131
+462844384	가재울중학교	2	False	True	False	isced_tag	126.9098014	37.5753159
+462844385	가재울고등학교	3	False	False	True	isced_tag	126.9095102	37.574079
+462845576	가재울초등학교	1	True	False	False	isced_tag	126.9183874	37.5736461
+462859048	서울북가좌초등학교	1	True	False	False	isced_tag	126.9076615	37.5778797
+462889867			False	False	False	none	126.9217457	37.5851198
+462890261	연희중학교	2	False	True	False	isced_tag	126.918974	37.579117
+463007557	은평문화예술정보학교		False	False	False	name	126.9192234	37.5893329
+463007560	응암초등학교	1	True	False	False	isced_tag	126.9215326	37.5883869
+463020435	숭실중고등학교	2;3	False	True	True	isced_tag	126.9036618	37.5930705
+463020655	서울은명초등학교	1	True	False	False	isced_tag	126.9181583	37.5976182
+463020656	신진자동차고등학교	3	False	False	True	isced_tag	126.9181603	37.5984737
+463024148	영락중학교	2	False	True	False	isced_tag	126.9252969	37.5966913
+463033407			False	False	False	none	126.927105	37.5842555
+463033889	명지초등학교	1	True	False	False	isced_tag	126.9284095	37.5833364
+463033894	서울연은초등학교	1	True	False	False	isced_tag	126.9250828	37.5903573
+463127762	정원여자중학교	2	False	True	False	isced_tag	126.9333122	37.5849602
+463129261			False	False	False	none	126.9354038	37.5924026
+463134651	덕산중학교	2	False	True	False	isced_tag	126.9043163	37.6018334
+463135741	서울증산초등학교	1	True	False	False	isced_tag	126.9045661	37.5824789
+463135742	증산중학교	2	False	True	False	isced_tag	126.9041969	37.5834544
+463145281	서울수색초등학교	1	True	False	False	isced_tag	126.8954858	37.5850202
+463185813	서울서신초등학교	1	True	False	False	isced_tag	126.9074281	37.5922888
+463185976	상신중학교	2	False	True	False	isced_tag	126.9064996	37.5900387
+463186029			False	False	False	none	126.9099874	37.5869726
+463199316	서울서강초등학교	1	True	False	False	isced_tag	126.9268467	37.548271
+463337314	서울홍제초등학교	1	True	False	False	isced_tag	126.9446594	37.5930709
+463338200			False	False	False	none	126.9497341	37.5973379
+463359448	상명대학교 사범대학 부속초등학교	1	True	False	False	isced_tag	126.9564185	37.6007005
+463370229	서울성원초등학교	1	True	False	False	isced_tag	126.904951	37.5671069
+463370435	중동초등학교	1	True	False	False	isced_tag	126.9113554	37.566642
+463370436	성사중학교	2	False	True	False	isced_tag	126.9133862	37.5681642
+463555656			False	False	False	none	126.9451638	37.5904752
+463698032			False	False	False	none	126.9397723	37.583067
+463766404	서연중학교	2	False	True	False	isced_tag	126.927604	37.5682169
+463915931	신수중학교	2	False	True	False	isced_tag	126.9336754	37.5460902
+463918752	서울신석초등학교	1	True	False	False	isced_tag	126.9378863	37.5441476
+463926229	서울염리초등학교	1	True	False	False	isced_tag	126.945861	37.5424061
+463933491	서울여자중·고등학교	3	False	False	True	isced_tag	126.9483582	37.5477949
+463936498			False	False	False	none	126.9496142	37.5534064
+463947727	한세사이버보안고등학교	3	False	False	True	isced_tag	126.952082	37.5517466
+463985185	서울대신초등학교	1	True	False	False	isced_tag	126.9477627	37.5579428
+463988048	한성중고등학교	2;3	False	True	True	isced_tag	126.9547015	37.5598323
+463988052	서울북성초등학교	1	True	False	False	isced_tag	126.9519647	37.5592601
+464147033	서울독립문초등학교	1	True	False	False	isced_tag	126.9601636	37.5741323
+464180556	서울마포초등학교	1	True	False	False	isced_tag	126.9496321	37.5382374
+464180590	원효초등학교	1	True	False	False	isced_tag	126.9518578	37.5363356
+464181280	성심여자중고등학교	2;3	False	True	True	isced_tag	126.9539486	37.534247
+464248402	서울공덕초등학교	1	True	False	False	isced_tag	126.9541311	37.5457783
+464776078	서울당산초등학교	1	True	False	False	isced_tag	126.8961846	37.5395747
+464776079	한강미디어고등학교	3	False	False	True	isced_tag	126.8973859	37.5390313
+464777206	서울영동초등학교	1	True	False	False	isced_tag	126.9073059	37.5266916
+464777213	당산중학교	2	False	True	False	isced_tag	126.9073716	37.5320184
+464781234	당산서중학교	2	False	True	False	isced_tag	126.8986185	37.532049
+464781235	서울당서초등학교	1	True	False	False	isced_tag	126.8994545	37.5316961
+464782390	선유중학교	2	False	True	False	isced_tag	126.8943649	37.5328374
+464782391	서울선유초등학교	1	True	False	False	isced_tag	126.8926671	37.5326613
+464836738	서울영중초등학교	1	True	False	False	isced_tag	126.9038534	37.523616
+465011403	서울강서고등학교	3	False	False	True	isced_tag	126.8665262	37.5363656
+465013536	서울정목초등학교	1	True	False	False	isced_tag	126.8702916	37.5370417
+465026395	서울양화초등학교	1	True	False	False	isced_tag	126.8747234	37.5437561
+465027512	서울목원초등학교	1	True	False	False	isced_tag	126.8823498	37.5430153
+465230309	영일고등학교	3	False	False	True	isced_tag	126.8615851	37.5477683
+465545562	서울백석초등학교	1	True	False	False	isced_tag	126.8620689	37.5532591
+465545570	서울염강초등학교	1	True	False	False	isced_tag	126.8644185	37.5610303
+465545571			False	False	False	none	126.8637949	37.5603535
+465546896	염경중학교	2	False	True	False	isced_tag	126.8706758	37.5542945
+465546897	서울염경초등학교	1	True	False	False	isced_tag	126.8712368	37.5548659
+465546900			False	False	False	none	126.872002	37.5536769
+465546901	서울염동초등학교	1	True	False	False	isced_tag	126.8722345	37.5522604
+465558083	서울염창초등학교	1	True	False	False	isced_tag	126.8680289	37.5529803
+466002817	서울양목초등학교	1	True	False	False	isced_tag	126.8612277	37.5236947
+466006284			False	False	False	none	126.8730362	37.5268622
+470551265	서울영도초등학교	1	True	False	False	isced_tag	126.8714629	37.5358804
+470551972	신목중학교	2	False	True	False	isced_tag	126.8725642	37.5366746
+471431344	양동중학교	2	False	True	False	isced_tag	126.8693813	37.54789
+472109749	선유고등학교	3	False	False	True	isced_tag	126.894944	37.533684
+473968937	서울창서초등학교	1	True	False	False	isced_tag	126.9339786	37.5576102
+476686599	서울등마초등학교	1	True	False	False	isced_tag	126.861745	37.5420381
+476686600	대일고등학교	3	False	False	True	isced_tag	126.862859	37.539163
+515756953	진명여자고등학교	3	False	False	True	isced_tag	126.8661589	37.5235927
+515756954	서울서정초등학교	1	True	False	False	isced_tag	126.8674537	37.5240322
+544140065	소의초등학교	1	True	False	False	isced_tag	126.9608788	37.5522
+551445636	서울연가초등학교	1	True	False	False	isced_tag	126.9180648	37.5797969
+579229631	양정중고등학교	2;3	False	True	True	isced_tag	126.8869504	37.5344403
+579229632	서울경인초등학교	1	True	False	False	isced_tag	126.886418	37.5327621
+603762301	향동숲내초등학교	1	True	False	False	isced_tag	126.8908674	37.5951846
+603762304	향동중학교	2	False	True	False	isced_tag	126.8954425	37.6027222
+603762306	향동초등학교	1	True	False	False	isced_tag	126.8956266	37.6039701
+610231955	덕양중학교	2	False	True	False	isced_tag	126.8716589	37.6044177
+610231956	덕은초등학교	1	True	False	False	isced_tag	126.8718951	37.6034747
+640458703	향동고등학교	3	False	False	True	isced_tag	126.8934531	37.5964482
+681798345			False	False	False	none	126.9367871	37.5231993
+681798348	여의도중학교	2	False	True	False	isced_tag	126.935754	37.5239944
+681798412	여의도여자고등학교	3	False	False	True	isced_tag	126.9347561	37.5229287
+681813648	서울여의도초등학교	1	True	False	False	isced_tag	126.9364714	37.5228951
+681814726	여의도여자고등학교	3	False	False	True	isced_tag	126.9349825	37.5227168
+681814727	여의도중학교	2	False	True	False	isced_tag	126.9354472	37.5237813
+681814918	여의도고등학교	3	False	False	True	isced_tag	126.933779	37.5249798
+686551763	경성중고등학교, 홍익디자인고등학교	2;3	False	True	True	isced_tag	126.9195381	37.5631556
+688344135	성서중학교	2	False	True	False	isced_tag	126.9087142	37.562863
+688347764			False	False	False	none	126.9130948	37.5599855
+688347769	서울성서초등학교	1	True	False	False	isced_tag	126.9113858	37.5604201
+688348817	성미산학교		False	False	False	name	126.9091748	37.5601872
+690392160	하늘초등학교	1	True	False	False	isced_tag	126.8806635	37.5854086
+690397735	상암고등학교	3	False	False	True	isced_tag	126.8838345	37.5814605
+690400371	상암중학교	2	False	True	False	isced_tag	126.8880033	37.5788148
+690402596	상지초등학교	1	True	False	False	isced_tag	126.8821884	37.5795739
+690405447	서울드와이트외국인학교		False	False	False	name	126.8848322	37.5841019
+690405452	서울일본인학교		False	False	False	name	126.8839827	37.5837575
+690426994	상암초등학교	1	True	False	False	isced_tag	126.8921418	37.5761051
+701216916	망원 초등학교	1	True	False	False	isced_tag	126.9010711	37.56071
+777927263	일성여자중고등학교	2;3	False	True	True	isced_tag	126.948322	37.55019
+777927597	서울디자인고등학교·동도중학교	2	False	True	True	isced_tag	126.9476068	37.5463908
+792461816	은평초등학교	1	True	False	False	isced_tag	126.9344066	37.6017545
+880851555	인왕중학교	2	False	True	False	isced_tag	126.9519686	37.5927411
+895927184	동명생활경영고등학교	3	False	False	True	isced_tag	126.9233121	37.6140348
+1106792322	덕은한강초등학교	1	True	False	False	isced_tag	126.863637	37.5812942
+1106792324	덕은한강중학교	2	False	True	False	isced_tag	126.8685737	37.5821337
+1144546956			False	False	False	none	126.8842732	37.5203288
+1420691736	추계학원		False	False	False	name	126.9536224	37.5627938
+1429721528	서울아현초등학교	1	True	False	False	isced_tag	126.9565226	37.5555965
+1429721529	아현산업정보학교		False	False	False	name	126.9574683	37.5568167
+1471867086	이화여자대학교사범대학부속초등학교	1	True	False	False	isced_tag	126.9423694	37.5609491
+368621766	고명경영고등학교	3	False	False	True	isced_tag	127.0204307	37.5973278
+368621836	해성여자고등학교	3	False	False	True	isced_tag	127.0569577	37.5808089
+368622639	배문고등학교	3	False	False	True	isced_tag	126.9645807	37.549925
+368622883	서울정보산업고등학교	3	False	False	True	isced_tag	127.013902	37.578086
+368622957	신광여자고등학교	3	False	False	True	isced_tag	126.9696692	37.5428726
+368622965	창문여자고등학교	3	False	False	True	isced_tag	127.0364082	37.6134548
+368623020	보성여자고등학교	3	False	False	True	isced_tag	126.984422	37.542746
+368623062	대경정보산업고등학교	3	False	False	True	isced_tag	127.017018	37.556394
+368623136	고려대사대부속고등학교	3	False	False	True	isced_tag	127.001567	37.609855
+368623187	대신중고등학교	2;3	False	True	True	isced_tag	126.962573	37.574339
+368623232	대경정보산업고등학교	3	False	False	True	isced_tag	127.0169775	37.556385
+368921652	한강중학교	2	False	True	False	isced_tag	126.991884	37.5240386
+368921680	수도중학교	2	False	True	False	isced_tag	126.9720724	37.548109
+368921856	숭인중학교	2	False	True	False	isced_tag	127.0439008	37.5737336
+368921859	용산중학교	2	False	True	False	isced_tag	126.9810175	37.5461607
+368921902	무학중학교	2	False	True	False	isced_tag	127.032605	37.557217
+368921929	대광중학교	2	False	True	False	isced_tag	127.0249022	37.5781626
+368921963	성신초등학교	1	True	False	False	isced_tag	127.0231096	37.5941453
+368921971	한성여자중학교	2	False	True	False	isced_tag	127.0118237	37.5821717
+368922023	해성국제컨벤션고등학교	3	False	False	True	isced_tag	127.0573516	37.5817685
+368922061	옥정중학교	2	False	True	False	isced_tag	127.0122358	37.5416155
+368922073	성일중학교	2	False	True	False	isced_tag	127.033766	37.581305
+368922077	인창중학교	2	False	True	False	isced_tag	126.9642386	37.5653462
+368922110	오산중학교	2	False	True	False	isced_tag	126.999616	37.525303
+368922174	배문중학교	2	False	True	False	isced_tag	126.9639083	37.5498733
+368922333	성원중학교	2	False	True	False	isced_tag	127.052267	37.539263
+368922379	동구여자중학교	2	False	True	False	isced_tag	127.0077337	37.5941683
+368922555	전일중학교	2	False	True	False	isced_tag	127.0586091	37.58161
+368922677	대경중학교	2	False	True	False	isced_tag	127.016995	37.556385
+368922767	대신중학교	2	False	True	False	isced_tag	126.962573	37.574339
+368922804	신광여자중학교	2	False	True	False	isced_tag	126.9702007	37.5432699
+368922846	고려대사대부속중학교	2	False	True	False	isced_tag	127.0011439	37.6104175
+368922929	서울보성여자중학교	2	False	True	False	isced_tag	126.9845831	37.5428038
+368928044	서울금호초등학교	1	True	False	False	isced_tag	127.020067	37.552581
+368928286	매원초등학교	1	True	False	False	isced_tag	127.0190671	37.5980752
+368928313	서울행당초등학교	1	True	False	False	isced_tag	127.0345447	37.5569897
+368928345	서울사근초등학교	1	True	False	False	isced_tag	127.0476614	37.5629244
+368928879	신광초등학교	1	True	False	False	isced_tag	126.9703683	37.5426791
+368929105	서울용암초등학교	1	True	False	False	isced_tag	126.9893678	37.5450596
+368929737	서울금호초등학교	1	True	False	False	isced_tag	127.0200685	37.5526063
+368929820	용답초등학교	1	True	False	False	isced_tag	127.053445	37.560756
+368929829	금북초등학교	1	True	False	False	isced_tag	127.0231524	37.5556063
+368929950	대광고등학교	3	False	False	True	isced_tag	127.024527	37.5777633
+368930262	서울삼각초등학교	1	True	False	False	isced_tag	127.031076	37.617661
+368930423	서울선곡초등학교	1	True	False	False	isced_tag	127.058096	37.618465
+368930664	서울옥수초등학교	1	True	False	False	isced_tag	127.02148	37.546645
+414685115	옥정중학교	2	False	True	False	isced_tag	127.0110756	37.5411244
+414685153	용암초등교		False	False	False	name	126.9909429	37.5443745
+414687740	장곡초등교		False	False	False	name	127.04933	37.61678
+1836400116	동마중학교	2	False	True	False	isced_tag	127.0399306	37.5626859
+4409076892	와이비엠어학권		False	False	False	name	126.9887564	37.5700093
+4564396303			False	False	False	none	127.0019314	37.5619659
+4591908728	인창고등학교	3	False	False	True	isced_tag	126.96365	37.565493
+4591908729	경기초등학교	1	True	False	False	isced_tag	126.9628136	37.565117
+4644436333	풋살장		False	False	False	name	127.0164182	37.6111809
+4655484427	장충고등학교 체육시설		False	False	True	name	127.0070737	37.5524322
+5812469180	청담고등학교	3	False	False	True	isced_tag	127.0436057	37.5280888
+6099089832	고명중학교	2	False	True	False	isced_tag	127.0197279	37.5976282
+6099089833	성신여자중학교	2	False	True	False	isced_tag	127.0234416	37.5937463
+6102660159	서울동구고등학교	3	False	False	True	isced_tag	127.0067482	37.5931469
+7018694471	월곡중학교	2	False	True	False	isced_tag	127.0481666	37.6068503
+7254701715	Seoul Namsan Elementary School		False	False	False	name	126.9863912	37.5601837
+7557590804	삼선초등학교	1	True	False	False	isced_tag	127.0140457	37.5859188
+7558361310	GB영어전문학원		False	False	False	name	127.0220727	37.6156668
+7558417122	삼성영어수학학원		False	False	False	name	127.0203323	37.5796839
+7558456133	서울돈암초등학교	1	True	False	False	isced_tag	127.0127358	37.5927692
+7558553288	정석학원		False	False	False	name	127.0132737	37.6023493
+9367123190	중앙고등학교	3	False	False	True	isced_tag	126.9868259	37.5842109
+9367123191	중앙중학교	2	False	True	False	isced_tag	126.9867643	37.5860323
+10121665500	정암미용고등학교	3	False	False	True	isced_tag	127.0476634	37.5823991
+11917197000	길상사 불교대학		False	False	False	name	126.994523	37.5984654
+14104551911	다산어린이집		False	False	False	name	127.0081034	37.5542358
+168285296			False	False	False	none	127.0583771	37.6184639
+172788155			False	False	False	none	127.03996	37.5623946
+172788730	한양대학교사범대학부속중고등학교	2;3	False	True	True	isced_tag	127.0428686	37.5613743
+187182902	한양초등학교	1	True	False	False	isced_tag	127.0503398	37.557621
+222963542	경복고등학교	3	False	False	True	isced_tag	126.9713235	37.5868546
+222963607	청운중학교	2	False	True	False	isced_tag	126.9711166	37.5891498
+222963663	경기상업고등학교	3	False	False	True	isced_tag	126.9699661	37.5885363
+222963755	서울청운초등학교	1	True	False	False	isced_tag	126.9692287	37.5856551
+222963863	국립서울맹학교 종로캠퍼스		False	False	False	name	126.967569	37.5845605
+222964034	서울농학교		False	False	False	name	126.9686585	37.5849123
+222969358	서울세검정초등학교	1	True	False	False	isced_tag	126.9609917	37.6031596
+223155329	서울미동초등학교	1	True	False	False	isced_tag	126.9658813	37.5631303
+223296624	서울봉래초등학교	1	True	False	False	isced_tag	126.9642452	37.556186
+223296631	환일고등학교		False	False	True	name	126.9621102	37.5532971
+223296634	배문중고등학교	2;3	False	True	True	isced_tag	126.9644993	37.5501506
+223296636	서울청파초등학교	1	True	False	False	isced_tag	126.9642718	37.5476357
+223298138	서울덕수초등학교	1	True	False	False	isced_tag	126.9745105	37.5683293
+223300026	덕성여자중학교	2	False	True	False	isced_tag	126.9819326	37.5779386
+228802389	서울용산국제학교		False	False	False	name	127.0006683	37.5405156
+229028341	신당초등학교	1	True	False	False	isced_tag	127.0236562	37.5639745
+233636255	중앙중고등학교	2;3	False	True	True	isced_tag	126.9870355	37.5848926
+237615587	덕성여자고등학교	3	False	False	True	isced_tag	126.9829615	37.5779637
+237615591	서울재동초등학교	1	True	False	False	isced_tag	126.9856164	37.5797304
+237615667	대동세무고등학교	3	False	False	True	isced_tag	126.9878771	37.5814214
+244952013	서울예술고등학교	3	False	False	True	isced_tag	126.9689105	37.6054813
+245137008	서울매동초등학교	1	True	False	False	isced_tag	126.9668446	37.5772575
+266255486	금호초등학교	1	True	False	False	isced_tag	127.020158	37.5525799
+313424619	용산초등학교	1	True	False	False	isced_tag	126.9724398	37.5354097
+348491212	한국한성화교 소학교		False	False	False	name	126.9830737	37.5617142
+357023596	청담중학교	2	False	True	False	isced_tag	127.0453854	37.5288771
+357023597	서울청담초등학교	1	True	False	False	isced_tag	127.0450675	37.5280089
+357034697	청담고등학교	3	False	False	True	isced_tag	127.0434037	37.528161
+363988328			False	False	False	none	126.9845475	37.5427362
+364000307	용산고등학교	3	False	False	True	isced_tag	126.9801529	37.5453546
+368634315	선린중학교	2	False	True	False	isced_tag	126.9655532	37.5425762
+368634316	선린인터넷고등학교	3	False	False	True	isced_tag	126.9670253	37.5425401
+378259807	서울이태원초등학교	1	True	False	False	isced_tag	126.9879088	37.5358104
+378598545	보광초등학교	1	True	False	False	isced_tag	126.9963271	37.5324087
+379553745	서울사대부설중학교	2	False	True	False	isced_tag	127.0388272	37.5950742
+379553746	서울사대부설고등학교	3	False	False	True	isced_tag	127.0382514	37.5933479
+379725822	용문중고등학교	2;3	False	True	True	isced_tag	127.0247083	37.5880694
+379730420	서울다솜관광고등학교	3	False	False	True	isced_tag	127.0176378	37.5719951
+379798294	서울전곡초등학교	1	True	False	False	isced_tag	127.0565809	37.5804708
+379798296	전농중학교	2	False	True	False	isced_tag	127.0597398	37.5812609
+379798297	전일중학교	2	False	True	False	isced_tag	127.0584073	37.5815472
+379798298	해성여자고등학교해성국제컨벤션고등학교	3	False	False	True	isced_tag	127.0572385	37.5813294
+379944932	서울사근초등학교	1	True	False	False	isced_tag	127.0477327	37.5629087
+379951744	동명초등학교	1	True	False	False	isced_tag	127.0356635	37.5686029
+379955995	서울온라인학교		False	False	False	name	127.042175	37.5554492
+379962859	서울무학초등학교	1	True	False	False	isced_tag	127.029607	37.5629511
+379966028	무학여자고등학교	3	False	False	True	isced_tag	127.0326789	37.5572601
+379966618	마장중학교	2	False	True	False	isced_tag	127.0416085	37.5686487
+379966619	서울마장초등학교	1	True	False	False	isced_tag	127.042391	37.5679884
+381937199	성동공업고등학교	3	False	False	True	isced_tag	127.0169384	37.5690604
+389077906	홍익대학교사범대학부속고등학교	3	False	False	True	isced_tag	127.0034539	37.5946278
+389078327	홍익대학교사범대학부속중학교	2	False	True	False	isced_tag	127.0031605	37.5939043
+389079249	돈암초등학교	1	True	False	False	isced_tag	127.012851	37.5933164
+390345664	종암중학교	2	False	True	False	isced_tag	127.0323766	37.5929595
+399231031	경신중고등학교	3	False	False	True	isced_tag	127.0005317	37.5915991
+400532315	이화여자외국어고등학교	3	False	False	True	isced_tag	126.9694485	37.5650779
+400532316	창덕여자중학교	2	False	True	False	isced_tag	126.9700775	37.56622
+400532320	예원학교		False	False	False	name	126.9717083	37.5667604
+400847788			False	False	False	none	127.011409	37.5655868
+400847796	성동글로벌경영고등학교	3	False	False	True	isced_tag	127.0131779	37.5657293
+400847808	서울광희초등학교	1	True	False	False	isced_tag	127.0151132	37.5673113
+402369070	계성고등학교	3	False	False	True	isced_tag	127.0203931	37.6076947
+404540256	서울후암초등학교	1	True	False	False	isced_tag	126.9821175	37.5511915
+405479634			False	False	False	none	127.0443253	37.573449
+405479636	서울신답초등학교	1	True	False	False	isced_tag	127.0433578	37.5729503
+412469494	용강중학교	2	False	True	False	isced_tag	126.9762118	37.5210348
+414771656	운현유치원		False	False	False	name	126.9878483	37.576267
+415395412	서울송천초등학교	1	True	False	False	isced_tag	127.0235889	37.6156797
+415396298	삼각산고등학교	3	False	False	True	isced_tag	127.0200765	37.6159012
+415667222	서울숭덕초등학교	1	True	False	False	isced_tag	127.0138882	37.604353
+415667223	서울길원초등학교	1	True	False	False	isced_tag	127.0166217	37.6091325
+415667968	청덕초등학교	1	True	False	False	isced_tag	127.0004441	37.6118234
+415689100	미아초등학교	1	True	False	False	isced_tag	127.0217556	37.6104797
+415699673	고려대사대부속중·고등학교	3	False	False	True	isced_tag	127.0014346	37.6094916
+415701113	동성중고등학교	2;3	False	True	True	isced_tag	127.0030524	37.5850317
+415824236	석관초등학교	1	True	False	False	isced_tag	127.0590454	37.6107791
+415843109	정덕초등학교	1	True	False	False	isced_tag	127.0135165	37.5977115
+415847583			False	False	False	none	127.020017	37.5978142
+415849228	삼선중학교	2	False	True	False	isced_tag	127.0082183	37.5911814
+415856641	성북초등학교	1	True	False	False	isced_tag	126.9983205	37.5936238
+415857194	서울과학고등학교	3	False	False	True	isced_tag	126.998131	37.5915038
+415857198	서울국제고등학교	3	False	False	True	isced_tag	126.9960487	37.5911851
+415899248	혜화초등학교	1	True	False	False	isced_tag	126.9999923	37.5888574
+415962766	효제초등학교	1	True	False	False	isced_tag	127.0028444	37.572682
+416195954	창신초등학교	1	True	False	False	isced_tag	127.0143695	37.5760524
+416204693	명신초등학교	1	True	False	False	isced_tag	127.0142275	37.5816467
+416269003	한성여자고등학교	3	False	False	True	isced_tag	127.0117855	37.5827984
+416269211	삼선초등학교	1	True	False	False	isced_tag	127.0124579	37.5863937
+416269212	경동고등학교	3	False	False	True	isced_tag	127.0150778	37.5858758
+416461493	안암초등학교	1	True	False	False	isced_tag	127.0226961	37.5872396
+416461512			False	False	False	none	127.0234549	37.594299
+416461513	개운중학교	2	False	True	False	isced_tag	127.0249229	37.5947236
+416461514	성신여자고등학교	3	False	False	True	isced_tag	127.0224608	37.593869
+416462295	서울숭례초등학교	1	True	False	False	isced_tag	127.0350147	37.5949157
+416466761	서울종암초등학교	1	True	False	False	isced_tag	127.0313149	37.5818741
+416466762			False	False	False	none	127.0339093	37.5813361
+416469996	서울홍파초등학교	1	True	False	False	isced_tag	127.0393773	37.5861644
+416469997	정화여자중학교	2	False	True	False	isced_tag	127.0408059	37.5854592
+416556424	서울용두초등학교	1	True	False	False	isced_tag	127.0289834	37.5757321
+416570904			False	False	False	none	127.0437564	37.5733738
+416573487	동대문중학교	2	False	True	False	isced_tag	127.0521124	37.5744444
+416573912	전농초등학교	1	True	False	False	isced_tag	127.0544524	37.5744512
+416588068	휘경초등학교	1	True	False	False	isced_tag	127.0581018	37.5858487
+416596946			False	False	False	none	127.0535686	37.5607544
+416599159	서울답십리초등학교	1	True	False	False	isced_tag	127.0555121	37.5687179
+416763209	용산철도고등학교	3	False	False	True	isced_tag	126.9671943	37.5244213
+417329984	성수중고등학교	2;3	False	True	True	isced_tag	127.0386699	37.5477078
+417339941	경일중고등학교	2;3	False	True	True	isced_tag	127.0480249	37.5435052
+417343923	현대고등학교	3	False	False	True	isced_tag	127.0226409	37.525138
+417343931	서울압구정초등학교	1	True	False	False	isced_tag	127.0308531	37.5314018
+417377415	서울경일초등학교	1	True	False	False	isced_tag	127.0471386	37.5404315
+417377434	서울경동초등학교	1	True	False	False	isced_tag	127.0504284	37.5430647
+417377436			False	False	False	none	127.0585445	37.5398209
+417377448			False	False	False	none	127.051356	37.5405959
+417377449			False	False	False	none	127.0522448	37.5392482
+419812885	교동초등학교	1	True	False	False	isced_tag	126.9877089	37.5747465
+420089387	금호여자중학교	2	False	True	False	isced_tag	127.0201929	37.5582664
+420097206			False	False	False	none	127.0172071	37.5563714
+420102008	서울방송고등학교	3	False	False	True	isced_tag	127.0104981	37.5474064
+420181749	옥수초등학교	1	True	False	False	isced_tag	127.02211	37.5460056
+420181753	금옥초등학교	1	True	False	False	isced_tag	127.0176146	37.5463686
+420183942	서울한남초등학교	1	True	False	False	isced_tag	127.0051858	37.539026
+420317542	장충초등학교	1	True	False	False	isced_tag	127.0111104	37.5595092
+420431320	오산중고등학교	2;3	False	True	True	isced_tag	126.9998187	37.5241953
+422584940	경기여자상업고등학교	3	False	False	True	isced_tag	126.9668003	37.5571337
+431589094	서울서빙고초등학교	1	True	False	False	isced_tag	126.9918778	37.5216511
+431589097	한강중학교	2	False	True	False	isced_tag	126.9920385	37.5243031
+432034141	신사중학교	2	False	True	False	isced_tag	127.0212446	37.5243259
+464002346	동명여자중학교	2	False	True	False	isced_tag	126.9624032	37.5684703
+464002347	서울금화초등학교	1	True	False	False	isced_tag	126.9632098	37.5685848
+464008647	경기초, 인창중, 인창고		False	False	False	name	126.9635179	37.5651305
+464147035	대신중고등학교	2;3	False	True	True	isced_tag	126.9618333	37.5733188
+464178742	배화여자중학교	2	False	True	False	isced_tag	126.9669979	37.579545
+464217423	남정초등학교	1	True	False	False	isced_tag	126.9651306	37.5361693
+464250602	서울금양초등학교	1	True	False	False	isced_tag	126.9613021	37.5404358
+464373025			False	False	False	none	126.9699724	37.5429235
+464458035	서울삼광초등학교	1	True	False	False	isced_tag	126.9766981	37.5472348
+464461378	리라초등학교	1	True	False	False	isced_tag	126.9879883	37.5577902
+464461379	리라아트고등학교	3	False	False	True	isced_tag	126.9881584	37.5572226
+464461512			False	False	False	none	126.9894292	37.5451578
+464464062	서을디지텍고등학교	3	False	False	True	isced_tag	126.9907347	37.5388991
+469144895	동신초등학교	1	True	False	False	isced_tag	127.0170744	37.5828071
+469153407	운동장		False	False	False	name	126.9630459	37.5671899
+471343624			False	False	False	none	127.0278726	37.601741
+471360532			False	False	False	none	127.0245981	37.5778198
+471360933	서울대광초등학교	1	True	False	False	isced_tag	127.0236468	37.5791731
+471506976	장위초등학교	1	True	False	False	isced_tag	127.0499078	37.6120919
+471716372	서울일신초등학교	1	True	False	False	isced_tag	127.0401503	37.5990135
+471832671			False	False	False	none	127.0298789	37.5627157
+472037016	국민대학교 명원민속관		False	False	False	name	126.9997858	37.6105887
+472063640	서울송중초등학교	1	True	False	False	isced_tag	127.0314082	37.6170041
+473267174	행당중학교	2	False	True	False	isced_tag	127.0422035	37.5542664
+476305691	청량고등학교	3	False	False	True	isced_tag	127.0510576	37.5884543
+476306836	청량중학교	2	False	True	False	isced_tag	127.0513283	37.5877679
+486323259	장원중학교	2	False	True	False	isced_tag	127.0057441	37.5533058
+486323260	장충중고등학교	2;3	False	True	True	isced_tag	127.0065549	37.5529804
+486533571	덕수중학교	2	False	True	False	isced_tag	126.9972693	37.5651531
+489457302	서울대학교 사범대학 부설여자중학교	2	False	True	False	isced_tag	127.0039272	37.5779718
+489457304	서울대학교사범대학부속초등학교	1	True	False	False	isced_tag	127.0029828	37.5777791
+490235727	정릉초등학교	1	True	False	False	isced_tag	127.0054769	37.6195335
+507874071	서울신구초등학교	1	True	False	False	isced_tag	127.0242948	37.523246
+510090689	한강초등학교	1	True	False	False	isced_tag	126.9651301	37.5251878
+532457062	대일외국어고등학교	3	False	False	True	isced_tag	127.0141172	37.6138308
+547509721	옥정초등학교	1	True	False	False	isced_tag	127.015433	37.5417379
+548932207	숭곡중학교	2	False	True	False	isced_tag	127.0314988	37.6083394
+548932208	숭곡초등학교	1	True	False	False	isced_tag	127.0324952	37.6084006
+548932209	서울도시과학기술고등학교	3	False	False	True	isced_tag	127.032504	37.6071788
+551455001	동호초등학교	1	True	False	False	isced_tag	127.0101652	37.5463704
+551455006	청구초등학교	1	True	False	False	isced_tag	127.0141874	37.5583864
+564321599	압구정고등학교	3	False	False	True	isced_tag	127.0328801	37.5309392
+564321601	압구정중학교	2	False	True	False	isced_tag	127.0329849	37.5298751
+565108102	신구중학교	2	False	True	False	isced_tag	127.0322202	37.5269914
+597582106	우촌초등학교	1	True	False	False	isced_tag	127.011708	37.5955862
+612506390	도선고등학교	3	False	False	True	isced_tag	127.0270231	37.5666772
+612506391	서울숭신초등학교	1	True	False	False	isced_tag	127.0277828	37.5677538
+649380284	장곡초등학교	1	True	False	False	isced_tag	127.0482123	37.6167317
+649380285	남대문중학교	2	False	True	False	isced_tag	127.0556879	37.6184329
+649380286	광운초등학교	1	True	False	False	isced_tag	127.0546943	37.618888
+649380295	광운인공지능고등학교	3	False	False	True	isced_tag	127.0559521	37.6203271
+649380296	장위중학교	2	False	True	False	isced_tag	127.0413349	37.611527
+649380297	숭인초등학교	1	True	False	False	isced_tag	127.0384262	37.6090102
+649380300	월곡중학교	2	False	True	False	isced_tag	127.0482501	37.6066228
+649380301	삼각산중학교	2	False	True	False	isced_tag	127.015439	37.6159313
+649380302	서울삼각산초등학교	1	True	False	False	isced_tag	127.0146432	37.6158896
+649380303	북악중학교	2	False	True	False	isced_tag	127.0019506	37.6066043
+649380304	정수초등학교	1	True	False	False	isced_tag	127.0080097	37.6041296
+699619439			False	False	False	none	127.0121505	37.5415117
+750361709	서울월곡초등학교	1	True	False	False	isced_tag	127.0461273	37.6099528
+750643843	창문여중여고		False	False	False	name	127.0363291	37.6129475
+767111810			False	False	False	none	126.9744885	37.5557747
+767524336	한국예술사관실용전문학교		False	False	False	name	126.990729	37.5600338
+772201626			False	False	False	none	127.0082479	37.5739306
+780139422			False	False	False	none	127.0173728	37.6136452
+780139423			False	False	False	none	127.0171903	37.6137828
+780350824			False	False	False	none	127.0552081	37.6186397
+781731992	응봉초등학교	1	True	False	False	isced_tag	127.0337186	37.5501086
+781995869	성동고등학교	3	False	False	True	isced_tag	127.0228063	37.5641304
+789051339	서울흥인초등학교	1	True	False	False	isced_tag	127.0144254	37.5606862
+794606924	서울홍릉초등학교	1	True	False	False	isced_tag	127.0473268	37.5909825
+794606933	서울삼육초등학교	1	True	False	False	isced_tag	127.0479162	37.5893297
+794606937	서울특별시 동부교육지원청		False	False	False	name	127.0567761	37.5797209
+794999130	서울청량초등학교	1	True	False	False	isced_tag	127.0556201	37.5920029
+807015122	금북초등학교	1	True	False	False	isced_tag	127.0234821	37.5570474
+874663901	금호고등학교	3	False	False	True	isced_tag	127.0237779	37.5533774
+877699971	영훈초등학교	1	True	False	False	isced_tag	127.027859	37.613123
+877699972	영훈고등학교	3	False	False	True	isced_tag	127.0277753	37.6139163
+877699973	영훈국제중학교	2	False	True	False	isced_tag	127.0276935	37.6144293
+883291544	광희중학교	2	False	True	False	isced_tag	127.034197	37.5513051
+925805412	서울행현초등학교	1	True	False	False	isced_tag	127.0293746	37.5577751
+1116924397	청량정보고등학교	3	False	False	True	isced_tag	127.047571	37.5778492
+1263157778	국립서울맹학교 용산캠퍼스		False	False	False	name	126.9719784	37.5349026
+1274094384	한성화교학교		False	False	False	name	126.9834112	37.5619049
+368621756	서울광남고등학교	3	False	False	True	isced_tag	127.1020919	37.5412649
+368621864	송곡관광고등학교	3	False	False	True	isced_tag	127.1054767	37.6064716
+368622792	선화예술고등학교	3	False	False	True	isced_tag	127.0875923	37.5500443
+368623059	건국대학교부속고등학교	3	False	False	True	isced_tag	127.080221	37.54007
+368623115	대원고등학교	3	False	False	True	isced_tag	127.0895626	37.5631456
+368623148	이화여대병설미디어고등학교	3	False	False	True	isced_tag	127.105372	37.604117
+368921659	천일중학교	2	False	True	False	isced_tag	127.127754	37.545737
+368921781	광남중학교	2	False	True	False	isced_tag	127.101562	37.540297
+368921836	용마중학교	2	False	True	False	isced_tag	127.085893	37.574231
+368921864	장평중학교	2	False	True	False	isced_tag	127.070468	37.566334
+368921898	신암중학교	2	False	True	False	isced_tag	127.133026	37.555653
+368921904	신현중학교	2	False	True	False	isced_tag	127.091674	37.604427
+368921920	광양중학교	2	False	True	False	isced_tag	127.086061	37.529815
+368921946	서울체육중학교	2	False	True	False	isced_tag	127.129943	37.5218428
+368921997	영란여자중학교	2	False	True	False	isced_tag	127.1045915	37.6035129
+368922014	건국대학교사범대학부속중학교	2	False	True	False	isced_tag	127.0826164	37.5409604
+368922091	동국대학교사범대학부속고등학교	3	False	False	True	isced_tag	127.074778	37.5780561
+368922181	한영중학교	2	False	True	False	isced_tag	127.157731	37.549073
+368922262	면목중학교	2	False	True	False	isced_tag	127.0958963	37.5829095
+368922267	천호중학교	2	False	True	False	isced_tag	127.139528	37.5464
+368922306	휘경중학교	2	False	True	False	isced_tag	127.062003	37.586939
+368922460	태릉중학교	2	False	True	False	isced_tag	127.08255	37.612332
+368922476	성내중학교	2	False	True	False	isced_tag	127.129501	37.528755
+368922488	배재중학교	2	False	True	False	isced_tag	127.149951	37.5556963
+368922543	신현중학교	2	False	True	False	isced_tag	127.0917692	37.60441
+368922650	천호중학교	2	False	True	False	isced_tag	127.13102	37.543229
+368922686	한영중학교	2	False	True	False	isced_tag	127.157476	37.548602
+368922788	선화예술중학교	2	False	True	False	isced_tag	127.0874222	37.5504326
+368928195	서울면남초등학교	1	True	False	False	isced_tag	127.088178	37.577213
+368928217	서울중화초등학교	1	True	False	False	isced_tag	127.094591	37.603017
+368928230	서울신현초등학교	1	True	False	False	isced_tag	127.093494	37.605676
+368928275	서울중곡초등학교	1	True	False	False	isced_tag	127.083696	37.574277
+368928306	서울신내초등학교	1	True	False	False	isced_tag	127.1000994	37.6043867
+368928405	서울명일초등학교	1	True	False	False	isced_tag	127.141966	37.553844
+368928588	서울동원초등학교	1	True	False	False	isced_tag	127.104909	37.604916
+368928800	서울면동초등학교	1	True	False	False	isced_tag	127.0866365	37.5852878
+368929050	서울면북초등학교	1	True	False	False	isced_tag	127.1034875	37.5945683
+368929125	서울면목초등학교	1	True	False	False	isced_tag	127.087644	37.591231
+368930033	명원초등학교	1	True	False	False	isced_tag	127.15033	37.55093
+368930109	서울망우초등학교	1	True	False	False	isced_tag	127.10338	37.598344
+368930419	서울중목초등학교	1	True	False	False	isced_tag	127.079245	37.590048
+368930650	서울세종초등학교	1	True	False	False	isced_tag	127.0730287	37.5530501
+414684931	한산초등학교	1	True	False	False	isced_tag	127.1414364	37.5279735
+414685227	대명초등교		False	False	False	name	127.1526201	37.5466837
+414685323	명일여자중학교	2	False	True	False	isced_tag	127.1488231	37.556252
+414686146	봉화초등교		False	False	False	name	127.09127	37.61337
+414687745	공릉초등교		False	False	False	name	127.07418	37.61716
+414687757	원묵초등교		False	False	False	name	127.08781	37.61894
+1855170613	광양고등학교	3	False	False	True	isced_tag	127.0855771	37.529155
+2460030394	엠아이티아카데미		False	False	False	name	127.0983088	37.5964203
+2474906016	면일초등학교	1	True	False	False	isced_tag	127.0996608	37.591834
+3298391861	중랑초등학교	1	True	False	False	isced_tag	127.0757795	37.5890894
+3708064718	대원국제중학교	2	False	True	False	isced_tag	127.0894276	37.5638447
+4161210522	서울체육고등학교	3	False	False	True	isced_tag	127.1305402	37.5217564
+4176842192	대원여자고등학교	3	False	False	True	isced_tag	127.0893366	37.5617129
+4552561389			False	False	False	none	127.1356856	37.601008
+4629652290	동북중학교	2	False	True	False	isced_tag	127.1405914	37.5203378
+4641425904			False	False	False	none	127.0861249	37.6156387
+5749745320	봉화중학교  본관		False	True	False	name	127.1041778	37.5962652
+6356312445	배재고등학교	3	False	False	True	isced_tag	127.1510738	37.5561611
+8493298225	서울풍납초등학교	1	True	False	False	isced_tag	127.1181987	37.5351945
+9445945170	이화미디어고등학교	3	False	False	True	isced_tag	127.1053017	37.6034021
+9966288919			False	False	False	none	127.0866243	37.5485076
+10138442018	한국디지털융합직업전문학교		False	False	False	name	127.0798044	37.5946269
+10207910857	구리여자중학교	2	False	True	False	isced_tag	127.1512355	37.5918916
+11023972804	경복초등학교	1	True	False	False	isced_tag	127.0868345	37.5498226
+76435300	잠실고등학교	3	False	False	True	isced_tag	127.1062102	37.5223545
+129526374	서울신양중학교	2	False	True	False	isced_tag	127.0635502	37.53326
+165266521	한국켄트외국인학교		False	False	False	name	127.0863486	37.5470933
+165557069	구리고등학교	3	False	False	True	isced_tag	127.1404194	37.588552
+169235734	영파여자중고등학교	2;3	False	True	True	isced_tag	127.1201813	37.5325117
+172203045	광양중고등학교	2;3	False	True	True	isced_tag	127.0856935	37.5297414
+172203048	서울성자초등학교	1	True	False	False	isced_tag	127.0831533	37.5311799
+172203049	신자초등학교	1	True	False	False	isced_tag	127.0755272	37.5300682
+172203050	신양초등학교	1	True	False	False	isced_tag	127.0692222	37.5345806
+174699388	서울동자초등학교	1	True	False	False	isced_tag	127.0725307	37.5345032
+174699393	서울광진학교		False	False	False	name	127.0917626	37.5373063
+174699399	서울자양초등학교	1	True	False	False	isced_tag	127.0795559	37.5367947
+174699400	자양고등학교	3	False	False	True	isced_tag	127.0729907	37.5355626
+174699401	자양중학교	2	False	True	False	isced_tag	127.0745477	37.535217
+175320272	동국대학교사범대학부속가람고등학교	2	False	True	True	isced_tag	127.0868301	37.5426067
+175320276	서울구남초등학교	1	True	False	False	isced_tag	127.0923209	37.5368028
+175320277	구의초등학교	1	True	False	False	isced_tag	127.0803784	37.5428171
+175320278	구의중학교	2	False	True	False	isced_tag	127.0791533	37.5431947
+175320279	광진초등학교	1	True	False	False	isced_tag	127.0912206	37.5476529
+175320320	성동초등학교	1	True	False	False	isced_tag	127.0894996	37.5330015
+202365905			False	False	False	none	127.0873284	37.5500489
+257944946	공릉초등학교	1	True	False	False	isced_tag	127.0742756	37.6191428
+370202138	서울신묵초등학교	1	True	False	False	isced_tag	127.0755761	37.6071639
+370287192	서울묵현초등학교	1	True	False	False	isced_tag	127.0736831	37.6089897
+370304375	장안중학교	2	False	True	False	isced_tag	127.0807266	37.6004982
+370304460	서울중흥초등학교	1	True	False	False	isced_tag	127.0842188	37.6015144
+371643415	서울묵동초등학교	1	True	False	False	isced_tag	127.081416	37.6038849
+371643416	중랑중학교	2	False	True	False	isced_tag	127.081446	37.6050575
+371643417	중화고등학교	3	False	False	True	isced_tag	127.08309	37.6047214
+371643419	태릉중학교	2	False	True	False	isced_tag	127.0828312	37.6123216
+371643421	태릉고등학교	3	False	False	True	isced_tag	127.0852702	37.6189406
+371643422	원묵중학교	2	False	True	False	isced_tag	127.0844618	37.6177845
+371643423	서울원묵초등학교	1	True	False	False	isced_tag	127.0861199	37.6176611
+371643424	원묵고등학교	3	False	False	True	isced_tag	127.0860578	37.6154416
+371643425	금성초등학교	1	True	False	False	isced_tag	127.0896796	37.6150423
+371643426	서울봉화초등학교	1	True	False	False	isced_tag	127.0921898	37.6133481
+379747506	서울석계초등학교	1	True	False	False	isced_tag	127.0698174	37.6086229
+379747507	석관고등학교	3	False	False	True	isced_tag	127.0665492	37.6097772
+379747509	석관중학교	2	False	True	False	isced_tag	127.0664024	37.6079892
+379795911	휘경공업고등학교	3	False	False	True	isced_tag	127.069814	37.5851095
+379795913	서울휘봉초등학교	1	True	False	False	isced_tag	127.0701271	37.5861404
+379798293	서울전동초등학교	1	True	False	False	isced_tag	127.061356	37.5789701
+379891344	서울안평초등학교	1	True	False	False	isced_tag	127.0718665	37.5656896
+381226886	서울상봉초등학교	1	True	False	False	isced_tag	127.0837513	37.5979531
+381408073			False	False	False	none	127.0917381	37.6044102
+381408074	신현고등학교	3	False	False	True	isced_tag	127.0926548	37.6050003
+381408076			False	False	False	none	127.0935861	37.6056766
+381408077			False	False	False	none	127.0946698	37.6030013
+381408078	신내초등학교	1	True	False	False	isced_tag	127.0999979	37.6043858
+381408079			False	False	False	none	127.1047378	37.603681
+381408080			False	False	False	none	127.1049847	37.6048924
+381408081	송곡고등학교	3	False	False	True	isced_tag	127.1072658	37.6054401
+381408083	혜원여자중고학교		False	False	False	name	127.0964771	37.5932437
+381408085			False	False	False	none	127.0996566	37.591871
+381408086	면목초등학교	1	True	False	False	isced_tag	127.087682	37.5911963
+381408087	중목초등학교		True	False	False	name	127.0793445	37.5900423
+381408088	중랑초등학교	1	True	False	False	isced_tag	127.075808	37.5891809
+381408089			False	False	False	none	127.0866959	37.585252
+381967100	서울고명초등학교	1	True	False	False	isced_tag	127.1468518	37.5526636
+381967103	명원초등학교	1	True	False	False	isced_tag	127.1504377	37.5509352
+381967104	명일여자고등학교	3	False	False	True	isced_tag	127.1503331	37.5498379
+415026010			False	False	False	none	127.1300143	37.5221646
+416587477			False	False	False	none	127.0620929	37.5869302
+416600481	서울은석초등학교	1	True	False	False	isced_tag	127.0752997	37.578448
+416600482	동국대학교 사범대학부속 중고등학교	2;3	False	True	True	isced_tag	127.0753196	37.5777128
+416602237	서울동답초등학교	1	True	False	False	isced_tag	127.0645451	37.571865
+416628847			False	False	False	none	127.0705646	37.5663335
+416631526	군자초등학교	1	True	False	False	isced_tag	127.0613935	37.5641666
+416631907	서울장평초등학교	1	True	False	False	isced_tag	127.0733096	37.5735373
+416753694	서울배봉초등학교	1	True	False	False	isced_tag	127.0662421	37.5798228
+416753754	휘봉고등학교	3	False	False	True	isced_tag	127.0685259	37.5864252
+416820406			False	False	False	none	127.0837724	37.5742546
+416821185	서울중마초등학교	1	True	False	False	isced_tag	127.0797344	37.5658569
+416822236	서울용곡초등학교	1	True	False	False	isced_tag	127.0886114	37.5667877
+416822237			False	False	False	none	127.089214	37.5633266
+416822316	서울중광초등학교	1	True	False	False	isced_tag	127.082482	37.5651153
+417059447	서울용마초등학교	1	True	False	False	isced_tag	127.0842186	37.5580303
+417065445	서울동의초등학교	1	True	False	False	isced_tag	127.0985247	37.5534024
+417140743	서울광장초등학교	1	True	False	False	isced_tag	127.1012737	37.5483219
+417140753	광장중학교	2	False	True	False	isced_tag	127.1014943	37.5470165
+417323978	광진중학교	2	False	True	False	isced_tag	127.0896541	37.5317383
+417323998			False	False	False	none	127.0982234	37.5446173
+417362134	서울화양초등학교	1	True	False	False	isced_tag	127.0711553	37.5441516
+418851260	풍납중학교	2	False	True	False	isced_tag	127.1163615	37.5254404
+418851264	풍성중학교	2	False	True	False	isced_tag	127.1124683	37.5253946
+418994893	서울성내초등학교	1	True	False	False	isced_tag	127.1224715	37.5312933
+418995544	서울성일초등학교	1	True	False	False	isced_tag	127.1283418	37.5291283
+418995545			False	False	False	none	127.1296385	37.5287644
+419001643	서울위례초등학교		True	False	False	name	127.1392862	37.5220085
+419001644	서울둔촌초등학교		True	False	False	name	127.1372999	37.5258197
+419001645	서울한산초등학교	1	True	False	False	isced_tag	127.1415031	37.5280848
+419001647	풍납초등학교	1	True	False	False	isced_tag	127.1179951	37.5347486
+419132759	동신중학교	2	False	True	False	isced_tag	127.1341531	37.5365293
+419330605	서울천일초등학교	1	True	False	False	isced_tag	127.1330852	37.5439932
+419351521	서울길동초등학교		True	False	False	name	127.1446581	37.538187
+419352612	서울강동초등학교	1	True	False	False	isced_tag	127.1299985	37.545914
+419352613	천일중학교		False	True	False	name	127.1278173	37.5456803
+419352616	서울신암초등학교	1	True	False	False	isced_tag	127.12433	37.5492965
+419353531	서울천호초등학교	1	True	False	False	isced_tag	127.1364765	37.5473239
+419364550	신명중학교	2	False	True	False	isced_tag	127.1495217	37.541937
+419366224			False	False	False	none	127.1396118	37.5463718
+419366323	성덕고등학교	3	False	False	True	isced_tag	127.1421862	37.5499017
+419366845			False	False	False	none	127.1510985	37.5557929
+419366848	서울대명초등학교		True	False	False	name	127.1532965	37.5471193
+468613657			False	False	False	none	127.1468351	37.5570762
+469010631	장안초등학교	1	True	False	False	isced_tag	127.0721742	37.5501334
+471318855	가운중학교	2	False	True	False	isced_tag	127.1567093	37.5993542
+471318965	가운초등학교	1	True	False	False	isced_tag	127.1560626	37.6005112
+471319272	가운고등학교	3	False	False	True	isced_tag	127.1607091	37.599223
+471507748	장자초등학교	1	True	False	False	isced_tag	127.1353382	37.5867539
+471525342	구리여자중고등학교	2;3	False	True	True	isced_tag	127.1514029	37.5913021
+471525343	수택초등학교	1	True	False	False	isced_tag	127.1525731	37.5917511
+471527470	수택고등학교	3	False	False	True	isced_tag	127.1541595	37.5945493
+471527472	토평초등학교	1	True	False	False	isced_tag	127.1464709	37.5875099
+471531828	교문초등학교	1	True	False	False	isced_tag	127.1336889	37.5979054
+471735730	풍성초등학교	1	True	False	False	isced_tag	127.1133121	37.526036
+471736886	토성초등학교	1	True	False	False	isced_tag	127.1151286	37.5318245
+473267061	서울성수초등학교	1	True	False	False	isced_tag	127.0634405	37.5442561
+526087122	광남초등학교	1	True	False	False	isced_tag	127.100988	37.5407967
+544125735	백문초등학교	1	True	False	False	isced_tag	127.1327134	37.5883043
+544125986	교문중학교	2	False	True	False	isced_tag	127.1339441	37.5883205
+545769415	구리초등학교	1	True	False	False	isced_tag	127.1477816	37.6008583
+548930503	서울한천초등학교	1	True	False	False	isced_tag	127.0688725	37.6201581
+562624050	장자중학교	2	False	True	False	isced_tag	127.1353519	37.5857135
+562625265	토평중학교	2	False	True	False	isced_tag	127.1444645	37.5898724
+562625266	토평고등학교	3	False	False	True	isced_tag	127.1434532	37.5892624
+562677007	부양초등학교	1	True	False	False	isced_tag	127.1421184	37.5902239
+562677012	인창초등학교	1	True	False	False	isced_tag	127.1318707	37.6046999
+563019870	도농초등학교	1	True	False	False	isced_tag	127.1573725	37.6121301
+563019872	미금중학교	2	False	True	False	isced_tag	127.1589048	37.6151831
+563019873	도농고등학교	3	False	False	True	isced_tag	127.1509606	37.6111962
+563019874	미금초등학교	1	True	False	False	isced_tag	127.1544675	37.6088478
+563019875	동인초등학교	1	True	False	False	isced_tag	127.1338334	37.6106557
+563019876	동구중학교	2	False	True	False	isced_tag	127.1346818	37.6122648
+563019877	인창중고등학교	2;3	False	True	True	isced_tag	127.1468087	37.6058
+563019878	구지초등학교	1	True	False	False	isced_tag	127.1423152	37.6069521
+563019879	동구초등학교	1	True	False	False	isced_tag	127.141711	37.6089068
+563019880	건원초등학교	1	True	False	False	isced_tag	127.1356208	37.6072895
+563019881	서울삼육중고등학교	2;3	False	True	True	isced_tag	127.1257274	37.596025
+565937899	다산가람초등학교	1	True	False	False	isced_tag	127.1494828	37.6195197
+569583452	한영고등학교	3	False	False	True	isced_tag	127.1579929	37.5485989
+569584126	강일중학교	2	False	True	False	isced_tag	127.1382868	37.5552313
+579567802	상봉중학교	2	False	True	False	isced_tag	127.0902703	37.6013053
+597366702	다산새봄초등학교	1	True	False	False	isced_tag	127.1590144	37.6198869
+609827486	둔촌중학교	2	False	True	False	isced_tag	127.1462434	37.5303088
+609827487	선린초등학교	1	True	False	False	isced_tag	127.1457697	37.5292669
+695958852	서울묘곡초등학교	1	True	False	False	isced_tag	127.1533364	37.5583408
+781727746	서울송원초등학교	1	True	False	False	isced_tag	127.0694387	37.5540635
+789222930	서울구의초등학교	1	True	False	False	isced_tag	127.0803505	37.5428171
+789222933	서울양남초등학교	1	True	False	False	isced_tag	127.0897571	37.5307554
+790243383	서울천동초등학교	1	True	False	False	isced_tag	127.1375836	37.5405699
+790304287			False	False	False	none	127.1283625	37.5291825
+790304288	서울신명초등학교	1	True	False	False	isced_tag	127.1496294	37.5410023
+790615432	서울선사초등학교	1	True	False	False	isced_tag	127.1288063	37.5560608
+790615437	한산중학교	2	False	True	False	isced_tag	127.1401236	37.5284335
+794606927	서울이문초등학교	1	True	False	False	isced_tag	127.0643362	37.6023042
+799549195	광문고등학교	3	False	False	True	isced_tag	127.1581702	37.559995
+799549199	서울컨벤션고등학교	3	False	False	True	isced_tag	127.1579839	37.5593019
+799549200	신암중학교	2	False	True	False	isced_tag	127.1330688	37.5556421
+799549201	선사고등학교	3	False	False	True	isced_tag	127.1358065	37.5561533
+843403999	서울새솔초등학교	1	True	False	False	isced_tag	127.111515	37.6179476
+852044932	용곡중학교	2	False	True	False	isced_tag	127.0889698	37.5657746
+914034973	다산새봄중학교	2	False	True	False	isced_tag	127.1589876	37.6187925
+974497880	광남중학교	2	False	True	False	isced_tag	127.101681	37.540263
+974497881	광남고등학교	3	False	False	True	isced_tag	127.1021115	37.5412166
+1018205615	동원중학교	2	False	True	False	isced_tag	127.1084951	37.6036772
+1018210392	송곡여중, 송곡여고, 송곡관광고		False	False	False	name	127.1047088	37.6066889
+1024328328	봉화중학교	2	False	True	False	isced_tag	127.1038946	37.5965779
+1035319440	IYF 링컨학교		False	False	False	name	127.1050393	37.6107624
+1038218125	서울양원숲초등학교	1	True	False	False	isced_tag	127.1052472	37.6091102
+1053062254	서울면북초등학교	1	True	False	False	isced_tag	127.1033405	37.5943543
+1068984798	도림초등학교	1	True	False	False	isced_tag	127.1303186	37.5934577
+1079180617	면목고등학교	3	False	False	True	isced_tag	127.0965035	37.5844588
+1079180631	중화중학교	2	False	True	False	isced_tag	127.0952026	37.5842958
+1079180644	면목중학교	2	False	True	False	isced_tag	127.0960331	37.5828623
+1079180650	면중초등학교	1	True	False	False	isced_tag	127.0965428	37.5821223
+1082129606	전동중학교	2	False	True	False	isced_tag	127.0711546	37.5854869
+1082511334	휘경여중고		False	False	False	name	127.0670593	37.5829837
+1108373978	용마중학교	2	False	True	False	isced_tag	127.0860658	37.5741551
+1175235863	둔촌고등학교	3	False	False	True	isced_tag	127.1442101	37.5310406
+1473893429	서울면남초등학교	1	True	False	False	isced_tag	127.0882464	37.5771745
+368621461	서울강동고등학교	3	False	False	True	isced_tag	127.1609223	37.5500546
+11327757390	동화고등학교	3	False	False	True	isced_tag	127.1630995	37.6075833
+11327757391	동화중학교	2	False	True	False	isced_tag	127.161991	37.6067397
+13294726079	서울강빛초등학교		True	False	False	name	127.1712942	37.5744104
+13294726080	서울강빛중학교		False	True	False	name	127.1718365	37.5745608
+419370107	서울고덕초등학교	1	True	False	False	isced_tag	127.1665939	37.5607447
+469865037	미사강변고등학교	3	False	False	True	isced_tag	127.1839028	37.577641
+469936687	미사강변중학교	2	False	True	False	isced_tag	127.1853694	37.5777813
+469936692	미사강변초등학교	1	True	False	False	isced_tag	127.185955	37.5757823
+470080335	은가람중학교	2	False	True	False	isced_tag	127.1772102	37.5758194
+470090217	망월초등학교	1	True	False	False	isced_tag	127.1806798	37.570765
+473220285	강일초등학교	1	True	False	False	isced_tag	127.1772558	37.5650434
+528938627	강동고등학교	3	False	False	True	isced_tag	127.1611262	37.5502509
+537687305	하남고등학교	3	False	False	True	isced_tag	127.1858685	37.5606426
+563019867	동화중고등학교	2;3	False	True	True	isced_tag	127.1625023	37.6072863
+563019868	남양주양정초등학교	1	True	False	False	isced_tag	127.1661264	37.6087444
+563019869	도농중학교	2	False	True	False	isced_tag	127.1636332	37.6106973
+563019871	금교초등학교	1	True	False	False	isced_tag	127.161546	37.6140627
+607596359	상일초등학교	1	True	False	False	isced_tag	127.1723711	37.5470973
+668023923	강일고등학교	3	False	False	True	isced_tag	127.1777924	37.5637668
+668023924	강동중학교	2	False	True	False	isced_tag	127.177941	37.5694983
+668066099	윤슬초등학교	1	True	False	False	isced_tag	127.1827368	37.5634884
+668066101	윤슬중학교	2	False	True	False	isced_tag	127.1815813	37.5632558
+668066104	서울강솔초등학교	1	True	False	False	isced_tag	127.1806245	37.5620808
+668066108	한홀초등학교	1	True	False	False	isced_tag	127.1851262	37.5562704
+768416303	서울고일초등학교	1	True	False	False	isced_tag	127.1688961	37.5520212
+769247204	상일미디어고등학교	3	False	False	True	isced_tag	127.1697993	37.5483396
+769247205	상일여자중고등학교	2;3	False	True	True	isced_tag	127.1700589	37.5491723
+770249646	강명초등학교	1	True	False	False	isced_tag	127.1734237	37.5545038
+770250509	강명중학교	2	False	True	False	isced_tag	127.1750264	37.5554265
+790243403	서울강덕초등학교	1	True	False	False	isced_tag	127.1608983	37.5588694
+806079661	다산한강중학교	2	False	True	False	isced_tag	127.1754733	37.5992084
+806079664	다산한강초등학교	1	True	False	False	isced_tag	127.1724222	37.5993348
+850678265	다산별빛초등학교	1	True	False	False	isced_tag	127.1654387	37.6170456
+856788690	고현초등학교	1	True	False	False	isced_tag	127.1658445	37.554032
+901455441	서울강빛초중학교	1	True	True	False	isced_tag	127.1715527	37.5744852
+901859701	고덕중학교	2	False	True	False	isced_tag	127.1612977	37.5599881
+905999145			False	False	False	none	127.1723941	37.6005344
+1157698866	은가람중학교 중앙 데크		False	True	False	name	127.1773994	37.5761174
+4641177866	풍동고 운동장		False	False	False	name	126.7957364	37.6715871
+7886377133	고양우리학교		False	False	False	name	126.8469577	37.6233697
+9905719517	음악원		False	False	False	name	126.7618288	37.6701763
+14125179916	현산중학교		False	True	False	name	126.7736287	37.6912973
+124162591	화정초등학교	1	True	False	False	isced_tag	126.8259438	37.6337422
+167174126	화정중학교	2	False	True	False	isced_tag	126.8262658	37.6347148
+452702680	일산중학교	2	False	True	False	isced_tag	126.7684599	37.6886605
+468364773	화정고등학교	3	False	False	True	isced_tag	126.8272034	37.6359662
+468593219	경기영상과학고등학교	3	False	False	True	isced_tag	126.7619865	37.6653427
+468685511	지도초등학교	1	True	False	False	isced_tag	126.8338194	37.6280419
+468707623	화중초등학교	1	True	False	False	isced_tag	126.8359091	37.640624
+468707624	백양고등학교	3	False	False	True	isced_tag	126.8383491	37.6292876
+468709061	문촌초등학교	1	True	False	False	isced_tag	126.7602557	37.6731666
+468974814	원중초등학교	1	True	False	False	isced_tag	126.8144633	37.6749696
+468974868	일산양일중학교	2	False	True	False	isced_tag	126.8153431	37.6766774
+468975436	저현고등학교	3	False	False	True	isced_tag	126.8159493	37.6775714
+468977967	고양국제고등학교	3	False	False	True	isced_tag	126.808756	37.6840571
+468979010	화수초등학교	1	True	False	False	isced_tag	126.8326864	37.6450911
+468979019	용정초등학교	1	True	False	False	isced_tag	126.8294781	37.6403228
+468979026	지도중학교	2	False	True	False	isced_tag	126.8336437	37.6271559
+468996370	풍산중학교	2	False	True	False	isced_tag	126.7989556	37.6646095
+468998980	성신초등학교	1	True	False	False	isced_tag	126.8402091	37.6265595
+468998992	행신초등학교	1	True	False	False	isced_tag	126.836857	37.6216996
+469000539	화수고등학교	3	False	False	True	isced_tag	126.8361172	37.6447527
+469000542	화수중학교	2	False	True	False	isced_tag	126.8348257	37.644897
+469389094	서정고등학교	3	False	False	True	isced_tag	126.8493348	37.6209834
+469422412	풍동중학교	2	False	True	False	isced_tag	126.7996712	37.670597
+469422413	풍동고등학교	3	False	False	True	isced_tag	126.7954745	37.6716603
+469422414	다솜초등학교	1	True	False	False	isced_tag	126.796628	37.672359
+469424508	풍산초등학교	1	True	False	False	isced_tag	126.7967722	37.6667621
+469430935	풍동초등학교	1	True	False	False	isced_tag	126.8025646	37.6693444
+469430937	세원고등학교	3	False	False	True	isced_tag	126.8030633	37.6709597
+469656017	오마중학교	2	False	True	False	isced_tag	126.7613862	37.6773711
+469899854	강선초등학교	1	True	False	False	isced_tag	126.7649631	37.6710528
+469918810	신능초등학교	1	True	False	False	isced_tag	126.8312153	37.6237995
+469918892	능곡고등학교	3	False	False	True	isced_tag	126.8255651	37.6235974
+469918893	능곡중학교	2	False	True	False	isced_tag	126.8263958	37.622579
+469943842	주엽초등학교	1	True	False	False	isced_tag	126.7617955	37.6672375
+469946177	호수초등학교	1	True	False	False	isced_tag	126.7783568	37.6468793
+470117828	일산동고등학교	3	False	False	True	isced_tag	126.7687861	37.7004032
+470900967	백석중학교	2	False	True	False	isced_tag	126.7824537	37.6417447
+470900970	백신고등학교	3	False	False	True	isced_tag	126.7816421	37.6423817
+471218510	능곡초등학교	1	True	False	False	isced_tag	126.816035	37.6239289
+471308208	백신초등학교	1	True	False	False	isced_tag	126.7815275	37.6440309
+471411127	벽제초등학교	1	True	False	False	isced_tag	126.8435784	37.6958569
+475336718	오마초등학교	1	True	False	False	isced_tag	126.7627264	37.6768625
+477237743	문화초등학교	1	True	False	False	isced_tag	126.7675377	37.6747175
+478028302	원당초등학교	1	True	False	False	isced_tag	126.8351665	37.6621193
+479994398	일산고등학교	3	False	False	True	isced_tag	126.7675608	37.6882522
+480337926	성라초등학교	1	True	False	False	isced_tag	126.8336975	37.6524069
+488454954	백양초등학교	1	True	False	False	isced_tag	126.8360936	37.6319708
+499636132	저동중학교	2	False	True	False	isced_tag	126.7780101	37.6704753
+499636133	저동고등학교	3	False	False	True	isced_tag	126.7792974	37.6709698
+503695094	가람중학교	2	False	True	False	isced_tag	126.8411715	37.6233647
+503695095	가람초등학교	1	True	False	False	isced_tag	126.8422518	37.6234268
+607690477	성사초등학교	1	True	False	False	isced_tag	126.8440294	37.6576444
+607690478	성사고등학교	3	False	False	True	isced_tag	126.8421934	37.6627619
+607690479	성사중학교	2	False	True	False	isced_tag	126.8429849	37.6635923
+607690489	백양중학교	2	False	True	False	isced_tag	126.8359042	37.6310895
+626360708	금계초등학교	1	True	False	False	isced_tag	126.7840882	37.6499454
+627717204	백신중학교	2	False	True	False	isced_tag	126.7833955	37.6509912
+640025517	양일초등학교	1	True	False	False	isced_tag	126.8131481	37.6855057
+640039631	중산중학교	2	False	True	False	isced_tag	126.7835577	37.691079
+640039634	중산초등학교	1	True	False	False	isced_tag	126.7836121	37.6900768
+640039642	고봉초등학교	1	True	False	False	isced_tag	126.7822814	37.6962391
+640039645	중산고등학교	3	False	False	True	isced_tag	126.782983	37.6971791
+640046214	안곡고등학교	3	False	False	True	isced_tag	126.7872967	37.6820777
+640046215	안곡중학교	2	False	True	False	isced_tag	126.7866473	37.6809371
+640046220	모당초등학교	1	True	False	False	isced_tag	126.7809912	37.679366
+640046227	하늘초등학교	1	True	False	False	isced_tag	126.7900834	37.6772385
+645944402	고양백석초등학교	1	True	False	False	isced_tag	126.7891182	37.6518561
+655676467	백석고등학교	3	False	False	True	isced_tag	126.7870071	37.6525807
+655680275	낙민초등학교	1	True	False	False	isced_tag	126.7802628	37.6536246
+655953037	백마초등학교	1	True	False	False	isced_tag	126.7910485	37.6576414
+656229425	백마중학교	2	False	True	False	isced_tag	126.7934446	37.6548479
+656241909	신일중학교	2	False	True	False	isced_tag	126.7745004	37.6764812
+656994996	신일비즈니스고등학교	3	False	False	True	isced_tag	126.7617077	37.6830878
+657207372	정발고등학교	3	False	False	True	isced_tag	126.7859064	37.6635394
+657207392	국립경진학교		False	False	False	name	126.7825174	37.6653752
+657924514	일산초등학교	1	True	False	False	isced_tag	126.7718292	37.6825818
+658971996	한뫼초등학교	1	True	False	False	isced_tag	126.7666881	37.6864264
+658972365	현산중학교	2	False	True	False	isced_tag	126.7733765	37.6912035
+658986552	신촌초등학교	1	True	False	False	isced_tag	126.7658206	37.6813349
+658987084	신일초등학교	1	True	False	False	isced_tag	126.7706342	37.6792109
+658989938	일산국제컨벤션고등학교	3	False	False	True	isced_tag	126.7719189	37.6727505
+658989945	발산중학교	2	False	True	False	isced_tag	126.7699525	37.6697437
+658991204	저동초등학교	1	True	False	False	isced_tag	126.774185	37.6679444
+687045894	원당중학교	2	False	True	False	isced_tag	126.8231379	37.6643215
+694054911	백마고등학교	3	False	False	True	isced_tag	126.7943725	37.6517103
+694338879	냉천초등학교	1	True	False	False	isced_tag	126.7858815	37.6664387
+771346667	정발초등학교	1	True	False	False	isced_tag	126.7838479	37.6555184
+786274630	현산초등학교	1	True	False	False	isced_tag	126.7711901	37.6924409
+786350844	홀트학교		False	False	False	name	126.7715044	37.6966678
+786489392	상탄초등학교	1	True	False	False	isced_tag	126.766841	37.6948281
+786489396	일산동중학교	2	False	True	False	isced_tag	126.7681146	37.6950715
+846340342	불이학교		False	False	False	name	126.8521381	37.6824295
+909656420	황룡초등학교	1	True	False	False	isced_tag	126.7681254	37.6982059
+996494025	일산은행초등학교	1	True	False	False	isced_tag	126.8064509	37.6691145
+996518282	율동초등학교	1	True	False	False	isced_tag	126.7791674	37.6752972
+998683349	안곡초등학교	1	True	False	False	isced_tag	126.7818255	37.6846652
+1000731580	정발중학교	2	False	True	False	isced_tag	126.7810153	37.6592612
+1042221355	요진와이시티 학교부지		False	False	False	name	126.7922583	37.6409024
+1277803963			False	False	False	none	126.8602935	37.6902843
+368621453	서울대성고등학교	3	False	False	True	isced_tag	126.909884	37.623075
+368622898	선일이비즈니스고등학교	3	False	False	True	isced_tag	126.9121042	37.6201468
+368624475	고양외국어고등학교	3	False	False	True	isced_tag	126.860092	37.69063
+368922054	연신중학교	2	False	True	False	isced_tag	126.924983	37.623304
+368922980	서울연천중학교	2	False	True	False	isced_tag	126.925664	37.627176
+368928679	서울연신초등학교	1	True	False	False	isced_tag	126.928247	37.62637
+28042396	불광중학교	2	False	True	False	isced_tag	126.9317607	37.6230932
+379004171			False	False	False	none	126.9094733	37.6228352
+463193687	서울연천초등학교	1	True	False	False	isced_tag	126.9293711	37.6207975
+468615653	진관고등학교	3	False	False	True	isced_tag	126.9244392	37.6432079
+468615669	신도고등학교	3	False	False	True	isced_tag	126.9185061	37.6293528
+468617542	진관초등학교	1	True	False	False	isced_tag	126.9291726	37.645205
+468988141	원흥초등학교	1	True	False	False	isced_tag	126.8686751	37.6509485
+469664505	창릉초등학교	1	True	False	False	isced_tag	126.8932388	37.6481137
+469676295	동산초등학교	1	True	False	False	isced_tag	126.8865377	37.6463757
+469676679	동산고등학교	3	False	False	True	isced_tag	126.8875253	37.6445223
+469679549	삼송초등학교	1	True	False	False	isced_tag	126.8823784	37.6540121
+469680153	고양고등학교	3	False	False	True	isced_tag	126.8921979	37.6546738
+469920741	고양관산초등학교	1	True	False	False	isced_tag	126.8663421	37.6920233
+473702539	진관중학교	2	False	True	False	isced_tag	126.9257072	37.6438607
+474107387	하나고등학교	3	False	False	True	isced_tag	126.9371389	37.6413152
+475410503	고양오금초등학교	1	True	False	False	isced_tag	126.895179	37.6618658
+476285423	고양일고등학교	3	False	False	True	isced_tag	126.9012082	37.6996825
+478208848	서울은진초등학교	1	True	False	False	isced_tag	126.9211607	37.6329995
+517755785	고양중학교	2	False	True	False	isced_tag	126.8845951	37.6495989
+545685201	서울은빛초등학교	1	True	False	False	isced_tag	126.9191474	37.6424979
+545763573	은평메디텍고등학교	3	False	False	True	isced_tag	126.9291628	37.6354385
+545764585	신도초등학교	1	True	False	False	isced_tag	126.9291853	37.6327582
+545764589	신도중학교	2	False	True	False	isced_tag	126.930731	37.632923
+545855854	북한산초등학교	1	True	False	False	isced_tag	126.9503225	37.6540178
+548083118	신원초등학교	1	True	False	False	isced_tag	126.8856914	37.6676906
+548083121	신원중학교	2	False	True	False	isced_tag	126.8877968	37.667379
+550213240	도래울중학교	2	False	True	False	isced_tag	126.8685968	37.6317971
+550213241	도래울초등학교	1	True	False	False	isced_tag	126.8703967	37.6315053
+550215872	도래울고등학교	3	False	False	True	isced_tag	126.8705369	37.6284384
+550215873	흥도초등학교	1	True	False	False	isced_tag	126.8717433	37.6279338
+550543907	원흥중학교	2	False	True	False	isced_tag	126.8683325	37.64947
+792461817	서울연광초등학교	1	True	False	False	isced_tag	126.9242063	37.6238639
+880287749	지축초등학교	1	True	False	False	isced_tag	126.9159486	37.6526994
+884163888	지축중학교	2	False	True	False	isced_tag	126.9175304	37.6521415
+896706033	서울특별시 소방학교		False	False	False	name	126.9122077	37.6329039
+963376450	신원고등학교	3	False	False	True	isced_tag	126.8869842	37.6684192
+977119773	용두초등학교	1	True	False	False	isced_tag	126.8932006	37.6213767
+978962527	명현학교		False	False	False	name	126.8841574	37.6559697
+1116270740	서울연천중학교	2	False	True	False	isced_tag	126.9259897	37.6271094
+1116270751	서울연신초등학교	1	True	False	False	isced_tag	126.9283286	37.6263759
+1165511697	지효초등학교	1	True	False	False	isced_tag	126.9219476	37.6503973
+1539366070	삼상초등학교	1	True	False	False	isced_tag	126.9302362	37.6998048
+368621474	성암국제무역고등학교	3	False	False	True	isced_tag	127.0246478	37.620888
+368622556	정릉초등학교	1	True	False	False	isced_tag	127.0120763	37.623575
+368622934	서울염광고등학교	3	False	False	True	isced_tag	127.0496889	37.6284673
+368623161	염광여자메디텍고등학교	3	False	False	True	isced_tag	127.0487594	37.629919
+368921663	화계중학교	2	False	True	False	isced_tag	127.01016	37.632465
+368921833	염광중학교	2	False	True	False	isced_tag	127.0504545	37.6299318
+368921951	서라벌중학교	2	False	True	False	isced_tag	127.011075	37.656631
+368922019	인수중학교	2	False	True	False	isced_tag	127.010021	37.643791
+368922391	정의여자중학교	2	False	True	False	isced_tag	127.0320822	37.6534675
+368922770	미양중학교	2	False	True	False	isced_tag	127.0122285	37.6236122
+368922985	성암여자중학교	2	False	True	False	isced_tag	127.0241477	37.6205155
+368923002	수유중학교	2	False	True	False	isced_tag	127.010126	37.632491
+368928109	서울상경초등학교	1	True	False	False	isced_tag	127.051625	37.670364
+4133796595	방학중학교	2	False	True	False	isced_tag	127.0316519	37.6653587
+4887043022	익스트림라이더등산학교		False	False	False	name	127.042817	37.6858503
+6094485318	아시아퍼시픽국제외국인학교		False	False	False	name	127.0504681	37.6312033
+6094485383	광운중학교	2	False	True	False	isced_tag	127.0557084	37.6210873
+7931657085	한신대		False	False	False	name	127.0112457	37.6340043
+316905402	도봉고등학교	3	False	False	True	isced_tag	127.0430248	37.6867064
+362874009	상계고등학교	3	False	False	True	isced_tag	127.0560183	37.6523222
+380624693	용화여자고등학교	3	False	False	True	isced_tag	127.0583726	37.6587415
+380624694	상월초등학교	1	True	False	False	isced_tag	127.0571382	37.6584585
+380628639	노원고등학교	3	False	False	True	isced_tag	127.0532811	37.6623424
+380628643	서울동일초등학교	1	True	False	False	isced_tag	127.0546854	37.6649822
+380629600	상경중학교	2	False	True	False	isced_tag	127.0535734	37.6665979
+380630487	상원초등학교	1	True	False	False	isced_tag	127.0602511	37.6676293
+380683629			False	False	False	none	127.0517047	37.6703324
+380683751	상원중학교	2	False	True	False	isced_tag	127.0594804	37.6715696
+380685340	노원초등학교	1	True	False	False	isced_tag	127.0583655	37.672966
+380688953	수락초등학교	1	True	False	False	isced_tag	127.0545377	37.6839924
+380689796	수락중학교	2	False	True	False	isced_tag	127.0546076	37.6829527
+380689797	수락고등학교	3	False	False	True	isced_tag	127.0533448	37.6829553
+380689803	서울오봉초등학교	1	True	False	False	isced_tag	127.040361	37.6716095
+380709364	당현초등학교	1	True	False	False	isced_tag	127.0583886	37.6486162
+380709365	노원중학교	2	False	True	False	isced_tag	127.0598104	37.6490589
+380780290	서울우이초등학교	1	True	False	False	isced_tag	127.0149219	37.6385894
+381159442	자운고등학교	3	False	False	True	isced_tag	127.0506583	37.6590475
+381159462	서울창동초등학교	1	True	False	False	isced_tag	127.0447389	37.6550645
+381159480	서울창원초등학교	1	True	False	False	isced_tag	127.0405751	37.6523481
+381161628	창동고등학교	3	False	False	True	isced_tag	127.0385918	37.6507719
+381161630	창북중학교	2	False	True	False	isced_tag	127.038412	37.6496124
+381161677	서울문화고등학교	3	False	False	True	isced_tag	127.0476426	37.6632865
+381276062	정의여자중고등학교	2;3	False	True	True	isced_tag	127.031341	37.6531727
+381277022	강북중학교	2	False	True	False	isced_tag	127.0260129	37.6447558
+381277023	서울숭미초등학교	1	True	False	False	isced_tag	127.0277571	37.65082
+381277024	백운중학교	2	False	True	False	isced_tag	127.0359147	37.6560838
+381277025	서울창경초등학교	1	True	False	False	isced_tag	127.0349988	37.6560516
+381280304	세그루학원		False	False	False	name	127.0268258	37.655406
+381280305	초당초등학교	1	True	False	False	isced_tag	127.0223074	37.6581229
+381280306	서울신학초등학교	1	True	False	False	isced_tag	127.0253029	37.6607452
+381280307	서울신방학초등학교	1	True	False	False	isced_tag	127.0296063	37.6657901
+381280308	방학중학교	2	False	True	False	isced_tag	127.0316041	37.6654099
+381280309	신방학중학교	2	False	True	False	isced_tag	127.0294172	37.6639049
+381280310	서울방학초등학교	1	True	False	False	isced_tag	127.0320812	37.6639411
+381487417	서울누원초등학교	1	True	False	False	isced_tag	127.0494032	37.6866456
+381487418	누원고등학교	3	False	False	True	isced_tag	127.0505139	37.6852694
+381651424			False	False	False	none	127.0106997	37.6565756
+381668694	서울쌍문초등학교	1	True	False	False	isced_tag	127.0243799	37.6485648
+381670871	도봉중학교	2	False	True	False	isced_tag	127.0456939	37.6704559
+381672141	서울도봉초등학교	1	True	False	False	isced_tag	127.038317	37.6794254
+381672557	북서울중학교	2	False	True	False	isced_tag	127.0429226	37.6811175
+381673405	서울가인초등학교	1	True	False	False	isced_tag	127.0432665	37.6598389
+382968723	신도봉중학교	2	False	True	False	isced_tag	127.0332823	37.6492169
+382970823	도솔학교		False	False	False	name	127.0424387	37.6944896
+414489580	상천초등학교	1	True	False	False	isced_tag	127.0579005	37.6459606
+415352012	서울애화학교		False	False	False	name	127.0287236	37.6252147
+415607204			False	False	False	none	127.024311	37.6208655
+468476778	서울미양초등학교	1	True	False	False	isced_tag	127.013609	37.6209581
+469485271	번동중학교	2	False	True	False	isced_tag	127.03673	37.63222
+469631763	서울백운초등학교	1	True	False	False	isced_tag	127.0135732	37.6529941
+471869610	서울월천초등학교	1	True	False	False	isced_tag	127.0519747	37.6478589
+471870041	노곡중학교	2	False	True	False	isced_tag	127.053383	37.6482085
+471870423	창일중학교	2	False	True	False	isced_tag	127.0468965	37.6486298
+471870615	창일초등학교	1	True	False	False	isced_tag	127.0476179	37.6474806
+475332740	신일학원		False	False	False	name	127.0272308	37.6290597
+564525821	노일중학교	2	False	True	False	isced_tag	127.0537973	37.6731077
+564525823	노일초등학교	1	True	False	False	isced_tag	127.0548364	37.6731944
+643766109	장월초등학교	1	True	False	False	isced_tag	127.0471226	37.6220065
+648423071	창동중학교	2	False	True	False	isced_tag	127.0496131	37.662675
+648423072	창도초등학교	1	True	False	False	isced_tag	127.049504	37.6636421
+648423073	서울자운초등학교	1	True	False	False	isced_tag	127.0465811	37.6578046
+648615509	서울외국어고등학교	3	False	False	True	isced_tag	127.0519278	37.6452677
+648615510	효문중고등학교	2;3	False	True	True	isced_tag	127.0180747	37.6525324
+648615511	서울창림초등학교	1	True	False	False	isced_tag	127.041438	37.6432208
+648615512	서울신창초등학교	1	True	False	False	isced_tag	127.0421663	37.6362525
+648615513	서울신화초등학교	1	True	False	False	isced_tag	127.041221	37.6324889
+648615514	서울번동초등학교	1	True	False	False	isced_tag	127.0407306	37.6289625
+649380287	서울오현초등학교	1	True	False	False	isced_tag	127.04683	37.6232702
+649380288	월계초등학교	1	True	False	False	isced_tag	127.0508491	37.6276676
+649380289	신계초등학교	1	True	False	False	isced_tag	127.0532104	37.6301082
+649380290	월계중학교	2	False	True	False	isced_tag	127.0520376	37.6305506
+649380291	월계고등학교	3	False	False	True	isced_tag	127.0486864	37.6316878
+649380292	신창중학교	2	False	True	False	isced_tag	127.0479774	37.6282458
+649380293			False	False	False	none	127.0492949	37.6292902
+649380294			False	False	False	none	127.0503527	37.6306295
+781159667			False	False	False	none	127.047572	37.6476666
+781267880	서울연지초등학교	1	True	False	False	isced_tag	127.0599734	37.6334703
+791245853	서울삼양초등학교	1	True	False	False	isced_tag	127.0166953	37.6236327
+791245856	서울수송초등학교	1	True	False	False	isced_tag	127.0330175	37.6370734
+792088681	서울수유초등학교	1	True	False	False	isced_tag	127.0202876	37.6305925
+792088685	유현초등학교	1	True	False	False	isced_tag	127.0118111	37.6319797
+792088687	서울화계초등학교	1	True	False	False	isced_tag	127.0292674	37.6238711
+792088689	서울인수초등학교	1	True	False	False	isced_tag	127.0100111	37.6428859
+794999116	서울한신초등학교	1	True	False	False	isced_tag	127.0326388	37.652978
+852041274	인덕과학기술고등학교	3	False	False	True	isced_tag	127.0560799	37.6319645
+856292710			False	False	False	none	127.0122983	37.6237359
+1535241253	화계중학교		False	True	False	name	127.0102347	37.6325458
+1535241270	수유중학교		False	True	False	name	127.0108389	37.6312498
+1539079781	혜화여자고등학교		False	False	True	name	127.0129455	37.6309806
+1539079786	서울정인학교		False	False	False	name	127.0119614	37.630814
+368622744	한국삼육고등학교	3	False	False	True	isced_tag	127.1084852	37.640485
+368921620	태랑중학교	2	False	True	False	isced_tag	127.091506	37.626675
+368922064	상계중학교	2	False	True	False	isced_tag	127.068902	37.652226
+368922251	신상중학교	2	False	True	False	isced_tag	127.063575	37.651319
+368922752	태랑중학교	2	False	True	False	isced_tag	127.091472	37.626666
+368922782	한국삼육중학교	2	False	True	False	isced_tag	127.108354	37.6410824
+368929086	서울상수초등학교	1	True	False	False	isced_tag	127.064829	37.651635
+368930126	태강삼육초등학교	1	True	False	False	isced_tag	127.110506	37.641896
+414687868	중현초등교		False	False	False	name	127.06742	37.63174
+414688067	상계초등학교		True	False	False	name	127.0661079	37.6590125
+955947399	서울여대 입구		False	False	False	name	127.0936304	37.6259249
+4632543782	대운동장		False	False	False	name	127.0892457	37.626198
+5502282225	샛별초등학교	1	True	False	False	isced_tag	127.1295452	37.6662412
+172917923			False	False	False	none	127.063649	37.6513087
+172917924			False	False	False	none	127.0648982	37.6516243
+173167026			False	False	False	none	127.0688449	37.6521151
+239578362			False	False	False	none	127.0736289	37.6456031
+239578363	덕암관		False	False	False	name	127.0741892	37.6456678
+239578615	불암중학교	2	False	True	False	isced_tag	127.0737553	37.645579
+239584602	불암초등학교	1	True	False	False	isced_tag	127.0805163	37.6510905
+339726329	공연초등학교	1	True	False	False	isced_tag	127.0744389	37.6270254
+339731039	중현초등학교	1	True	False	False	isced_tag	127.066565	37.6321023
+370630490	서라벌고등학교	3	False	False	True	isced_tag	127.0755479	37.6450638
+380631245	온곡초등학교	1	True	False	False	isced_tag	127.0660203	37.6673624
+380633019	상곡초등학교	1	True	False	False	isced_tag	127.0624698	37.6623618
+380633021	온곡중학교	2	False	True	False	isced_tag	127.0646349	37.6600923
+380635443	계상초등학교	1	True	False	False	isced_tag	127.0680495	37.6630655
+380635446	상계초등학교	1	True	False	False	isced_tag	127.0659201	37.6591643
+380637710	중계초등학교	1	True	False	False	isced_tag	127.0732189	37.6575169
+380637714	청암중고등학교	2;3	False	True	True	isced_tag	127.07397	37.6513541
+380637715	원광초등학교	1	True	False	False	isced_tag	127.0748308	37.6540485
+380637717	중계중학교	2	False	True	False	isced_tag	127.0752184	37.6552758
+380640223	수암초등학교	1	True	False	False	isced_tag	127.0816517	37.6481691
+380640224	불암고등학교	3	False	False	True	isced_tag	127.0802299	37.6487593
+380640726	미래산업과학고등학교	3	False	False	True	isced_tag	127.0789702	37.6590153
+380640728	재현고등학교	3	False	False	True	isced_tag	127.0799962	37.6604641
+380640732	상계제일중학교	2	False	True	False	isced_tag	127.077667	37.6611136
+380652792	신상계초등학교	1	True	False	False	isced_tag	127.0757689	37.6679446
+380709023	중원초등학교	1	True	False	False	isced_tag	127.0627664	37.6436407
+380709024	청계초등학교	1	True	False	False	isced_tag	127.0663012	37.6446685
+380709025	서울아이티고등학교	3	False	False	True	isced_tag	127.0620805	37.6421616
+380709026	용동초등학교	1	True	False	False	isced_tag	127.0694845	37.6415585
+380709027	하계중학교	2	False	True	False	isced_tag	127.0716331	37.6408397
+380828437	덕암초등학교	1	True	False	False	isced_tag	127.0812386	37.6665438
+380847679	중평초등학교	1	True	False	False	isced_tag	127.0641597	37.637295
+380848418	대진여자고등학교	3	False	False	True	isced_tag	127.0673438	37.6462187
+380848419	상명중,고등학교	3	False	False	True	isced_tag	127.0679922	37.6488294
+380848420	영신여자고등학교	3	False	False	True	isced_tag	127.0829772	37.652168
+380849316	한천중학교	2	False	True	False	isced_tag	127.0726049	37.6310638
+380906236	동천학교		False	False	False	name	127.0733772	37.6444011
+380906239	혜성여자고등학교	3	False	False	True	isced_tag	127.0739162	37.6412458
+380910703	대진고등학교	3	False	False	True	isced_tag	127.0752296	37.6375423
+380910938	경기기계공업고등학교	3	False	False	True	isced_tag	127.0745577	37.6331826
+380911335	동산정보산업고등학교	3	False	False	True	isced_tag	127.0744308	37.6301598
+381019728	용원초등학교	1	True	False	False	isced_tag	127.0688755	37.6292191
+381769398			False	False	False	none	127.0915763	37.6266801
+381769399	서울태랑초등학교	1	True	False	False	isced_tag	127.0907753	37.6261849
+473615832	별가람 초등학교	1	True	False	False	isced_tag	127.1243029	37.6540588
+475316092	남양주덕송초등학교	1	True	False	False	isced_tag	127.1160767	37.6690683
+477610202	도제원초등학교	1	True	False	False	isced_tag	127.1457704	37.6456477
+483135708	중원중학교	2	False	True	False	isced_tag	127.0680775	37.6439579
+489095373	공릉중학교	2	False	True	False	isced_tag	127.0839508	37.6220036
+489095376	서울태릉초등학교	1	True	False	False	isced_tag	127.0849358	37.6225386
+517767087	퇴계원고등학교	3	False	False	True	isced_tag	127.1453785	37.6601027
+517767102	퇴계원초등학교	1	True	False	False	isced_tag	127.1415795	37.6535441
+548930507	서울녹천초등학교	1	True	False	False	isced_tag	127.0634801	37.6286213
+564525824	청원학원		False	False	False	name	127.0622351	37.6659788
+565937895	남양주다산초등학교	1	True	False	False	isced_tag	127.1585271	37.6266259
+578584093	남양주다산중학교	2	False	True	False	isced_tag	127.1585253	37.6277374
+581727258	남양주샛별초등학교	1	True	False	False	isced_tag	127.1292264	37.6658632
+581729241	별가람고등학교	3	False	False	True	isced_tag	127.1221048	37.6613901
+587684140	한별초등학교	1	True	False	False	isced_tag	127.1159919	37.6464268
+588097851	한별중학교	2	False	True	False	isced_tag	127.1190426	37.648591
+608501489	남양주다산유치원		False	False	False	name	127.1586592	37.6219383
+608905193	퇴계원중학교	2	False	True	False	isced_tag	127.1413087	37.6521786
+609377971	다산고등학교	3	False	False	True	isced_tag	127.1584919	37.6254407
+610892018	화접중학교		False	True	False	name	127.1149364	37.645693
+615492744	별내고등학교	3	False	False	True	isced_tag	127.1170266	37.6514486
+617951717	화접초등학교	1	True	False	False	isced_tag	127.1159095	37.6531369
+619722534	별가람중학교	2	False	True	False	isced_tag	127.1223575	37.6590773
+649132679	을지초등학교	1	True	False	False	isced_tag	127.0728993	37.6506472
+649132680	을지중학교	2	False	True	False	isced_tag	127.0718765	37.6499746
+649132681	중평중학교	2	False	True	False	isced_tag	127.0623986	37.6368248
+649132682	연촌초등학교	1	True	False	False	isced_tag	127.0727811	37.6348256
+679155554	갈매고등학교	3	False	False	True	isced_tag	127.1176338	37.6271975
+679155555	갈매초등학교	1	True	False	False	isced_tag	127.1159945	37.6283464
+679173492	산마루초등학교	1	True	False	False	isced_tag	127.1203689	37.6315223
+679173493	갈매중학교	2	False	True	False	isced_tag	127.1199096	37.6307991
+809373094	다산하늘초등학교	1	True	False	False	isced_tag	127.1464895	37.6278952
+852041267	녹천중학교	2	False	True	False	isced_tag	127.0623291	37.631178
+897758506	다산하늘빛유치원		False	False	False	name	127.159667	37.6268053
+963364032	서울정민학교		False	False	False	name	127.07323	37.6338929
+469061848	용신초등학교	1	True	False	False	isced_tag	127.173125	37.6606921
+469063546	진건중학교	2	False	True	False	isced_tag	127.17839	37.6538752
+469065720	진건초등학교	1	True	False	False	isced_tag	127.1790471	37.657609
+469068963	사능초등학교	1	True	False	False	isced_tag	127.1839318	37.655209

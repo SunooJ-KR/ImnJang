@@ -31,6 +31,9 @@
 # 0. 환경 설정
 # ============================================================================
 
+import re
+from difflib import SequenceMatcher
+
 import numpy as np
 import pandas as pd
 from pathlib import Path
@@ -89,6 +92,71 @@ def normalize(text):
 
 seoul["join_key"] = normalize(seoul["주소"])
 
+
+# 아래 세 함수는 15.assign_dong_all.py 1절과 동일하다. 17은 15의 조인을
+# 독립적으로 재현해 검증하는 스크립트라서, 15와 다른 매칭 규칙을 쓰면
+# "조인이 맞았는가"가 아니라 "매칭 규칙이 다른가"를 재게 된다 — 반드시 같은
+# 규칙을 써야 한다.
+def normalize_complex_name(name):
+    """단지명 비교용 정규화. 괄호 안 부연설명·공백·말미 '아파트'/'단지' 접미어를
+    없애 표기 차이를 흡수한다. 예: '현대6차(78~81동)' / '현대6차 아파트' -> '현대6차'"""
+    if pd.isna(name):
+        return ""
+    text = str(name).strip().upper()
+    text = re.sub(r"\([^)]*\)", "", text)
+    text = re.sub(r"\s+", "", text)
+    return re.sub(r"(아파트|단지)$", "", text)
+
+
+def name_match_score(a, b):
+    """완전일치(3) -> 부분포함(2) -> 최장공통부분문자열 2자+(1) -> 불일치(0)."""
+    if not a or not b:
+        return 0
+    if a == b:
+        return 3
+    if a in b or b in a:
+        return 2
+    lcs = SequenceMatcher(None, a, b).find_longest_match(0, len(a), 0, len(b))
+    return 1 if lcs.size >= 2 else 0
+
+
+def match_complex_names(apt_names, reg_names):
+    """한 지번 안 실거래 단지명과 등록 공식 단지명을 이름 유사도로 1:1
+    매칭한다 (버그 1). 레벨이 높은 순으로 그리디 소진, 동점은 입력 순서
+    (aptSeq 오름차순)로 결정. 매칭 실패분은 남은 공식 단지를 순서대로 받고,
+    그마저 없으면 None(reg_dong 결측)."""
+    norm_apt = [normalize_complex_name(n) for n in apt_names]
+    norm_reg = [normalize_complex_name(n) for n in reg_names]
+    matched = [None] * len(apt_names)
+    used_reg = set()
+    for level in (3, 2, 1):
+        for i, a in enumerate(norm_apt):
+            if matched[i] is not None or not a:
+                continue
+            for j, r in enumerate(norm_reg):
+                if j in used_reg or not r:
+                    continue
+                if name_match_score(a, r) == level:
+                    matched[i] = j
+                    used_reg.add(j)
+                    break
+    unused_reg = iter(j for j in range(len(reg_names)) if j not in used_reg)
+    for i in range(len(apt_names)):
+        if matched[i] is None:
+            matched[i] = next(unused_reg, None)
+    return matched
+
+
+def largest_remainder_split(total, n):
+    """total을 정수 n등분해 합이 total과 정확히 같은 배열로 돌려준다 (버그 2).
+    floor로 채우고 남는 몫을 앞에서부터(aptSeq 오름차순) 1씩 더한다."""
+    base = int(total) // n
+    remainder = int(total) - base * n
+    shares = np.full(n, float(base))
+    shares[:remainder] += 1
+    return shares
+
+
 master = pd.read_csv(MASTER_PATH, sep="\t", dtype={"aptSeq": str})
 complexes = pd.read_csv(COMPLEX_PATH, sep="\t", dtype={"aptSeq": str})
 # 15가 이미 등록 동수를 상한으로 쓰므로 그 컬럼을 떨어뜨리고 여기서 다시 붙인다.
@@ -99,13 +167,44 @@ ours["join_key"] = normalize(
     ours["gu"].fillna("") + " " + ours["umd_name"].fillna("") + " " + ours["jibun"].fillna(""))
 
 # 한 지번에 여러 aptSeq가 등록된 경우가 있다(단지가 동별로 쪼개진 케이스).
-# 등록 정보는 지번당 1건이므로 조인하면 그 단지들이 같은 정답을 공유한다.
 duplicated_key = int(ours["join_key"].duplicated(keep=False).sum())
 print(f"  우리 단지 {len(ours)}건 (같은 지번을 공유하는 aptSeq {duplicated_key}건)")
 
-merged = ours.merge(
-    seoul[["join_key", "단지고유번호", "reg_name", "reg_dong", "reg_units", "reg_year"]],
-    on="join_key", how="left").drop_duplicates("aptSeq")
+# 등록 정보도 drop_duplicates 하지 않는다 — 한 지번에 공식 단지가 여러 개면
+# (예: 압구정동 456의 현대65동/7차/6차) 첫 행으로 뭉개면 안 된다 (버그 1).
+# 공식 단지가 1개뿐인데 aptSeq가 여럿이면(분양/임대 분리 등) largest_remainder
+# 로 나눈다 (버그 2). 15와 동일한 규칙이므로 두 스크립트의 reg_dong이 같아야
+# "동수 대조"가 15의 배정을 실제로 검증한다.
+match_cols = ["단지고유번호", "reg_name", "reg_dong", "reg_units", "reg_year"]
+matched_values = {c: pd.Series([None] * len(ours), index=ours.index, dtype=object)
+                  for c in match_cols}
+seoul_by_key = {k: g for k, g in seoul.groupby("join_key")}
+
+for join_key, group in ours.sort_values("aptSeq").groupby("join_key", sort=False):
+    reg_group = seoul_by_key.get(join_key)
+    if reg_group is None:
+        continue
+    idx = group.index
+    if len(reg_group) == 1:
+        row = reg_group.iloc[0]
+        for c in match_cols:
+            matched_values[c].loc[idx] = row[c]
+        if pd.notna(row["reg_dong"]):
+            matched_values["reg_dong"].loc[idx] = largest_remainder_split(row["reg_dong"], len(idx))
+    else:
+        matches = match_complex_names(group["apt_name"].tolist(), reg_group["reg_name"].tolist())
+        for pos, i in enumerate(idx):
+            j = matches[pos]
+            if j is not None:
+                row = reg_group.iloc[j]
+                for c in match_cols:
+                    matched_values[c][i] = row[c]
+
+merged = ours.copy()
+for c in match_cols:
+    merged[c] = matched_values[c]
+for c in ["reg_dong", "reg_units", "reg_year"]:
+    merged[c] = pd.to_numeric(merged[c], errors="coerce")
 
 matched = merged["reg_dong"].notna()
 match_rate = 100 * matched.mean()

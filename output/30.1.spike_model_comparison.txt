@@ -1,0 +1,96 @@
+# 물리·입지 hedonic spike 결과 (누수 방지 재검증)
+
+## 표본·split·이상치 규칙
+- 분석 기간: 2024-09 ~ 2026-08 (최근 24개월, 계약년월 기준)
+- split: train 2024-09 ~ 2026-02; test 2026-03 ~ 2026-08
+- 명백한 오류만 사전 제거한 표본: train 101,837건 / test 37,154건
+- train 가격 outlier 제거: 단지×면적타입별 train 1/99 분위로 62건 제거, 최종 train 101,775건
+- train 전체 fallback cutoff: 548.13 ~ 4903.02 만원/m²
+- test 셀 중 train에 없는 셀: 1,661/9,232개; 해당 test 행 3,006/37,154건 (8.09%). 이 행에는 train 전체 cutoff를 부여했지만 제거하지 않았습니다.
+- train에서 적합한 cutoff 밖에 있는 test 행은 18,130건으로 flag만 남기고 모두 유지했습니다.
+- 명시적 자체 검증: 이상치 cutoff 계산에는 test 기간 가격 데이터가 쓰이지 않았습니다. test는 가격 기준으로 0건 제거했으며, 가격<=0·면적<=0 같은 명백한 오류만 split 전에 제거했습니다.
+- 모든 회귀는 train에만 적합했으며, 표의 R²/adj. R²는 train in-sample 값, MAPE는 out-of-time test 값입니다. 모든 모델은 선택된 지역 fixed effect, 층대, 계약월, 단지 cluster-robust SE를 사용합니다.
+
+## 법정동 완전 키 및 지역 통제 선택
+- 10자리 완전 법정동 키(sggCd 5자리 + bjd_code 5자리 zero-pad) 고유값: 324; 키 보유 거래 126,583건, bjd_code 결측 거래 12,408건.
+- 한 완전 키에 자치구가 2개 이상 섞인 경우: 0건.
+- (a) 완전 법정동 더미와 (b) 자치구 더미 + 법정동 더미를 단지 hash 80/20 holdout 및 OOT에서 비교했습니다. (b)는 train 거래 30건 미만 법정동을 자치구에 흡수합니다. 30건은 더미 한 개당 최소 관측치가 지나치게 적은 법정동을 분리 추정하지 않기 위한 사전 기준입니다.
+scheme	complex_holdout_mape_pct	out_of_time_mape_pct	dense_bjd_keys	sparse_min_train_rows
+full_bjd	17.233829	19.891710	321	0
+hierarchical	16.815119	18.792410	236	30
+- 채택: hierarchical; 선택 우선순위는 단지 holdout MAPE, 동률 시 OOT MAPE입니다. 계층 사양의 최종 dense 법정동 수는 236개입니다.
+
+## Ablation (A--F, H--I는 완전히 동일한 정제 train/test 표본)
+model	train_n	test_n	train_R2	train_adj_R2	out_of_time_MAPE_pct	out_of_time_MAE_manwon_per_m2	out_of_time_R2	increment_reference	delta_R2_vs_M2_reference	delta_adj_R2_vs_M2_reference	M2_reference_minus_model_MAPE_pp
+A. M2 (기준)	101775	37154	0.818027	0.817523	18.792410	297.790680	0.781010	A. M2 (기준)	0.000000	0.000000	0.000000
+B. M2 + physical profile availability만	101775	37154	0.818027	0.817523	18.792410	297.790680	0.781010	A. M2 (기준)	0.000000	0.000000	0.000000
+C. M2 + river_view만	101775	37154	0.818938	0.818437	18.762516	296.913928	0.782417	A. M2 (기준)	0.000911	0.000914	0.029894
+D. M2 + sun_hours_winter만	101775	37154	0.817970	0.817466	18.804180	297.780210	0.781423	A. M2 (기준)	-0.000058	-0.000058	-0.011769
+E. M2 + 개방도 3종만	101775	37154	0.818699	0.818194	18.790311	297.564149	0.781986	A. M2 (기준)	0.000672	0.000670	0.002099
+F. M3 (물리 feature 전체)	101775	37154	0.819889	0.819377	18.761055	296.628792	0.783785	A. M2 (기준)	0.001861	0.001854	0.031355
+H. M2 + 정비사업 신호만	101775	37154	0.831212	0.830742	18.474933	294.341231	0.786446	A. M2 (기준)	0.013185	0.013218	0.317478
+I. M3 + 정비사업 신호 (= 전체)	101775	37154	0.832581	0.832102	18.435149	292.707434	0.789464	A. M2 (기준)	0.014554	0.014579	0.357262
+G-1. complete-case M2	76453	28064	0.842034	0.841501	17.760164	282.928163	0.811426	G-1. complete-case M2	0.000000	0.000000	0.000000
+G-2. complete-case M3	76453	28064	0.844102	0.843562	17.681409	281.032539	0.813890	G-1. complete-case M2	0.002069	0.002062	0.078755
+- M2_reference_minus_model_MAPE_pp가 양수이면 해당 모델의 out-of-time MAPE가 해당 행의 M2 기준보다 낮습니다. 이 값의 유의성을 주장하지 않습니다.
+- G complete-case 표본: train 76,453/101,775건 (75.12%), test 28,064/37,154건 (75.53%). 물리 feature가 모두 실제 존재하는 행만 남겼으므로 G의 물리항에는 평균대체가 없습니다.
+
+## 정비사업 signal의 정의·해석 한계
+- is_redevelop=1은 31.1에서 정비사업 구역 대표 지번과 단지 지번이 완전일치한 경우입니다. 0은 비매칭이며, 재건축 구역이 아님과 대표 지번 차이로 인한 매칭 실패를 구분하지 못합니다.
+- redevelop_stage_advanced=1은 관리처분·착공, 그 외 매칭된 추진단계는 0입니다. 미매칭도 0이나 is_redevelop과 함께 넣었으므로, 이 항의 해석은 is_redevelop=1인 단지 안에서의 단계 차이라는 조건부 해석입니다.
+- 지번 완전일치 단지는 150/9,160 (1.64%)이며, advanced 단계는 32단지입니다.
+- 31의 자체 검증 기준 재개발 구역 매칭은 5/302 (1.7%)에 그쳤습니다. 따라서 is_redevelop 계수는 '정비사업 구역' 일반의 효과가 아니라 사실상 '재건축 추진 아파트 단지'의 효과입니다.
+- 매칭 단지가 150개뿐이므로 cluster-robust CI의 폭을 함께 보고하며, 넓은 CI는 정밀한 효과 추정을 뒷받침하지 못합니다.
+
+## 정비사업 signal 계수 (I 모델, train; cluster-robust 95% CI)
+term	coefficient_log_price	cluster_robust_se	p_value	price_change_pct_per_unit	price_change_pct_ci95_low	price_change_pct_ci95_high	interpretation
+is_redevelop	0.32189995	0.026456743	4.6572943e-34	37.974672	31.002305	45.318131	1단위 증가(이진 변수는 0→1) 시 가격 변화율
+redevelop_stage_advanced	-0.088222166	0.051322921	0.08562124	-8.4442552	-17.206041	1.2447594	1단위 증가(이진 변수는 0→1) 시 가격 변화율
+- 가격 변화율은 exp(계수)-1로 변환했습니다. is_redevelop은 0→1, redevelop_stage_advanced는 매칭 단지 내 non-advanced→advanced의 조건부 비교입니다.
+
+## 물리 feature 전체의 cluster-robust joint Wald test (F 모델, train)
+- H0: 물리항 및 유지된 물리 결측지시자의 계수가 모두 0; F(8, 6222) = 5.764200, p = 2.41295e-07; 항 수 = 8
+- 검정 포함 항: sun_hours_winter, open_angle_mean, view_block_pct, open_span_max, river_view, park_view, mountain_view, miss_mountain_view
+
+## M2 대 M3 out-of-time paired block bootstrap (단지 복원추출, 1,000회)
+- 차이 정의: M2 MAPE - M3 MAPE. 관측 차이 = 0.031355 percentage points; 95% CI = [-0.028789, 0.088193]; bootstrap 단지 수 = 4,981.
+- CI가 0을 포함하면 MAPE 차이에 대한 명확한 방향 주장을 하지 않습니다.
+
+## 물리 feature 공선성 진단 (F 모델의 train 변환값·유지된 결측지시자만 사용)
+- design matrix rank = 9/9; rank deficient = False; condition number = 3101.25
+- VIF에서 제외된 상수열: 없음
+- 중복으로 제거한 물리 결측지시자: miss_open_angle_mean (miss_sun_hours_winter와 동일); miss_view_block_pct (miss_sun_hours_winter와 동일); miss_open_span_max (miss_sun_hours_winter와 동일); miss_river_view (miss_sun_hours_winter와 동일); miss_park_view (miss_sun_hours_winter와 동일)
+- floor_band_UNKNOWN과 완전 공선성으로 회귀 및 joint test에서 제외한 물리 결측지시자: miss_sun_hours_winter
+- B는 층대(HIGH repr_floor 최고층 proxy의 삼등분)만 통제한 A에 profile availability를 추가한 모델입니다. 따라서 B의 증분은 profile 매칭 성공이라는 선택 효과 자체를 나타냅니다.
+
+### VIF
+feature	vif
+view_block_pct	12.196553
+open_span_max	7.896726
+sun_hours_winter	3.139806
+open_angle_mean	2.708332
+park_view	1.135726
+miss_mountain_view	1.047512
+river_view	1.037244
+mountain_view	1.024240
+
+### Correlation matrix
+	sun_hours_winter	open_angle_mean	view_block_pct	open_span_max	river_view	park_view	mountain_view	miss_mountain_view
+sun_hours_winter	1.000000	0.688072	-0.808545	0.704371	0.012639	0.187295	0.097328	-0.066279
+open_angle_mean	0.688072	1.000000	-0.775227	0.724048	0.056832	0.287526	0.134678	-0.142025
+view_block_pct	-0.808545	-0.775227	1.000000	-0.930601	-0.012930	-0.227939	-0.117343	0.104500
+open_span_max	0.704371	0.724048	-0.930601	1.000000	-0.000443	0.210583	0.121437	-0.108339
+river_view	0.012639	0.056832	-0.012930	-0.000443	1.000000	0.150668	-0.030881	0.057951
+park_view	0.187295	0.287526	-0.227939	0.210583	0.150668	1.000000	0.074946	-0.157355
+mountain_view	0.097328	0.134678	-0.117343	0.121437	-0.030881	0.074946	1.000000	0.000000
+miss_mountain_view	-0.066279	-0.142025	0.104500	-0.108339	0.057951	-0.157355	0.000000	1.000000
+
+## 물리 계수의 실질 크기 (F 모델, train; cluster-robust 95% CI)
+term	coefficient_log_price	cluster_robust_se	p_value	price_change_pct_per_unit	price_change_pct_ci95_low	price_change_pct_ci95_high
+sun_hours_winter	0.0020840529	0.0025420053	0.41230389	0.20862261	-0.28940814	0.7091409
+open_angle_mean	0.00081970018	0.00029658879	0.0057139584	0.082003623	0.023841457	0.14019961
+view_block_pct	-7.1522408e-05	0.00033682775	0.83184086	-0.007151985	-0.073143717	0.058883328
+open_span_max	-0.000241369	7.4892756e-05	0.0012691681	-0.024133987	-0.038808347	-0.0094574721
+river_view	0.059014975	0.014619598	5.420763e-05	6.0791126	3.0826145	9.1627157
+park_view	-0.0098359637	0.0095191457	0.30147186	-0.97877488	-2.8091378	0.88605866
+mountain_view	-0.029836696	0.018489744	0.1065949	-2.9395976	-6.3940836	0.6423746

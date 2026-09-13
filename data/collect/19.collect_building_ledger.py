@@ -149,21 +149,21 @@ def save_cache():
     CACHE_PATH.write_text(json.dumps(cache, ensure_ascii=False), encoding="utf-8")
 
 
-def fetch(sigungu_cd, bjdong_cd, bun, ji):
-    """지번 하나의 표제부 전체. 인증·권한 오류는 즉시 중단시킨다."""
-    global n_calls
-    cache_key = f"{sigungu_cd}|{bjdong_cd}|{bun}|{ji}"
-    if cache_key in cache:
-        return cache[cache_key]
-
+def fetch_page(cache_key, sigungu_cd, bjdong_cd, bun, ji, page_no):
+    """표제부 1페이지 요청. 반환: (items, total_count, counted).
+    counted는 이 시도를 일 호출량(n_calls)에 반영해야 하는지 여부다 — 요청
+    자체가 서버에 닿지 못한 RequestException은 반영하지 않는다(기존 동작 유지).
+    파싱 실패(JSON 아님)와 요청 실패는 items=None으로 구분해 호출 쪽이
+    캐시하지 않도록 한다 (버그 3: 실패를 []로 캐시하면 totalCount=0인 정상
+    빈 응답과 구분이 안 돼 다음 실행에서도 재시도가 안 된다)."""
     params = {"serviceKey": SERVICE_KEY, "sigunguCd": sigungu_cd,
               "bjdongCd": bjdong_cd, "bun": bun, "ji": ji,
-              "numOfRows": ROWS_PER_CALL, "pageNo": 1, "_type": "json"}
+              "numOfRows": ROWS_PER_CALL, "pageNo": page_no, "_type": "json"}
     try:
         response = requests.get(API_URL, params=params, timeout=20)
     except requests.RequestException as error:
-        print(f"  [경고] 요청 실패 {cache_key}: {mask_key(error)[:120]}")
-        return None
+        print(f"  [경고] 요청 실패 {cache_key} p{page_no}: {mask_key(error)[:120]}")
+        return None, None, False
 
     if response.status_code in (401, 403):
         save_cache()
@@ -171,21 +171,56 @@ def fetch(sigungu_cd, bjdong_cd, bun, ji):
             f"인증/권한 오류 [{response.status_code}] {mask_key(response.text)[:200]}\n"
             "  -> https://www.data.go.kr/data/15134735/openapi.do 에서 활용신청 필요")
 
-    items = []
-    if response.status_code == 200:
-        try:
-            body = response.json().get("response", {}).get("body", {})
-            raw_items = (body.get("items") or {}).get("item") or []
-            items = raw_items if isinstance(raw_items, list) else [raw_items]
-        except ValueError:
-            print(f"  [경고] JSON 아님 {cache_key}: {mask_key(response.text)[:120]}")
+    if response.status_code != 200:
+        print(f"  [경고] HTTP {response.status_code} {cache_key} p{page_no}")
+        return None, None, True
 
-    cache[cache_key] = items
-    n_calls += 1
+    try:
+        body = response.json().get("response", {}).get("body", {})
+        raw_items = (body.get("items") or {}).get("item") or []
+        items = raw_items if isinstance(raw_items, list) else [raw_items]
+        total_count = int(body.get("totalCount") or 0)
+    except (ValueError, TypeError):
+        print(f"  [경고] JSON 아님 {cache_key} p{page_no}: {mask_key(response.text)[:120]}")
+        return None, None, True
+
+    return items, total_count, True
+
+
+def fetch(sigungu_cd, bjdong_cd, bun, ji):
+    """지번 하나의 표제부 전체를 모든 페이지에 걸쳐 모은다. 인증·권한 오류는
+    즉시 중단시킨다.
+    numOfRows=100만 요청하고 totalCount를 안 보면 정확히 100건인 지번에서
+    잘린다 — 캐시 조사 결과 5개 지번이 이 값과 정확히 일치했다(헬리오시티
+    송파구 가락동 913은 등록 84동인데 52동만 받아 잘림이 유력했다). totalCount
+    가 지금까지 받은 개수보다 크면 다음 페이지를 이어 받는다.
+    페이지 중 하나라도 파싱/요청에 실패하면 지금까지 모은 것을 버리고 None을
+    돌려준다 — 절반만 캐시하면 다음 실행에서 그 절반이 '완료'로 오인돼
+    나머지 페이지를 영영 못 받는다."""
+    global n_calls
+    cache_key = f"{sigungu_cd}|{bjdong_cd}|{bun}|{ji}"
+    if cache_key in cache:
+        return cache[cache_key]
+
+    all_items = []
+    page_no = 1
+    while True:
+        items, total_count, counted = fetch_page(
+            cache_key, sigungu_cd, bjdong_cd, bun, ji, page_no)
+        if counted:
+            n_calls += 1
+        if items is None:
+            return None
+        all_items.extend(items)
+        time.sleep(SLEEP_SEC)
+        if not items or len(all_items) >= total_count:
+            break
+        page_no += 1
+
+    cache[cache_key] = all_items
     if n_calls % CACHE_FLUSH_EVERY == 0:
         save_cache()
-    time.sleep(SLEEP_SEC)
-    return items
+    return all_items
 
 
 records = []
@@ -193,7 +228,10 @@ for i, row in targets.iterrows():
     if n_calls >= DAILY_LIMIT:
         print(f"  [중단] 일 한도 {DAILY_LIMIT}건 도달. 캐시를 두고 내일 이어서 돌린다")
         break
-    items = fetch(row["sigungu_cd"], row["bjdong_cd"], row["bun"], row["ji"]) or []
+    items = fetch(row["sigungu_cd"], row["bjdong_cd"], row["bun"], row["ji"])
+    if items is None:
+        print(f"  [건너뜀] {row['join_key']}: 파싱/요청 실패로 캐시 안 함 (다음 실행에 재시도)")
+        continue
     for item in items:
         records.append({
             "join_key": row["join_key"],
@@ -209,6 +247,27 @@ for i, row in targets.iterrows():
             "use_apr_day": item.get("useAprDay"),     # 사용승인일
             "main_purps_cd_nm": item.get("mainPurpsCdNm"),
             "mgm_bldrgst_pk": item.get("mgmBldrgstPk"),
+            # --- 아래는 complex 스키마(23) 확장을 위해 추가한 필드. 캐시에는
+            # 이미 있었고 파싱만 새로 한다 (재호출 없음).
+            "bcr": item.get("bcRat"),                 # 건폐율
+            "far": item.get("vlRat"),                 # 용적률
+            "bjd_code": item.get("bjdongCd"),          # 법정동코드(API 에코백. bjdong_cd와 동일해야 정상)
+            "plat_area": item.get("platArea"),         # 대지면적
+            "tot_area": item.get("totArea"),           # 연면적
+            # 주차대수 4종. 실측 결과(캐시 8,181개 지번) bcr/far/plat_area와 같은 패턴:
+            # 같은 지번의 표제부 레코드끼리 90%는 동일값을 반복하고, 나머지 10%는
+            # 한 레코드에만 합계가 채워지고 다른 레코드는 0이다(부분 기재 누락).
+            # 즉 이 값들은 동별로 실제로 다른 개별 주차대수가 아니라 '단지(지번) 단위
+            # 총계'가 표제부 레코드마다 복제된 것이다 — 동별 합산이 아니라 지번별로
+            # 대표값(0이 아닌 값, 여러 개면 max) 하나만 취해야 총주차대수가 맞다.
+            # (예: 11110|18300|0108|0000, 16개 동 모두 total=375로 동일)
+            "indr_auto_utcnt": item.get("indrAutoUtcnt"),   # 옥내자주식
+            "oudr_auto_utcnt": item.get("oudrAutoUtcnt"),   # 옥외자주식
+            "indr_mech_utcnt": item.get("indrMechUtcnt"),   # 옥내기계식
+            "oudr_mech_utcnt": item.get("oudrMechUtcnt"),   # 옥외기계식
+            "ride_use_elvt_cnt": item.get("rideUseElvtCnt"),   # 승용승강기 (동마다 실제로 다름)
+            "emgen_use_elvt_cnt": item.get("emgenUseElvtCnt"),  # 비상용승강기 (동마다 실제로 다름)
+            "strct_cd_nm": item.get("strctCdNm"),      # 구조
         })
     if (i + 1) % 200 == 0:
         print(f"  처리 중 [{i + 1}/{len(targets)}]: 신규 호출 {n_calls}건, 누적 동 {len(records)}")
@@ -225,7 +284,13 @@ if not records:
     raise SystemExit("수집된 동이 없다. 활용신청 상태와 응답 스키마를 먼저 확인할 것")
 
 ledger = pd.DataFrame(records)
-for column in ["grnd_flr_cnt", "heit", "hhld_cnt"]:
+NUMERIC_COLUMNS = [
+    "grnd_flr_cnt", "heit", "hhld_cnt",
+    "bcr", "far", "plat_area", "tot_area",
+    "indr_auto_utcnt", "oudr_auto_utcnt", "indr_mech_utcnt", "oudr_mech_utcnt",
+    "ride_use_elvt_cnt", "emgen_use_elvt_cnt",
+]
+for column in NUMERIC_COLUMNS:
     ledger[column] = pd.to_numeric(ledger[column], errors="coerce")
 ledger["use_apr_year"] = pd.to_numeric(
     ledger["use_apr_day"].astype(str).str[:4], errors="coerce")
@@ -238,6 +303,28 @@ print(f"  지번당 주거동 중앙값 {residential.groupby('join_key').size().
 print(f"  동명칭 있음 {int(ledger['bld_nm'].notna().sum())} / "
       f"높이 있음 {int(ledger['heit'].notna().sum())} / "
       f"층수 있음 {int(ledger['grnd_flr_cnt'].notna().sum())}")
+
+new_cols = ["bcr", "far", "bjd_code", "plat_area", "tot_area",
+            "indr_auto_utcnt", "oudr_auto_utcnt", "indr_mech_utcnt", "oudr_mech_utcnt",
+            "ride_use_elvt_cnt", "emgen_use_elvt_cnt", "strct_cd_nm"]
+print("  신규 컬럼 채움률:")
+for column in new_cols:
+    rate = 100 * ledger[column].notna().mean()
+    print(f"    {column:<20} {rate:5.1f}%")
+# bjd_code(API 응답)는 호출 파라미터로 넘긴 bjdong_cd의 에코백이라 동일해야 정상이다
+mismatch = (ledger["bjd_code"].dropna() != ledger.loc[ledger["bjd_code"].notna(), "bjdong_cd"])
+print(f"  bjd_code vs bjdong_cd 불일치 {int(mismatch.sum())}건 (0이어야 정상)")
+
+# --- 자체 검증 ---
+ORIGINAL_COLUMNS = ["join_key", "sigungu_cd", "bjdong_cd", "bun", "ji", "bld_nm",
+                     "dong_nm", "plat_plc", "new_plat_plc", "grnd_flr_cnt", "heit",
+                     "hhld_cnt", "use_apr_day", "main_purps_cd_nm", "mgm_bldrgst_pk",
+                     "use_apr_year"]
+assert set(ORIGINAL_COLUMNS).issubset(ledger.columns), "기존 컬럼이 깨졌다 — 19.1을 읽는 20/21/13이 죽는다"
+assert set(new_cols).issubset(ledger.columns), "신규 컬럼 파싱이 빠졌다"
+assert n_calls == 0, f"캐시가 있는데 API를 {n_calls}건 새로 불렀다 — 캐시 히트 로직 확인 필요"
+assert int(mismatch.sum()) == 0, "bjd_code(API 에코백)가 호출 파라미터와 다르다 — 응답 파싱 순서 확인"
+
 if PROBE:
     print("\n  [probe] 첫 응답 전문:")
     print(ledger.head(3).to_string())
