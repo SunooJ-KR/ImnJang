@@ -78,6 +78,7 @@ deal_ym	n_early4	n_late21	late_share_early4	late_share_late21	n_total	late_share
 [PASS]	거래일 파싱 실패 0건	0건
 [PASS]	merge 행 수 불변	138,975행
 [PASS]	자치구 코드 = 서울 25개 구	25개
+[PASS]	단지 → 자치구 1:1 (보정 후)	보정 4행
 [PASS]	원본 deal_ym = 거래일 월	불일치 0건
 [PASS]	층대 UNKNOWN < 50%	5.4%
 [PASS]	선지정 법정동 9곳 모두 거래 존재	9곳

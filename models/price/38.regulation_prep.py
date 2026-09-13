@@ -143,8 +143,16 @@ sale["deal_ym"] = derived_ym
 sale = sale[sale["deal_date"].between(WINDOW_START, WINDOW_END)].copy()
 steps.append((f"분석 창 {WINDOW_START:%Y-%m}~{WINDOW_END:%Y-%m}", len(sale)))
 
+# 거래의 자치구 코드(sggCd)가 단지 ID 앞자리와 다른 행이 있다(실측 4행 — 신당동이
+# 성동구로, 청량리동이 성북구로 적힌 식). 단지 ID 앞자리가 법정동명과 일치하므로
+# 그것을 기준으로 바로잡는다. 그대로 두면 한 단지가 두 자치구 클러스터에 걸린다
+apt_prefix = sale["aptSeq"].str.split("-").str[0]
+n_sgg_fixed = int((apt_prefix != sale["sggCd"]).sum())
+sale["sggCd"] = apt_prefix
+
 for label, n in steps:
     print(f"  {label:28s} {n:>9,}행")
+print(f"  자치구 코드를 단지 ID 기준으로 보정 {n_sgg_fixed}행")
 print(f"  거래일 파싱 실패 {n_bad_date}건")
 
 
@@ -294,6 +302,8 @@ checks = [
     ("거래일 파싱 실패 0건", n_bad_date == 0, f"{n_bad_date}건"),
     ("merge 행 수 불변", True, f"{len(sale):,}행"),
     ("자치구 코드 = 서울 25개 구", sgg_exact, f"{len(observed_sgg)}개"),
+    ("단지 → 자치구 1:1 (보정 후)", bool((sale.groupby("aptSeq")["sggCd"].nunique() == 1).all()),
+     f"보정 {n_sgg_fixed}행"),
     ("원본 deal_ym = 거래일 월", n_ym_mismatch == 0, f"불일치 {n_ym_mismatch}건"),
     ("층대 UNKNOWN < 50%", unknown_share < 50, f"{unknown_share:.1f}%"),
     ("선지정 법정동 9곳 모두 거래 존재", pre_counts.size == len(PRE_DESIGNATED_DONG),
