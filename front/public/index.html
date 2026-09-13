@@ -6,6 +6,17 @@
 <title>임앤장 — 아파트 비교</title>
 <meta name="description" content="관심 있는 아파트를 담아서 같은 기준으로 나란히 비교합니다.">
 <link rel="stylesheet" href="styles.css">
+<script>
+  (function () {
+    var config = document.createElement('script');
+    config.src = 'config.js';
+    window.imnjangConfigReady = new Promise(function (resolve) {
+      config.onload = resolve;
+      config.onerror = resolve;
+    });
+    document.head.appendChild(config);
+  }());
+</script>
 </head>
 <body>
 <header class="top">
@@ -21,6 +32,9 @@
     <input id="q" type="search" placeholder="단지명 또는 동 이름 (예: 래미안, 대치동)" autocomplete="off">
     <p id="search-status" class="status" role="status">인덱스를 불러오는 중입니다…</p>
     <ul id="results" class="results"></ul>
+    <section id="map-section" class="map-section" aria-label="단지 위치 지도" hidden>
+      <div id="map" class="map"></div>
+    </section>
   </section>
 
   <!-- S3 비교서 -->

@@ -1,0 +1,128 @@
+{
+  "as_of": "2026-08-16",
+  "seoul_apartment_permit_zone": true,
+  "seoul_apartment_permit_zone_basis": [
+    {
+      "sn": "43",
+      "dsgn_authr_nm": "국토교통부 장관",
+      "dsgn_type_nm": "서울시 25개 區 전체",
+      "frst_dsgn_ymd": "2025-10-20",
+      "area_cn": "市 전체",
+      "rmrk_cn": "아파트 (단, 연립·다세대 혼재 아파트 15개 단지 포함)"
+    }
+  ],
+  "source": "서울부동산정보광장 토지거래허가구역 지정현황",
+  "source_url": "https://land.seoul.go.kr/land/other/appointStatusSeoul.do",
+  "designations": [
+    {
+      "sn": "34",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "1",
+      "dsgnAuthrNm": "서울시장",
+      "dsgnTypeNm": "강남·송파·서초·용산구",
+      "frstDsgnYmd": "2025-03-24",
+      "areaCn": "區 전체",
+      "rmrkCn": "‘아파트’ 용도"
+    },
+    {
+      "sn": "35",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "1",
+      "dsgnAuthrNm": "서울시장",
+      "dsgnTypeNm": "잠실·삼성·대치·청담 재건축 아파트",
+      "frstDsgnYmd": "2020-06-23",
+      "areaCn": "1.43",
+      "rmrkCn": "14개, ‘아파트’ 용도"
+    },
+    {
+      "sn": "36",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "1",
+      "dsgnAuthrNm": "서울시장",
+      "dsgnTypeNm": "압구정·여의도·목동·성수",
+      "frstDsgnYmd": "2021-04-27",
+      "areaCn": "4.58",
+      "rmrkCn": "주요 재건축 단지등"
+    },
+    {
+      "sn": "37",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "1",
+      "dsgnAuthrNm": "서울시장",
+      "dsgnTypeNm": "강남·서초 자연녹지지역",
+      "frstDsgnYmd": "1998-11-19",
+      "areaCn": "26.69",
+      "rmrkCn": "서리풀지구 포함"
+    },
+    {
+      "sn": "38",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "1",
+      "dsgnAuthrNm": "서울시장",
+      "dsgnTypeNm": "신속통합기획",
+      "frstDsgnYmd": "2022-01-02",
+      "areaCn": "10.36",
+      "rmrkCn": "160개소"
+    },
+    {
+      "sn": "39",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "1",
+      "dsgnAuthrNm": "서울시장",
+      "dsgnTypeNm": "공공재개발",
+      "frstDsgnYmd": "2021-01-26",
+      "areaCn": "1.76",
+      "rmrkCn": "32개소"
+    },
+    {
+      "sn": "40",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "1",
+      "dsgnAuthrNm": "서울시장",
+      "dsgnTypeNm": "모아타운 및 인근지역",
+      "frstDsgnYmd": "2024-09-10",
+      "areaCn": "11.98",
+      "rmrkCn": "135개소 지목 ‘도로’"
+    },
+    {
+      "sn": "41",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "2",
+      "dsgnAuthrNm": "국토교통부 장관",
+      "dsgnTypeNm": "용산 국제업무지구 및 인근지역",
+      "frstDsgnYmd": "2020-05-20",
+      "areaCn": "0.72",
+      "rmrkCn": "국토교통부 지정(용산정비창)"
+    },
+    {
+      "sn": "42",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "2",
+      "dsgnAuthrNm": "국토교통부 장관",
+      "dsgnTypeNm": "외국인 대상 주택 용도",
+      "frstDsgnYmd": "2025-08-26",
+      "areaCn": "市 전체",
+      "rmrkCn": "단독, 다가구, 아파트, 연립, 다세대"
+    },
+    {
+      "sn": "43",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "2",
+      "dsgnAuthrNm": "국토교통부 장관",
+      "dsgnTypeNm": "서울시 25개 區 전체",
+      "frstDsgnYmd": "2025-10-20",
+      "areaCn": "市 전체",
+      "rmrkCn": "아파트 (단, 연립·다세대 혼재 아파트 15개 단지 포함)"
+    },
+    {
+      "sn": "44",
+      "crtrYmd": "2026. 8. 16.",
+      "dsgnAuthrCd": "2",
+      "dsgnAuthrNm": "국토교통부 장관",
+      "dsgnTypeNm": "서울시 신규 주택공급 후보지 발굴",
+      "frstDsgnYmd": "2026-08-13",
+      "areaCn": "115.31",
+      "rmrkCn": "서울시 19개 區내 (개발제한구역)"
+    }
+  ]
+}

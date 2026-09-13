@@ -37,3 +37,6 @@ output/21.3.skyline.npy
 # 정적 payload (55.9MB, 9,160개 파일). front/build/36.build_payload.py 로 재생성된다.
 # 재빌드마다 전량 변경되므로 개발 중에는 추적하지 않고, 배포 직전에 한 번만 커밋한다.
 front/public/data/
+
+# 카카오 JS 키가 들어가는 로컬 설정. config.example.js 를 복사해 쓴다
+front/public/config.js

@@ -67,7 +67,7 @@
 추가로 채워진 것: `repr_floor` `obs_height` `sun_hours_spring` `open_span_max` `river_view` `park_view` (100%), `mountain_view` (68.7%, DEM 부재로 표고 근사)
 빈 것: 없음
 
-`floor_band`는 `LOW` / `MID` / `HIGH` 세 값이다.
+`floor_band`는 `LOW` / `MID` / `HIGH` 세 값이다. 실제 최고층을 기준으로 삼분할하며, 공통 함수 `models/price/_floor_band.py`를 사용한다. 과거에는 `ceil(층수×5/6)`을 최고층으로 오인해 경계가 어긋났으나 수정됐다.
 
 ---
 
@@ -101,7 +101,7 @@
 | `MODEL` | "추정 …~… · 이 단지는 최근 2년 거래가 없습니다" + 신뢰도 배지 | `est_low` `est_high` `est_confidence` |
 | `EXCLUDED` | "임대 전용 단지로 매매 거래가 없습니다" | `reason` |
 
-`MODEL`은 전체 단지의 일부(2,206단지)에만 붙는다. 예측구간의 명목 수준은 80%이고 검증 기간 실측 coverage는 80.13%다. **다만 "80% 보장"이라 쓰지 말 것** — 첫 coverage 실패를 보고 방식을 바꿨으므로 test가 재사용됐다. "개발 기간에서 관측된 값"까지만 말할 수 있다.
+`MODEL`은 전체 단지의 일부(2,206단지)에만 붙는다. 예측구간의 명목 수준은 80%이고 검증 기간 실측 coverage는 84.42%다. **다만 "80% 보장"이라 쓰지 말 것** — 첫 coverage 실패를 보고 방식을 바꿨으므로 test가 재사용됐다. "개발 기간에서 관측된 값"까지만 말할 수 있다.
 
 **정렬 축은 더 이상 제품의 약속이 아니다.** 이전 버전의 "일조 → 개방도 → 접근성" 1차 정렬은 검색을 돕는 보조 수단으로 강등됐다 (`product-identity.md` §2).
 

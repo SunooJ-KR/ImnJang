@@ -1,0 +1,49 @@
+name: Refresh regulation data
+
+on:
+  schedule:
+    # 03:00 KST every Monday = 18:00 UTC every Sunday.
+    - cron: "0 18 * * 0"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: refresh-regulation
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+
+      - name: Install dependencies
+        run: pip install requests pandas openpyxl beautifulsoup4
+
+      - name: Collect regulation data
+        run: python data/collect/35.collect_regulation.py
+
+      - name: Update published regulation data
+        run: cp output/35.2.regulation_summary.json front/public/regulation.json
+
+      - name: Commit and push changes when needed
+        run: |
+          if git diff --quiet -- front/public/regulation.json; then
+            exit 0
+          fi
+
+          as_of="$(python -c 'import json; print(json.load(open("output/35.2.regulation_summary.json", encoding="utf-8"))["as_of"])')"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add front/public/regulation.json
+          git commit -m "chore: refresh regulation data as of ${as_of}"
+          git push

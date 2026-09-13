@@ -18,6 +18,11 @@ var MAX_RESULTS = 30;
 
 var indexData = null;
 var basket = loadBasket();
+var runtimeRegulation = null;
+var regulationReady = loadRegulation();
+var kakaoMap = null;
+var searchMarkers = [];
+var basketMarkers = [];
 
 // ---------------------------------------------------------------------------
 // 유틸
@@ -54,6 +59,127 @@ function el(tag, className, text) {
   if (className) node.className = className;
   if (text !== undefined && text !== null) node.textContent = text;
   return node;
+}
+
+// ---------------------------------------------------------------------------
+// 런타임 규제 정보
+// ---------------------------------------------------------------------------
+
+/** 페이지당 한 번만 읽고, 실패하면 단지별 payload의 기존 정보를 사용한다. */
+function loadRegulation() {
+  return fetch('regulation.json').then(function (res) {
+    if (!res.ok) throw new Error('regulation');
+    return res.json();
+  }).then(function (data) {
+    runtimeRegulation = data;
+  }).catch(function () {
+    runtimeRegulation = null;
+  });
+}
+
+function permitZoneMessage(data) {
+  var isPermitZone;
+  var asOf;
+
+  if (runtimeRegulation) {
+    isPermitZone = runtimeRegulation.seoul_apartment_permit_zone;
+    asOf = runtimeRegulation.as_of;
+  } else if (data.regulation) {
+    isPermitZone = data.regulation.land_permit_zone;
+    asOf = data.regulation.as_of;
+  }
+
+  if (isPermitZone !== true || !asOf) return null;
+  return '토지거래허가구역 (' + asOf + ' 기준) · 실거주 목적만 매수 가능, 2년 실거주 의무';
+}
+
+// ---------------------------------------------------------------------------
+// 선택형 카카오 지도
+// ---------------------------------------------------------------------------
+
+function hideMap() {
+  document.getElementById('map-section').hidden = true;
+}
+
+function loadKakaoSdk(key) {
+  return new Promise(function (resolve, reject) {
+    var script = document.createElement('script');
+    script.src = 'https://dapi.kakao.com/v2/maps/sdk.js?autoload=false&appkey=' +
+      encodeURIComponent(key);
+    script.onload = function () {
+      if (!window.kakao || !window.kakao.maps) {
+        reject(new Error('kakao-sdk'));
+        return;
+      }
+      window.kakao.maps.load(resolve);
+    };
+    script.onerror = function () { reject(new Error('kakao-sdk')); };
+    document.head.appendChild(script);
+  });
+}
+
+function clearMarkers(markers) {
+  markers.forEach(function (marker) { marker.setMap(null); });
+  return [];
+}
+
+function markerEntries() {
+  if (!indexData) return [];
+  var term = document.getElementById('q').value.trim();
+  if (!term) return [];
+  return indexData.complexes.filter(function (item) {
+    return item.n.indexOf(term) !== -1 || item.u.indexOf(term) !== -1;
+  }).slice(0, MAX_RESULTS);
+}
+
+function basketEntries() {
+  if (!indexData) return [];
+  return basket.map(function (saved) {
+    return indexData.complexes.find(function (item) { return item.id === saved.id; });
+  }).filter(function (item) { return item; });
+}
+
+function addMarkers(entries, markers) {
+  entries.forEach(function (item) {
+    if (typeof item.lat !== 'number' || typeof item.lng !== 'number') return;
+    var marker = new window.kakao.maps.Marker({
+      map: kakaoMap,
+      position: new window.kakao.maps.LatLng(item.lat, item.lng),
+      title: item.n
+    });
+    markers.push(marker);
+  });
+}
+
+function updateMapMarkers() {
+  if (!kakaoMap) return;
+  searchMarkers = clearMarkers(searchMarkers);
+  basketMarkers = clearMarkers(basketMarkers);
+  addMarkers(markerEntries(), searchMarkers);
+  addMarkers(basketEntries(), basketMarkers);
+
+  var markers = searchMarkers.concat(basketMarkers);
+  if (markers.length === 0) return;
+  var bounds = new window.kakao.maps.LatLngBounds();
+  markers.forEach(function (marker) { bounds.extend(marker.getPosition()); });
+  kakaoMap.setBounds(bounds);
+}
+
+function initKakaoMap() {
+  var key = window.IMNJANG_KAKAO_JS_KEY;
+  if (typeof key !== 'string' || key.trim() === '') {
+    hideMap();
+    return;
+  }
+
+  loadKakaoSdk(key).then(function () {
+    kakaoMap = new window.kakao.maps.Map(document.getElementById('map'), {
+      center: new window.kakao.maps.LatLng(37.5665, 126.9780),
+      level: 8
+    });
+    document.getElementById('map-section').hidden = false;
+    updateMapMarkers();
+  }).catch(hideMap);
 }
 
 // ---------------------------------------------------------------------------
@@ -95,6 +221,7 @@ function toggleBasket(entry) {
   saveBasket();
   renderBasket();
   renderResults(document.getElementById('q').value);
+  updateMapMarkers();
 }
 
 function renderBasket() {
@@ -123,6 +250,7 @@ function renderResults(query) {
   if (term.length === 0) {
     status.textContent = '단지 ' + indexData.complexes.length.toLocaleString() +
       '곳 중에서 찾습니다. 단지명이나 동 이름을 입력하세요.';
+    updateMapMarkers();
     return;
   }
 
@@ -132,6 +260,7 @@ function renderResults(query) {
 
   if (matched.length === 0) {
     status.textContent = '"' + term + '"에 해당하는 단지를 찾지 못했습니다.';
+    updateMapMarkers();
     return;
   }
   status.textContent = matched.length.toLocaleString() + '곳 중 ' +
@@ -157,6 +286,7 @@ function renderResults(query) {
     row.appendChild(button);
     list.appendChild(row);
   });
+  updateMapMarkers();
 }
 
 // ---------------------------------------------------------------------------
@@ -276,10 +406,8 @@ function renderComplexCard(data) {
     data.gu + ' ' + data.umd_name + ' · ' + data.built_year + '년 · ' +
     (data.households === null ? '세대수 정보 없음' : data.households.toLocaleString() + '세대')));
 
-  if (data.regulation && data.regulation.land_permit_zone) {
-    card.appendChild(el('p', 'flag',
-      '토지거래허가구역 (' + data.regulation.as_of + ' 기준) · ' + data.regulation.note));
-  }
+  var permitZone = permitZoneMessage(data);
+  if (permitZone) card.appendChild(el('p', 'flag', permitZone));
   if (data.redevelop && data.redevelop.type) {
     card.appendChild(el('p', 'flag',
       '재건축 추진 중 (' + data.redevelop.stage + ' 단계)'));
@@ -366,14 +494,16 @@ function renderCompare() {
   section.hidden = false;
   host.appendChild(el('p', 'status', '불러오는 중입니다…'));
 
-  Promise.all(basket.map(function (item) {
+  var complexRequests = basket.map(function (item) {
     return fetch('data/complex/' + item.id + '.json').then(function (res) {
       if (!res.ok) throw new Error(item.id);
       return res.json();
     });
-  })).then(function (all) {
+  });
+
+  Promise.all([regulationReady, Promise.all(complexRequests)]).then(function (results) {
     host.textContent = '';
-    all.forEach(function (data) { host.appendChild(renderComplexCard(data)); });
+    results[1].forEach(function (data) { host.appendChild(renderComplexCard(data)); });
     section.scrollIntoView({ behavior: 'smooth' });
   }).catch(function () {
     host.textContent = '';
@@ -400,12 +530,15 @@ function init() {
 
   renderBasket();
 
+  (window.imnjangConfigReady || Promise.resolve()).then(initKakaoMap);
+
   fetch('data/index.json').then(function (res) {
     if (!res.ok) throw new Error('index');
     return res.json();
   }).then(function (data) {
     indexData = data;
     renderResults('');
+    updateMapMarkers();
   }).catch(function () {
     document.getElementById('search-status').textContent =
       '검색 인덱스를 불러오지 못했습니다.';
