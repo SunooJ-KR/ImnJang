@@ -40,16 +40,20 @@ export function SearchPanel({
   onTogglePick: (item: IndexComplex) => void;
 }) {
   return (
+    // md 이상에서만 sticky + 높이 제한이다. max-h 만 걸면 내부 콘텐츠가 박스를
+    // 넘어 이웃 위로 그려질 수 있으므로 overflow-hidden 으로 함께 못박는다.
     <Card
       id="search-section"
-      className="flex flex-col gap-3 p-3 md:sticky md:top-[62px] md:max-h-[calc(100dvh-78px)] md:p-4"
+      className="flex flex-col gap-3 p-3 md:sticky md:top-[62px] md:max-h-[calc(100dvh-78px)] md:overflow-hidden md:p-4"
     >
-      <SectionHeading as="h1" eyebrow="Search" title="관심 단지를 지도에서 고르기" />
+      {/* 패널 높이가 max-h 에 걸리면 flex 자식이 전부 줄어든다.
+          스크롤을 맡는 결과 리스트만 flex-1 로 두고 나머지는 shrink-0 으로 고정한다. */}
+      <SectionHeading as="h1" eyebrow="Search" title="관심 단지를 지도에서 고르기" className="shrink-0" />
 
       <label htmlFor="q" className="sr-only">
         단지명 또는 법정동
       </label>
-      <div className="flex min-h-11 items-center gap-2 rounded-md border border-transparent bg-input px-3 transition-[background-color,border-color,box-shadow] duration-150 ease-[var(--ease-out-soft)] focus-within:border-primary/40 focus-within:bg-card focus-within:shadow-[0_0_0_3px_rgb(65_54_232/0.12)]">
+      <div className="flex min-h-11 shrink-0 items-center gap-2 rounded-md border border-transparent bg-input px-3 transition-[background-color,border-color,box-shadow] duration-150 ease-[var(--ease-out-soft)] focus-within:border-primary/40 focus-within:bg-card focus-within:shadow-[0_0_0_3px_rgb(65_54_232/0.12)]">
         <SearchIcon />
         <Input
           id="q"
@@ -61,7 +65,7 @@ export function SearchPanel({
         />
       </div>
 
-      <div className="flex gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]" aria-label="빠른 조건">
+      <div className="flex shrink-0 gap-1.5 overflow-x-auto pb-0.5 [scrollbar-width:none]" aria-label="빠른 조건">
         {FILTERS.map((option) => (
           <Button
             key={option.value}
@@ -77,11 +81,11 @@ export function SearchPanel({
         ))}
       </div>
 
-      <p className="min-h-[18px] text-[12.5px] text-muted-foreground" role="status">
+      <p className="min-h-[18px] shrink-0 text-[12.5px] text-muted-foreground" role="status">
         {status}
       </p>
 
-      <ul className="grid min-h-0 gap-1.5 overflow-y-auto overscroll-contain" aria-label="검색 결과">
+      <ul className="grid min-h-0 flex-1 gap-1.5 overflow-y-auto overscroll-contain" aria-label="검색 결과">
         {results.slice(0, MAX_RESULTS).map((item) => (
           <li key={item.id}>
             <ResultRow

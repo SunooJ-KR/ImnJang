@@ -32,7 +32,7 @@ export function CompareSection({
   error: string | null;
 }) {
   return (
-    <Card id="compare-section" className="col-span-full scroll-mt-20 p-3 md:p-4">
+    <Card id="compare-section" className="scroll-mt-16 p-3 md:p-4">
       <SectionHeading eyebrow="Compare" title="비교서" />
 
       {loading && <p className="mt-3 text-[12.5px] text-muted-foreground">불러오는 중입니다.</p>}

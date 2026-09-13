@@ -10,6 +10,7 @@ import { SearchPanel } from "@/components/search-panel";
 import { MAX_RESULTS, fetchComplex, loadIndex } from "@/lib/data";
 import { isFailed } from "@/lib/format";
 import { useBasket } from "@/lib/use-basket";
+import { cn } from "@/lib/utils";
 import type { ComplexPayload, IndexComplex, QuickFilter } from "@/lib/types";
 
 export default function Page() {
@@ -108,7 +109,9 @@ export default function Page() {
   }, [clear]);
 
   return (
-    <div className="px-3 pb-24 md:px-4 lg:pb-6">
+    // 하단 비교 바가 fixed 라 그만큼 바닥을 비워야 비교서와 푸터가 가려지지 않는다.
+    // 담은 게 없으면 바도 없으므로 그때는 여백을 주지 않는다.
+    <div className={cn("px-3 md:px-4", basket.length > 0 ? "pb-32 lg:pb-24" : "pb-6")}>
       <header className="sticky top-0 z-20 mx-auto flex w-[min(1320px,100%)] items-center justify-between gap-3 bg-muted/85 py-2 backdrop-blur-md">
         <a href="#search-section" className="inline-flex min-w-0 items-center gap-2">
           <span
@@ -157,13 +160,15 @@ export default function Page() {
           picked={selected !== null && has(selected.id)}
           onTogglePick={() => selected !== null && togglePick(selected)}
         />
-
-        {compareOpen && (
-          <div ref={compareRef} className="col-span-full">
-            <CompareSection payloads={payloads} loading={compareLoading} error={compareError} />
-          </div>
-        )}
       </main>
+
+      {/* 비교서는 grid 밖에 둔다. 검색 패널이 sticky 라 같은 grid 안에 있으면
+          행 경계에서 겹쳐 보인다. 여기로 빼면 항상 main 아래에 전체 폭으로 놓인다. */}
+      {compareOpen && (
+        <div ref={compareRef} className="mx-auto mt-3 w-[min(1320px,100%)] scroll-mt-16">
+          <CompareSection payloads={payloads} loading={compareLoading} error={compareError} />
+        </div>
+      )}
 
       <BasketBar basket={basket} full={full} onCompare={openCompare} onClear={clearBasket} />
 
