@@ -215,11 +215,16 @@ function PriceSummary({ entry }: { entry: PriceEntry }) {
     <div className="text-[12.5px] text-muted-foreground">원단가 {num(entry.mean_price_per_m2_24m, "만원/㎡")}</div>
   </>;
   if (entry.source === "MODEL") return <>
-    <Value accent>추정 {totalFromUnit(entry.est_low)}~{totalFromUnit(entry.est_high)} · 최근 2년 매매 거래가 없어 추정했습니다</Value>
+    <Value accent>추정 {totalFromUnit(entry.est_low)}~{totalFromUnit(entry.est_high)} · 최근 2년 매매 거래가 없어 추정했습니다{entry.est_note === "NEW_BUILD_NO_SALE" && " · 2023년 이후 준공 · 아직 매매 거래 없음"}</Value>
     <div className="text-[12.5px] text-muted-foreground">원단가 {num(entry.est_low, "만원/㎡")}~{num(entry.est_high, "만원/㎡")}</div>
     <Badge className="mt-1" variant={entry.est_confidence === "HIGH" ? "accent" : "neutral"}>신뢰도 {entry.est_confidence ?? "정보 없음"}</Badge>
   </>;
-  return <div className="text-[12.5px] text-muted-foreground">임대 관련 명칭으로 추정 대상에서 제외했습니다</div>;
+  if (entry.reason === "RENTAL_ONLY") return <div className="text-[12.5px] text-muted-foreground">임대 관련 명칭으로 추정 대상에서 제외했습니다</div>;
+  if (entry.reason === "NO_SALE_5Y") return <>
+    <div className="text-[12.5px] text-muted-foreground">최근 5년간 매매 거래가 없어 가격을 표시하지 않습니다</div>
+    <div className="mt-1 text-[11px] text-muted-foreground">임대 단지이거나 거래가 드문 단지일 수 있습니다. 공급기관·관리사무소 정보를 확인하세요</div>
+  </>;
+  return <div className="text-[12.5px] text-muted-foreground">가격 정보가 없습니다</div>;
 }
 
 function redevelopLabel(type: string, stage: string | null): string {

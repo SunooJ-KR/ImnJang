@@ -45,6 +45,7 @@ export interface PriceEntry {
   est_low: number | null;
   est_high: number | null;
   est_confidence: EstConfidence | null;
+  est_note: "NEW_BUILD_NO_SALE" | null;
   reason: string | null;
 }
 

@@ -15,6 +15,7 @@ from _features import (add_jeonse_interactions, add_location_fe_columns, bool_to
                        model_features, normalize_administrative_code, service_model_features)
 from _floor_band import assign_floor_band, load_actual_max_levels
 from _jeonse import JeonseFeatureBuilder
+from _price_router import _valid_sales
 
 work_dir = Path(__file__).resolve().parents[2]
 output_dir = work_dir / "output"
@@ -26,6 +27,7 @@ REDEVELOP_PATH, CELLS_PATH = output_dir / "31.1.complex_redevelop.txt", output_d
 ESTIMATES_PATH, METRICS_OUT_PATH = output_dir / "33.1.coldstart_estimates.txt", output_dir / "33.2.coldstart_metrics.txt"
 EXCLUDED_PATH = output_dir / "33.3.excluded_complexes.txt"
 TRAIN_START, TRAIN_END, TEST_START, TEST_END = pd.Period("2024-09", "M"), pd.Period("2026-02", "M"), pd.Period("2026-03", "M"), pd.Period("2026-08", "M")
+SALE_5Y_START, SALE_5Y_END = pd.Period("2021-09", "M"), pd.Period("2026-08", "M")
 MIN_CALIBRATION_ROWS, DEFAULT_CALIBRATION_MONTHS = 500, 3
 CONFORMAL_NOMINAL_LEVELS = (70.0, 80.0, 90.0)
 PROFILE_BANDS = ["LOW", "MID", "HIGH"]
@@ -73,6 +75,57 @@ def rental_only_exclusions(complex_df, active):
     excluded["exclude_reason"] = "RENTAL_ONLY"
     excluded = excluded[["apt_seq", "name", "exclude_reason", "matched_keyword"]]
     return unique(excluded.sort_values("apt_seq"), ["apt_seq"], "33.3")
+
+def five_year_market_evidence(complex_df, rent):
+    """결정 68의 5년 매매·전월세 근거를 같은 단지 key로 집계한다.
+
+    매매는 서비스 가격 route와 같은 _valid_sales를 써서 known complex, 미취소,
+    양수 가격·면적, 유효 계약월 조건을 모두 적용한다. 전월세는 33의 전세 feature
+    입력과 같이 23.1 존재 및 유효 면적 조건을 통과한 11.2 행을 센다.
+    """
+    raw_sale = pd.read_csv(TRADES_PATH, sep="\t", low_memory=False)
+    known_complexes = set(complex_df["apt_seq"].astype(str))
+    sale = _valid_sales(raw_sale, known_complexes)
+    sale = sale.loc[sale.deal_period.between(SALE_5Y_START, SALE_5Y_END)]
+    sale_counts = sale.groupby("apt_seq", observed=True).size().rename("sale_5y_n")
+
+    rent_5y = rent.rent.loc[rent.rent.deal_period.between(SALE_5Y_START, SALE_5Y_END)]
+    rent_counts = rent_5y.groupby("apt_seq", observed=True).size().rename("rent_5y_n")
+    jeonse_counts = rent_5y.loc[rent_5y.is_jeonse_bool].groupby("apt_seq", observed=True).size()
+
+    evidence = complex_df[["apt_seq", "built_year", "total_households"]].copy()
+    evidence = evidence.join(sale_counts, on="apt_seq").join(rent_counts, on="apt_seq")
+    evidence["sale_5y_n"] = evidence.sale_5y_n.fillna(0).astype(int)
+    evidence["rent_5y_n"] = evidence.rent_5y_n.fillna(0).astype(int)
+    evidence["jeonse_share"] = evidence.apt_seq.map(jeonse_counts).div(evidence.rent_5y_n).where(evidence.rent_5y_n.gt(0))
+    for column in ["built_year", "total_households"]:
+        evidence[column] = pd.to_numeric(evidence[column], errors="coerce")
+    return evidence
+
+def no_sale_five_year_exclusions(evidence, candidate_apts):
+    """결정 68 R1~R4를 이름 기반 제외 뒤의 실제 추정 후보에 적용한다."""
+    candidates = evidence.loc[evidence.apt_seq.isin(candidate_apts)].copy()
+    no_sale = candidates.sale_5y_n.eq(0)
+    r1 = no_sale & (candidates.built_year.le(2022) | candidates.built_year.isna()) & (
+        candidates.total_households.ge(100) | candidates.rent_5y_n.ge(100)
+    )
+    r2 = no_sale & candidates.built_year.ge(2023) & candidates.rent_5y_n.ge(100) & (
+        candidates.jeonse_share.ge(.95) | candidates.jeonse_share.le(.05)
+    )
+    r3 = no_sale & candidates.built_year.ge(2023) & ~r2
+    r4 = no_sale & ~(r1 | r2 | r3)
+    candidates["rule"] = np.select([r1, r2, r3, r4], ["R1", "R2", "R3", "R4"], default=pd.NA)
+    excluded = candidates.loc[candidates.rule.isin(["R1", "R2"]), [
+        "apt_seq", "sale_5y_n", "rent_5y_n", "jeonse_share", "built_year", "total_households", "rule",
+    ]].copy()
+    excluded["name"] = pd.NA
+    excluded["exclude_reason"] = "NO_SALE_5Y"
+    excluded["matched_keyword"] = pd.NA
+    excluded = excluded[[
+        "apt_seq", "name", "exclude_reason", "matched_keyword", "sale_5y_n", "rent_5y_n",
+        "jeonse_share", "built_year", "total_households", "rule",
+    ]]
+    return excluded, candidates.set_index("apt_seq")["rule"], candidates.rule.value_counts().to_dict()
 
 def load_base():
     sale = pd.read_csv(TRADES_PATH, sep="\t", low_memory=False).rename(columns={"aptSeq":"apt_seq"})
@@ -204,28 +257,32 @@ def main():
     print(f"  완전 법정동 키 {full_keys.nunique():,}개, 자치구 혼입 {mixed}개, 계층 dense {len(dense_keys):,}개")
     print("===== 2. J/K/L 비교 =====")
     j=score("J: service (전세 없음)",train,test);k=pick([score("K: 순수 전세 / linear",train,test,rent,"PURE",False),score("K: 순수 전세 / 자치구 교호",train,test,rent,"PURE",True)]);l=pick([score("L: 5% 환산 / linear",train,test,rent,"CONVERTED",False),score("L: 5% 환산 / 자치구 교호",train,test,rent,"CONVERTED",True)]);choices=[j,k,l];candidate=pick([k,l]);use_rent=candidate["hold"]<j["hold"];chosen=candidate if use_rent else j;legacy_reference=score("참조: I + 물리 feature",train,test,rent if chosen["version"] is not None else None,chosen["version"],chosen["interaction"],service_spec=False);inte,cov=intervals(chosen);print(f"  J/K/L holdout: {j['hold']:.2f}% / {k['hold']:.2f}% / {l['hold']:.2f}% | 채택 {chosen['name']}")
-    print("===== 3. cold-start 추정 =====");tar,ta=targets(complex_df,profile,max_levels,latest,rent);active=set(pd.read_csv(CELLS_PATH,sep="\t",usecols=["apt_seq"]).apt_seq.astype(str));excluded=rental_only_exclusions(complex_df,active);excluded.to_csv(EXCLUDED_PATH,sep="\t",index=False);ta["before_exclusion_complexes"],ta["before_exclusion_rows"]=tar.apt_seq.nunique(),len(tar);tar=tar.loc[~tar.apt_seq.isin(excluded.apt_seq)].copy();ta["after_exclusion_complexes"],ta["after_exclusion_rows"]=tar.apt_seq.nunique(),len(tar);tar=tar.merge(complex_df.drop(columns=["redevelop_type","redevelop_stage"]),on="apt_seq",how="left",validate="many_to_one");met=unique(pd.read_csv(METRICS_PATH,sep="\t",low_memory=False).assign(apt_seq=lambda x:x.apt_seq.astype(str)),["apt_seq"],"23.2");tar=tar.merge(met,on="apt_seq",how="left",validate="many_to_one").merge(profile.drop(columns=["repr_floor","obs_height","sun_hours_spring"],errors="ignore"),on=["apt_seq","floor_band"],how="left",validate="many_to_one");red=pd.read_csv(REDEVELOP_PATH,sep="\t",low_memory=False).rename(columns={"aptSeq":"apt_seq"});red.apt_seq=red.apt_seq.astype(str);tar=tar.merge(red[["apt_seq","redevelop_type","redevelop_stage"]],on="apt_seq",how="left",validate="many_to_one")
+    print("===== 3. cold-start 추정 =====");tar,ta=targets(complex_df,profile,max_levels,latest,rent);active=set(pd.read_csv(CELLS_PATH,sep="\t",usecols=["apt_seq"]).apt_seq.astype(str));rental_excluded=rental_only_exclusions(complex_df,active);evidence=five_year_market_evidence(complex_df,rent);candidate_apts=set(tar.apt_seq)-set(rental_excluded.apt_seq);no_sale_excluded,rule_by_apt,rule_counts=no_sale_five_year_exclusions(evidence,candidate_apts);evidence_columns=["sale_5y_n","rent_5y_n","jeonse_share","built_year","total_households","rule"];rental_excluded=rental_excluded.merge(evidence[["apt_seq",*evidence_columns[:-1]]].assign(rule=pd.NA),on="apt_seq",how="left",validate="one_to_one");excluded=pd.concat([rental_excluded,no_sale_excluded],ignore_index=True);excluded=unique(excluded.sort_values("apt_seq"),["apt_seq"],"33.3");excluded.to_csv(EXCLUDED_PATH,sep="\t",index=False);ta["before_exclusion_complexes"],ta["before_exclusion_rows"]=tar.apt_seq.nunique(),len(tar);tar=tar.loc[~tar.apt_seq.isin(excluded.apt_seq)].copy();ta["after_exclusion_complexes"],ta["after_exclusion_rows"]=tar.apt_seq.nunique(),len(tar);tar["rule"]=tar.apt_seq.map(rule_by_apt);tar=tar.merge(complex_df.drop(columns=["redevelop_type","redevelop_stage"]),on="apt_seq",how="left",validate="many_to_one");met=unique(pd.read_csv(METRICS_PATH,sep="\t",low_memory=False).assign(apt_seq=lambda x:x.apt_seq.astype(str)),["apt_seq"],"23.2");tar=tar.merge(met,on="apt_seq",how="left",validate="many_to_one").merge(profile.drop(columns=["repr_floor","obs_height","sun_hours_spring"],errors="ignore"),on=["apt_seq","floor_band"],how="left",validate="many_to_one");red=pd.read_csv(REDEVELOP_PATH,sep="\t",low_memory=False).rename(columns={"aptSeq":"apt_seq"});red.apt_seq=red.apt_seq.astype(str);tar=tar.merge(red[["apt_seq","redevelop_type","redevelop_stage"]],on="apt_seq",how="left",validate="many_to_one")
     for c in ["river_view","park_view","mountain_view"]:tar[c]=bool_to_float(tar[c])
     for c in ["far","bcr","parking_per_hh"]:tar[c]=pd.to_numeric(tar[c],errors="coerce")
     tar["is_redevelop"],tar["redevelop_stage_advanced"],tar["bjd_code"],tar["deal_period"],tar["deal_ym"],tar["excluUseAr"]=tar.redevelop_type.notna().astype(float),tar.redevelop_stage.isin(["관리처분","착공"]).astype(float),tar.bjd_code.astype("string").fillna("MISSING"),latest,str(latest),tar.area_type.astype(float)
     tar=add_location_fe_columns(tar,LOCATION_SCHEME,dense_keys)
-    tx,final_audit=prepare(tar,rent if use_rent else None,chosen["version"],latest,chosen["interaction"],chosen["levels"]);mo,co=fit(chosen["train"],chosen["features"],chosen["family"]);est=predict(mo,tx,chosen["features"],co,chosen["family"]);tx["est_price_per_m2"],tx["est_low"],tx["est_high"]=est,est*np.exp(inte["lo"]),est*np.exp(inte["hi"]);tx["jeonse_over_sale_ratio_gt1"]=tx.get("jeonse_per_m2_adj",pd.Series(np.nan,index=tx.index)).gt(tx.est_price_per_m2);ref=train.groupby(["bjd_full_key","area_type","floor_band"]).size();tx["reference_cell_n"]=ref.reindex(pd.MultiIndex.from_frame(tx[["bjd_full_key","area_type","floor_band"]]),fill_value=0).to_numpy();small=pd.to_numeric(tx.total_households,errors="coerce").le(20);tx["est_confidence"]=np.select([~small&physical(tx)&tx.reference_cell_n.ge(20),~small&tx.reference_cell_n.ge(5)],["HIGH","MEDIUM"],default="LOW")
-    cols=["apt_seq","area_type","area_type_source","floor_band","jeonse_level","jeonse_per_m2_adj","jeonse_n_trades","jeonse_months_since","is_move_in_period","jeonse_over_sale_ratio_gt1","est_price_per_m2","est_low","est_high","est_confidence"]
+    tx,final_audit=prepare(tar,rent if use_rent else None,chosen["version"],latest,chosen["interaction"],chosen["levels"]);mo,co=fit(chosen["train"],chosen["features"],chosen["family"]);est=predict(mo,tx,chosen["features"],co,chosen["family"]);tx["est_price_per_m2"],tx["est_low"],tx["est_high"]=est,est*np.exp(inte["lo"]),est*np.exp(inte["hi"]);tx["jeonse_over_sale_ratio_gt1"]=tx.get("jeonse_per_m2_adj",pd.Series(np.nan,index=tx.index)).gt(tx.est_price_per_m2);ref=train.groupby(["bjd_full_key","area_type","floor_band"]).size();tx["reference_cell_n"]=ref.reindex(pd.MultiIndex.from_frame(tx[["bjd_full_key","area_type","floor_band"]]),fill_value=0).to_numpy();small=pd.to_numeric(tx.total_households,errors="coerce").le(20);tx["est_confidence"]=np.select([~small&physical(tx)&tx.reference_cell_n.ge(20),~small&tx.reference_cell_n.ge(5)],["HIGH","MEDIUM"],default="LOW");tx.loc[tx.rule.eq("R4"),"est_confidence"]="LOW";tx["est_note"]=np.where(tx.rule.eq("R3"),"NEW_BUILD_NO_SALE",pd.NA)
+    cols=["apt_seq","area_type","area_type_source","floor_band","jeonse_level","jeonse_per_m2_adj","jeonse_n_trades","jeonse_months_since","is_move_in_period","jeonse_over_sale_ratio_gt1","est_price_per_m2","est_low","est_high","est_confidence","est_note"]
     out=tx[cols].sort_values(["apt_seq","area_type","floor_band"])
     overlap=set(out.apt_seq)&active
-    rental_in_estimates=set(out.apt_seq)&set(excluded.apt_seq)
+    excluded_in_estimates=set(out.apt_seq)&set(excluded.apt_seq)
     excluded_in_price_cells=set(excluded.apt_seq)&active
     leak=all(pd.Period(v,"M")<=TRAIN_END for k,v in chosen["audit"].items() if k.endswith("feature_max_rent_period")) if use_rent else True
     nominal=inte["nominal"]
     coverage_ok=abs(cov-nominal)<=8
-    keyword_counts=excluded.matched_keyword.value_counts().reindex(RENTAL_KEYWORDS,fill_value=0).to_dict()
+    keyword_counts=rental_excluded.matched_keyword.value_counts().reindex(RENTAL_KEYWORDS,fill_value=0).to_dict()
+    no_sale_reason=excluded.set_index("apt_seq").exclude_reason
+    no_sale_23=no_sale_reason.get("11710-8544")
+    excluded_18=no_sale_reason.get("11710-9173")
     checks=[
         ("A1 aptSeq key 체계",keys["rent_key_malformed_rows"]==0,f"malformed {keys['rent_key_malformed_rows']}"),
         ("완전 법정동 키 300개 이상",full_keys.nunique()>=300,f"{full_keys.nunique()}"),
         ("완전 법정동 키 자치구 혼입 0건",mixed==0,f"{mixed}"),
         ("33.1/32.1 apt_seq 겹침 0건",not overlap,f"{len(overlap)}"),
-        ("33.1 임대 키워드 단지 0건",not rental_in_estimates,f"{len(rental_in_estimates)}"),
+        ("33.1 33.3 제외 단지 0건",not excluded_in_estimates,f"{len(excluded_in_estimates)}"),
         ("33.3/32.1 apt_seq 겹침 0건",not excluded_in_price_cells,f"{len(excluded_in_price_cells)}"),
+        ("11710-8544 위례포레샤인23단지 NO_SALE_5Y 제외",no_sale_23=="NO_SALE_5Y",str(no_sale_23)),
         (f"test coverage nominal {nominal:.0f}% ±8%p",coverage_ok,f"{cov:.2f}%"),
         ("test 전세 feature test기간 데이터 미사용",leak,f"최대 {TRAIN_END}"),
         ("전세 채택시 J보다 holdout 개선",not use_rent or candidate["hold"]<j["hold"],f"J {j['hold']:.2f} / 후보 {candidate['hold']:.2f}"),
@@ -252,10 +309,12 @@ def main():
     ]
     insertion=lines.index("## 자체 검증")
     lines[insertion:insertion]=[
-        "## 임대 전용 단지 제외",
-        f"- cold-start 단지 이름에서 임대성 키워드 매칭 {len(excluded):,}개를 33.3으로 별도 저장하고, 33.1 추정 대상에서 제외했습니다. 키워드별 분포 {keyword_counts}.",
+        "## 가격 미표시 단지 제외",
+        f"- cold-start 단지 이름에서 임대성 키워드 매칭 {len(rental_excluded):,}개와 최근 5년 매매 0건 규칙 R1/R2 {len(no_sale_excluded):,}개를 33.3으로 별도 저장하고, 33.1 추정 대상에서 제외했습니다. 키워드별 분포 {keyword_counts}.",
         f"- 추정 대상 단지는 제외 전 {ta['before_exclusion_complexes']:,}개/{ta['before_exclusion_rows']:,}행에서 제외 후 {ta['after_exclusion_complexes']:,}개/{ta['after_exclusion_rows']:,}행으로 감소했습니다.",
-        "- 한계: 이름에 임대 표기가 없는 임대 단지는 잡지 못합니다. 반대로 임대 표기가 있어도 분양 세대가 섞인 동 단위 표기일 수 있습니다.",
+        "- 결정 68: 5년 매매 0건 추정 후보의 R1/R2/R3/R4는 각각 " + ", ".join(f"{rule}={rule_counts.get(rule, 0):,}" for rule in ("R1", "R2", "R3", "R4")) + ". R3는 NEW_BUILD_NO_SALE 표기를, R4는 LOW 신뢰도를 강제합니다.",
+        f"- 자체 확인: 11710-8544는 {no_sale_23}, 11710-9173(18단지)는 {excluded_18 if pd.notna(excluded_18) else '미제외'}입니다.",
+        "- 한계: 이름에 임대 표기가 없는 단지는 이름 규칙만으로 잡을 수 없고, 임대 표기가 있어도 분양 세대가 섞인 동 단위 표기일 수 있습니다.",
         "- 따라서 이 규칙은 cold-start 단지에만 적용합니다. 실제 최근 24개월 매매 거래가 있는 32.1 단지는 이름에 임대 표기가 있어도 제외하지 않습니다.",
         "",
     ]
