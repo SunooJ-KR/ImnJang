@@ -28,6 +28,7 @@ Codex는 이 파일을 직접 읽는다. Claude Code는 저장소 루트의 `CLA
 ## 3. 작업 흐름 (필수)
 
 브랜치는 세 층이다. `main`(배포 기준) ← `dev`(통합·build 검증) ← 작업 브랜치.
+GitHub 기본 브랜치는 `dev`이므로 PR base는 따로 지정하지 않으면 `dev`가 된다. `main`으로 올릴 때만 base를 `main`으로 명시한다(`gh pr create --base main`).
 
 1. **작업 단위마다** 최신 `dev`에서 브랜치를 만든다. 예: `feat/front-map-cluster`, `fix/price-area-fallback`, `docs/backend-plan`.
 2. 로컬 검증(§5)을 통과시킨다. 검사 명령은 **exit code로 다음 단계를 막는다**(`&&` 또는 실패 시 중단). 실패를 무시하고 커밋·PR로 넘어가지 않는다.
