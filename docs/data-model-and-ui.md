@@ -64,7 +64,7 @@ complex_metrics (                  -- 단지 레벨 집계 (검색·비교용)
   traffic_weekend INT,           -- NULL 허용
   -- 교육 (§6.8.1)
   elem_school_m   DOUBLE,
-  elem_safe_route BOOLEAN,       -- 초품아: 300m 이내 + 주간선도로 미횡단
+  elem_safe_route BOOLEAN,       -- 최근접 초등학교까지 직선이 간선도로와 교차하지 않음(근사). 거리 조건 없음
   mid_school_m    DOUBLE,
   high_school_m   DOUBLE,
   daycare_500m    INT,
