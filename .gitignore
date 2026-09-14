@@ -34,8 +34,9 @@ __pycache__/
 # 관측점별 72방위 스카이라인 (19MB). 21.horizon_batch.py로 90초에 재생성된다
 output/21.3.skyline.npy
 
-# 정적 payload(front/public/data/)는 배포 산출물이라 추적한다 (2026-09-14 배포용 커밋).
+# 정적 payload(front/public/data/)는 배포 산출물이라 추적한다.
+# Vercel 이 저장소 파일을 그대로 서빙하므로 저장소에 있어야 한다.
 # 재빌드마다 9,160개가 전량 바뀌므로 모델 변경이 확정됐을 때만 다시 커밋한다.
-
-# 카카오 JS 키가 들어가는 로컬 설정. config.example.js 를 복사해 쓴다
-front/public/config.js
+front/docs/
+# Claude Code 로컬 설정
+CLAUDE.md

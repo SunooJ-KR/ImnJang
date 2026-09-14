@@ -395,7 +395,7 @@ def build_payloads(complex_df: pd.DataFrame, metrics: pd.DataFrame, profile: pd.
         if apt_seq in excluded_apts and [item["source"] for item in price] != ["EXCLUDED"]:
             raise ValueError(f"임대 전용 payload의 price source가 EXCLUDED 단독이 아닙니다: {apt_seq}")
         dump_json(complex_payload_path(apt_seq), payload)
-        index_rows.append({
+        index_row: dict[str, Any] = {
             "id": apt_seq,
             "n": json_value(row["name"]),
             "g": json_value(row["gu"]),
@@ -404,7 +404,13 @@ def build_payloads(complex_df: pd.DataFrame, metrics: pd.DataFrame, profile: pd.
             "lng": payload_value("lng", row["lng"]),
             "y": payload_value("built_year", row["built_year"]),
             "h": payload_value("households", row["total_households"]),
-        })
+        }
+        # 지도와 검색 리스트가 '확인 필요' 단지를 상세 JSON 없이 구분할 수 있어야 한다.
+        # HIGH 는 프론트 기본값이라 적지 않는다. 9,160행에 매번 싣기에는 낭비다.
+        match_value = payload_value("match_confidence", row["match_confidence"])
+        if match_value is not None and match_value != "HIGH":
+            index_row["match_confidence"] = match_value
+        index_rows.append(index_row)
         if index % 1000 == 0:
             print(f"  진행: {index:,}/{len(complex_df):,}개 단지 JSON 생성")
 

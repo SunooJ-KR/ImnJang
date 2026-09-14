@@ -1,0 +1,163 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   디자인 토큰
+   포인트 컬러 #4136E8 하나에 선택·활성·주요 행동을 모은다.
+   초록/주황/빨강 상태색은 쓰지 않는다. 상태는 회색 톤과 텍스트 라벨로 구분한다.
+   ========================================================================== */
+
+:root {
+  --background: #ffffff;
+  --foreground: #1d2433;
+
+  --card: #ffffff;
+  --card-foreground: #1d2433;
+
+  --muted: #f6f7f9;
+  --muted-foreground: #697386;
+
+  --primary: #4136e8;
+  --primary-foreground: #ffffff;
+  --primary-hover: #2f25c9;
+  --primary-soft: #eeedff;
+
+  --secondary: #f6f7f9;
+  --secondary-foreground: #1d2433;
+
+  --border: #e6e8ee;
+  --border-strong: #ccd1db;
+  --input: #f6f7f9;
+  --ring: #4136e8;
+
+  --neutral-soft: #f0f1f4;
+  --neutral-strong: #858b98;
+
+  --radius: 12px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-primary-soft: var(--primary-soft);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-neutral-soft: var(--neutral-soft);
+  --color-neutral-strong: var(--neutral-strong);
+
+  /* 버튼 radius는 10~15px 범위로 제한한다. */
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 14px;
+
+  --shadow-panel: 0 1px 2px rgb(29 36 51 / 0.04), 0 6px 20px rgb(29 36 51 / 0.05);
+  --shadow-float: 0 2px 6px rgb(29 36 51 / 0.06), 0 16px 40px rgb(29 36 51 / 0.09);
+
+  --ease-out-soft: cubic-bezier(0.2, 0.7, 0.3, 1);
+
+  --animate-fade-in: fade-in 180ms var(--ease-out-soft);
+  --animate-rise-in: rise-in 220ms var(--ease-out-soft) both;
+  --animate-slide-up: slide-up 220ms var(--ease-out-soft);
+  --animate-reveal-up: reveal-up 220ms var(--ease-out-soft) both;
+  --animate-bounce-down: bounce-down 1.6s var(--ease-out-soft) infinite;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes rise-in {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(100%); }
+    to { opacity: 1; transform: none; }
+  }
+
+  @keyframes reveal-up {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: none; }
+  }
+
+  /* 결과가 아래에 있다는 힌트. 아주 작게, 계속 움직여도 거슬리지 않을 만큼만. */
+  @keyframes bounce-down {
+    0%, 60%, 100% { transform: none; }
+    30% { transform: translateY(2px); }
+  }
+
+  /* 테두리를 직접 애니메이트하지 않는다. 링은 가상 요소에 미리 그려두고
+     opacity 만 움직여서 레이아웃도 페인트 비용도 건드리지 않는다. */
+  @keyframes ring-fade {
+    0% { opacity: 0; }
+    30% { opacity: 0.5; }
+    100% { opacity: 0; }
+  }
+}
+
+@layer components {
+  /* 하단에 비교서가 새로 나타났다는 것을 포인트 컬러 링으로 한 번만 알린다. */
+  .reveal-ring {
+    position: relative;
+  }
+
+  .reveal-ring::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 0 0 3px var(--primary);
+    opacity: 0;
+    pointer-events: none;
+    animation: ring-fade 1000ms var(--ease-out-soft) 160ms;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-muted text-foreground;
+    font-family: system-ui, -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+    line-height: 1.45;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* 검색 입력은 16px 미만이면 iOS에서 자동 확대된다. */
+  input[type="search"] {
+    font-size: 16px;
+  }
+}
+
+/* transform / opacity 외의 속성은 애니메이트하지 않는다. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+  }
+}
