@@ -150,14 +150,4 @@
 
 ## 8. 재생성 방법
 
-```bash
-.venv/bin/python data/master/15.assign_dong_all.py         # 동 배정
-.venv/bin/python -u models/horizon/21.horizon_batch.py     # 일조·조망 (약 90초)
-.venv/bin/python models/horizon/22.access_metrics.py       # 접근성
-.venv/bin/python data/collect/19.collect_building_ledger.py # 건축물대장 수집
-.venv/bin/python data/collect/24.collect_osm_extra.py      # 도로·철도·공원·야간상권·상점 수집
-.venv/bin/python models/horizon/26.transit_metrics.py      # 교통(승하차·혼잡도·중심선) — 22.1 필요
-.venv/bin/python data/master/23.build_complex_metrics.py   # 최종 3테이블
-```
-
-`output/` 아래 대용량 중간 산출물은 `.gitignore` 대상이다. 재생성 경로는 각 스크립트 헤더에 있다.
+실행 순서는 [`docs/reproduce.md`](reproduce.md)를 참조한다.

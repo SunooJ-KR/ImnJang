@@ -267,6 +267,7 @@
 | 63 | **서비스 가격 셀 route rolling OOT를 도입** | 2026-02~07의 각 origin에서 다음 달 거래를 평가했다. score 가능한 전체 transaction-weighted MAPE는 7.75%, `CELL_LAST` route는 대상 89.2%, MAPE 7.48%다. `MODEL_REQUIRED`와 `NO_CELL_CANDIDATE`는 coverage에는 포함하되 MAPE denominator에서는 제외한다 |
 | 64 | **37 알고리즘 비교 사양을 33 채택 사양에 정렬** | 37은 전세 variant·자치구 교호항을 33.2의 채택 사양에서 읽는다. 별도 사양으로 성능을 인용하지 않아 서비스 모델과 비교 대상이 갈리는 것을 막는다 |
 | 65 | **적대적 리뷰 3차의 P0는 없음으로 판정** | 서비스 route rolling OOT, 37 사양 정렬, 문서의 수치·표기 정합을 반영했다. 남은 cold-start rolling-origin 첫거래 평가와 전세 trim as-of 문제는 공개 한계로 유지한다 |
+| 66 | **적대적 리뷰 4차 문서 정리** | 물리 feature CI·Wald p·VIF·예측구간을 `30.1` 최신값으로 고치고, 모델·조망 계수 해석을 평가 사양·기간 및 조건부 연관으로 한정했다. cold-start의 B2 global-mean fallback 대 M3 비교와 모델선택용 holdout의 범위·소규모 단지 한계(≤20세대 72.8%, 전세 추가 후 17.03%→17.78%)를 함께 기록했다. 현재 제품 범위는 검색·담기·비교이며, 전역 필터·정렬·조건 완화 추천과 배포·규제 갱신은 완료 사실이 아닌 로드맵/계획으로 표기한다. 재생성 순서는 `docs/reproduce.md`를 단일 정본으로 참조한다 |
 
 ### 아직 해결하지 못한 것 (적대적 리뷰 지적)
 
