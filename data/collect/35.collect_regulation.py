@@ -186,7 +186,7 @@ def is_xlsx(content):
 
 
 def load_redevelop_xlsx(selected):
-    """선택한 분기 xlsx를 받고, 요청 실패 시 같은 기준시점 파일만 캐시로 쓴다."""
+    """선택한 분기 xlsx를 받고, 판독 성공 시에만 캐시를 교체한다."""
     cache_path = REDEVELOP_DIR / f"redevelop_{selected['year'] % 100:02d}{selected['month']:02d}.xlsx"
     request_data = {
         "infId": "OA-22856",
@@ -210,9 +210,20 @@ def load_redevelop_xlsx(selected):
         print(f"  캐시 사용: {cache_path} (정비사업 xlsx 다운로드 실패)")
     else:
         temporary_path = cache_path.with_suffix(".xlsx.tmp")
-        temporary_path.write_bytes(response.content)
+        try:
+            temporary_path.write_bytes(response.content)
+            row_count = len(pd.read_excel(temporary_path, header=None, engine="openpyxl"))
+        except Exception as error:
+            temporary_path.unlink(missing_ok=True)
+            raise SystemExit(f"정비사업 xlsx를 읽을 수 없음: {temporary_path}: {error}")
         temporary_path.replace(cache_path)
-    return cache_path
+        return cache_path, row_count
+
+    try:
+        row_count = len(pd.read_excel(cache_path, header=None, engine="openpyxl"))
+    except Exception as error:
+        raise SystemExit(f"정비사업 xlsx를 읽을 수 없음: {cache_path}: {error}")
+    return cache_path, row_count
 
 
 def is_citywide_apartment_designation(record):
@@ -247,7 +258,6 @@ def build_citywide_apartment_designation_basis(record):
 
 print("===== 1. 토지거래허가구역 수집 =====")
 RAW_REGULATION_DIR.mkdir(parents=True, exist_ok=True)
-REDEVELOP_DIR.mkdir(parents=True, exist_ok=True)
 records = load_land_records()
 as_of_values = [parse_as_of(record["crtrYmd"]) for record in records]
 as_of = max(as_of_values)
@@ -295,18 +305,27 @@ print(f"  seoul_apartment_permit_zone 근거: {len(seoul_apartment_permit_zone_b
 # ============================================================================
 
 print("\n===== 2. 정비사업 최신 분기 원본 수집 =====")
-links = load_redevelop_links()
-selected = select_latest_redevelop(links)
-redevelop_path = load_redevelop_xlsx(selected)
+redevelop_checks = []
 try:
-    redevelop_row_count = len(pd.read_excel(redevelop_path, header=None))
+    REDEVELOP_DIR.mkdir(parents=True, exist_ok=True)
+    links = load_redevelop_links()
+    selected = select_latest_redevelop(links)
+    redevelop_path, redevelop_row_count = load_redevelop_xlsx(selected)
+    redevelop_checks = [
+        ("정비사업 xlsx 다운로드 및 100행 이상", redevelop_path.exists() and redevelop_row_count >= 100,
+         f"{redevelop_row_count:,}건"),
+        ("선택 seq·파일명이 파일 목록 HTML에 존재",
+         any(item["seq"] == selected["seq"] and item["title"] == selected["title"] for item in links),
+         f"seq={selected['seq']}, title={selected['title']}"),
+    ]
+    print(f"  선택 파일명: {selected['title']}")
+    print(f"  선택 seq: {selected['seq']}")
+    print(f"  저장 파일: {redevelop_path.name}")
+    print(f"  정비사업 원본 행: {redevelop_row_count:,}건")
+except SystemExit as error:
+    print(f"  [WARNING] 정비사업 수집 실패, 기존 캐시 유지: {error}")
 except Exception as error:
-    raise SystemExit(f"정비사업 xlsx를 읽을 수 없음: {redevelop_path}: {error}")
-
-print(f"  선택 파일명: {selected['title']}")
-print(f"  선택 seq: {selected['seq']}")
-print(f"  저장 파일: {redevelop_path.name}")
-print(f"  정비사업 원본 행: {redevelop_row_count:,}건")
+    print(f"  [WARNING] 정비사업 수집 실패, 기존 캐시 유지: {error}")
 
 
 # ============================================================================
@@ -314,7 +333,7 @@ print(f"  정비사업 원본 행: {redevelop_row_count:,}건")
 # ============================================================================
 
 print("\n===== 3. 자체 검증 =====")
-checks = [
+land_checks = [
     ("토지거래허가구역 응답 1건 이상", len(records) >= 1, f"{len(records):,}건"),
     ("crtr_ymd 비어있지 않음", all(str(record.get("crtrYmd") or "").strip() for record in records),
      f"기준일 {as_of}"),
@@ -327,18 +346,21 @@ checks = [
     ("허가구역 근거에 외국인 대상 없음",
      all("외국인" not in basis["dsgn_type_nm"] for basis in seoul_apartment_permit_zone_basis),
      f"근거 {len(seoul_apartment_permit_zone_basis):,}건"),
-    ("정비사업 xlsx 다운로드 및 100행 이상", redevelop_path.exists() and redevelop_row_count >= 100,
-     f"{redevelop_row_count:,}건"),
-    ("선택 seq·파일명이 파일 목록 HTML에 존재",
-     any(item["seq"] == selected["seq"] and item["title"] == selected["title"] for item in links),
-     f"seq={selected['seq']}, title={selected['title']}"),
 ]
-all_passed = True
-for label, passed, detail in checks:
-    all_passed &= passed
+land_passed = True
+for label, passed, detail in land_checks:
+    land_passed &= passed
     print(f"  [{'PASS' if passed else 'FAIL'}] {label}: {detail}")
+
+redevelop_passed = bool(redevelop_checks) and all(passed for _, passed, _ in redevelop_checks)
+for label, passed, detail in redevelop_checks:
+    print(f"  [{'PASS' if passed else 'WARNING'}] {label}: {detail}")
+if not redevelop_checks:
+    print("  [WARNING] 정비사업 검증을 건너뜀: 수집 실패")
 
 print(f"\n결과: {LAND_RESULT_PATH}")
 print(f"결과: {SUMMARY_RESULT_PATH}")
-print(f"\n===== 규제 정보 수집 {'통과' if all_passed else '미통과'} =====")
-assert all_passed, "자체 검증 실패"
+print(f"\n===== 규제 정보 수집 {'통과' if land_passed else '미통과'} =====")
+if not redevelop_passed:
+    print("정비사업 수집 또는 검증 실패는 경고로만 처리했으며, 규제 JSON은 갱신됨")
+assert land_passed, "토지거래허가구역 자체 검증 실패"
