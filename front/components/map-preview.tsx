@@ -317,7 +317,7 @@ export function MapPreview({
     const sdk = sdkRef.current;
     if (mapStatus !== "ready" || !map || !sdk) return;
 
-    overlayCacheRef.current.forEach((entry) => styleMarker(entry, entry.item.id === selectedId));
+    overlayCacheRef.current.forEach((overlay, id) => styleMarker(overlay, id === selectedId));
 
     // 이미 보이는 단지를 고른 경우 사용자가 맞춰 둔 화면을 움직이지 않는다.
     const selected = mappable.find((item) => item.id === selectedId);
