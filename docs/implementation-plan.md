@@ -120,11 +120,12 @@ front/
 **파일**
 - 생성: `models/price/33.train_coldstart.py`
 - 입력: `output/32.1.price_cells.txt`, `output/23.1~23.3`, `output/31.1.complex_redevelop.txt`
-- 출력: `output/33.1.coldstart_estimates.txt`, `output/33.2.coldstart_metrics.txt`
+- 출력: `output/33.1.coldstart_estimates.txt`, `output/33.2.coldstart_metrics.txt`, `output/33.3.excluded_complexes.txt`
 
 **인터페이스**
 - 소비: Task 1의 `32.1.price_cells`
-- 생산: `33.1.coldstart_estimates` = `apt_seq, area_type, floor_band, est_price_per_m2, est_low, est_high, est_confidence`
+- 생산: `33.1.coldstart_estimates` = `apt_seq, area_type, floor_band, est_price_per_m2, est_low, est_high, est_confidence, est_note` (`est_note=NEW_BUILD_NO_SALE`만 신축·매매 이력 없음 표시)
+- 생산: `33.3.excluded_complexes` = `apt_seq, name, exclude_reason, matched_keyword, sale_5y_n, rent_5y_n, jeonse_share, built_year, total_households, rule`. `exclude_reason`은 `RENTAL_ONLY` 또는 `NO_SALE_5Y`, 후자는 결정 68 R1/R2와 그 근거 열을 기록한다.
 
 **대상**: 최근 24개월 매매 거래가 **하나도 없는 단지 2,318개**. 거래가 있는 6,842단지에는 모델을 쓰지 않는다.
 

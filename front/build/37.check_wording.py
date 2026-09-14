@@ -44,6 +44,7 @@ FORBIDDEN = [
     (r"재건축으로\s*\d+\s*%\s*오릅", "150단지 표본의 계수를 인과로 말할 수 없다"),
     (r"초품아", "실제 보행경로가 아닌 직선 근사라 해당 명칭을 쓸 수 없다"),
     (r"임대\s*전용", "임대 관련 명칭만으로 전용 여부를 확정할 수 없다"),
+    (r"임대\s*단지입니다", "거래 부재만으로 임대 단지 여부를 단정할 수 없다"),
     (r"재건축으로\s*\d+\s*%", "정비사업을 가격 상승률로 단정할 수 없다"),
     # '도보'는 '추정 도보'가 아닐 때만 위반이다
     (r"(?<!추정 )(?<!추정)도보\s*\d", "직선거리 추정치이므로 '추정 도보 N분'으로 써야 한다"),
@@ -64,7 +65,7 @@ SCHEMA = {
             "nightlife_300m"},
     "price": {"area_type", "floor_band", "source", "n_trades_24m", "last_deal_ym",
               "last_price_manwon", "mean_price_per_m2_24m", "area_last_floor_band", "est_price_per_m2",
-              "est_low", "est_high", "est_confidence", "reason"},
+              "est_low", "est_high", "est_confidence", "est_note", "reason"},
     "comparables": {"area_type", "target_source", "rank", "comp_id", "name", "deal_ym",
                     "price_manwon", "price_per_m2", "adj_price_per_m2", "adj_reason",
                     "dist_m"},
