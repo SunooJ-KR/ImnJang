@@ -1,0 +1,13 @@
+catboost==1.2.10
+geopandas==1.1.4
+lightgbm==4.7.0
+numpy==2.5.3
+pandas==3.0.5
+playwright==1.62.0
+pvlib==0.15.2
+pyproj==3.8.0
+scikit-learn==1.9.1
+scipy==1.18.1
+shapely==2.1.2
+statsmodels==0.15.0
+xgboost==3.4.1

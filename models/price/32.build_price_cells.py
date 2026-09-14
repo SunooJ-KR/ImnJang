@@ -13,6 +13,7 @@
 
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -131,11 +132,25 @@ def print_validation(cells: pd.DataFrame, series: pd.DataFrame, trades: pd.DataF
     assert all(passed for _, passed, _ in checks), "자체 검증 실패: 위 [FAIL] 항목을 확인하십시오."
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="최근 매매 가격 셀과 60개월 가격 시계열을 생성합니다.")
+    parser.add_argument(
+        "--verify-against-existing",
+        action="store_true",
+        help="기존 32.1/32.2 산출물과 완전히 일치하는지 저장 전에 검증합니다.",
+    )
+    return parser.parse_args()
+
+
 def main() -> None:
-    if not CELLS_PATH.exists() or not SERIES_PATH.exists():
-        raise FileNotFoundError("32.1/32.2 기존 산출물이 없어 설계 1 완전 일치 gate를 수행할 수 없습니다.")
-    previous_cells = pd.read_csv(CELLS_PATH, sep="\t", low_memory=False)
-    previous_series = pd.read_csv(SERIES_PATH, sep="\t", low_memory=False)
+    args = parse_args()
+    previous_cells: pd.DataFrame | None = None
+    previous_series: pd.DataFrame | None = None
+    if args.verify_against_existing:
+        if not CELLS_PATH.exists() or not SERIES_PATH.exists():
+            raise FileNotFoundError("--verify-against-existing에는 기존 32.1/32.2 산출물이 필요합니다.")
+        previous_cells = pd.read_csv(CELLS_PATH, sep="\t", low_memory=False)
+        previous_series = pd.read_csv(SERIES_PATH, sep="\t", low_memory=False)
     print("===== 1. 입력 및 정제 =====")
     trades, latest_month, series_start = load_and_clean_trades()
 
@@ -144,8 +159,11 @@ def main() -> None:
 
     print("\n===== 3. 최근 60개월 가격 시계열 =====")
     series = build_price_series(trades)
-    assert_frame_exact(previous_cells, cells, "32.1 기존 산출물")
-    assert_frame_exact(previous_series, series, "32.2 기존 산출물")
+    if args.verify_against_existing:
+        assert previous_cells is not None and previous_series is not None
+        assert_frame_exact(previous_cells, cells, "32.1 기존 산출물")
+        assert_frame_exact(previous_series, series, "32.2 기존 산출물")
+        print("  기존 산출물 완전 일치 검증: PASS")
     cells.to_csv(CELLS_PATH, sep="\t", index=False)
     print(f"  저장: {CELLS_PATH.relative_to(work_dir)} ({len(cells):,}행)")
     series.to_csv(SERIES_PATH, sep="\t", index=False)
