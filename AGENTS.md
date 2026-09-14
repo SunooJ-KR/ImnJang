@@ -49,7 +49,13 @@ npx vercel deploy --prod --yes --archive=tgz   # production (main 병합 후에�
 - 환경변수 `NEXT_PUBLIC_KAKAO_JS_KEY`: 카카오 **JavaScript 키**(도메인 제한 공개키)라 `--type config`로 등록한다. REST 키 등 비밀값에는 `NEXT_PUBLIC_`을 절대 붙이지 않는다.
 - 카카오 지도는 **카카오 콘솔 [앱] → [플랫폼 키] → [JavaScript 키] → [JavaScript SDK 도메인]에 등록된 도메인에서만** 뜬다. 현재 등록: `https://imnjang-pi.vercel.app`.
   preview URL은 배포마다 바뀌어 미등록 상태이므로 preview에서는 지도가 좌표 미리보기로 대체되는 것이 정상이다.
-  지도 자체를 확인해야 하면 (a) 고정 preview 별칭을 만들어 카카오 도메인에 한 번 등록하거나, (b) 헤드리스 브라우저에서 로컬 `front/out`을 등록 도메인 주소로 제공해 점검한다.
+  지도까지 확인하려면 고정 preview 주소 `https://imnjang-preview.vercel.app`(카카오 도메인 등록 대상)에 테스트할 배포를 연결한다.
+  이 주소는 **한 번에 한 배포만** 가리키므로, 다른 PR을 테스트할 때마다 다시 연결하고 PR 코멘트에 어떤 브랜치를 연결했는지 적는다.
+
+  ```bash
+  npx vercel deploy --yes --archive=tgz                                   # 출력의 Preview URL 확인
+  npx vercel alias set <Preview URL 호스트> imnjang-preview.vercel.app   # 고정 주소를 이 배포로 전환
+  ```
 - preview 환경에서 키가 필요하면 Preview 환경변수에도 같은 키를 등록해야 한다.
 
 ## 5. 로컬 검증 명령
