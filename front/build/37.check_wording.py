@@ -42,6 +42,9 @@ FORBIDDEN = [
     (r"서울\s*전역\s*완전\s*검색", "물리 지표 커버리지가 70.4%라 성립하지 않는다"),
     (r"일조는\s*가격에\s*반영되지\s*않습니다", "p=0.53은 '효과 없음'이 아니라 '증거 없음'이다"),
     (r"재건축으로\s*\d+\s*%\s*오릅", "150단지 표본의 계수를 인과로 말할 수 없다"),
+    (r"초품아", "실제 보행경로가 아닌 직선 근사라 해당 명칭을 쓸 수 없다"),
+    (r"임대\s*전용", "임대 관련 명칭만으로 전용 여부를 확정할 수 없다"),
+    (r"재건축으로\s*\d+\s*%", "정비사업을 가격 상승률로 단정할 수 없다"),
     # '도보'는 '추정 도보'가 아닐 때만 위반이다
     (r"(?<!추정 )(?<!추정)도보\s*\d", "직선거리 추정치이므로 '추정 도보 N분'으로 써야 한다"),
 ]
@@ -66,6 +69,7 @@ SCHEMA = {
                     "price_manwon", "price_per_m2", "adj_price_per_m2", "adj_reason",
                     "dist_m"},
     "regulation": {"land_permit_zone", "as_of", "note"},
+    "regulation_summary": {"as_of", "seoul_apartment_permit_zone"},
     "redevelop": {"type", "stage"},
     "series": {"area_type", "points"},
     # index.json 은 용량 때문에 키를 1글자로 줄였다 (front/build/36.build_payload.py)
@@ -107,7 +111,7 @@ for match in re.finditer(r"\.env\.([a-z_0-9]+)", app_text):
         unknown_fields.append(("env", match.group(1)))
 
 # entry.xxx / c.xxx / data.xxx 형태의 1단계 접근
-for match in re.finditer(r"\b(?:data|entry|item|c|s|d)\.([a-z_][a-z_0-9]*)\b", app_text):
+for match in re.finditer(r"\b(?:data|entry|item|c|s|d|regulation)\??\.([a-z_][a-z_0-9]*)\b", app_text):
     field = match.group(1)
     if field in {"env", "length", "map", "filter", "forEach", "slice", "some", "json",
                  "ok", "id", "name", "type", "value", "target", "textContent", "hidden",
