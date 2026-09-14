@@ -40,3 +40,12 @@ output/21.3.skyline.npy
 front/docs/
 # Claude Code 로컬 설정
 CLAUDE.md
+
+# front (기존 front/.gitignore 통합)
+front/node_modules/
+front/.next/
+front/out/
+front/next-env.d.ts
+front/tsconfig.tsbuildinfo
+front/.vercel
+front/.env*
