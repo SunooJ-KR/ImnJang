@@ -1,4 +1,4 @@
-import type { ComplexPayload, IndexComplex, IndexPayload } from "@/lib/types";
+import type { ComplexPayload, IndexComplex, IndexPayload, RegulationSummary } from "@/lib/types";
 
 export const MAX_BASKET = 4;
 export const MAX_RESULTS = 30;
@@ -57,6 +57,20 @@ export async function fetchComplex(id: string): Promise<ComplexPayload> {
 
   const unzipped = gz.body.pipeThrough(new DecompressionStream("gzip"));
   return (await new Response(unzipped).json()) as ComplexPayload;
+}
+
+let regulationRequest: Promise<RegulationSummary | null> | null = null;
+
+/** 비교서를 여는 브라우저 세션에서 규제 요약은 한 번만 요청한다. */
+export function fetchRegulation(): Promise<RegulationSummary | null> {
+  regulationRequest ??= fetch("/regulation.json")
+    .then(async (res) => {
+      if (!res.ok) return null;
+      const payload = (await res.json()) as RegulationSummary;
+      return typeof payload.seoul_apartment_permit_zone === "boolean" ? payload : null;
+    })
+    .catch(() => null);
+  return regulationRequest;
 }
 
 /** lat/lng 를 지도 미리보기의 % 좌표로 투영한다. VWorld 연동 시 교체 지점. */

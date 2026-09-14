@@ -29,11 +29,11 @@ export interface IndexPayload {
 }
 
 export type PriceSource = "CELL_LAST" | "COMPLEX_MEAN" | "MODEL" | "EXCLUDED";
-export type FloorBand = "HIGH" | "MID" | "LOW";
+export type FloorBand = "HIGH" | "MID" | "LOW" | "UNKNOWN";
 export type EstConfidence = "HIGH" | "MEDIUM" | "LOW";
 
 export interface PriceEntry {
-  area_type: number;
+  area_type: number | null;
   floor_band: FloorBand | null;
   source: PriceSource;
   n_trades_24m: number | null;
@@ -102,6 +102,12 @@ export interface Regulation {
   land_permit_zone: boolean;
   as_of: string;
   note: string;
+}
+
+/** /regulation.json (front/public, 주간 워크플로가 갱신). 단지 payload의 regulation보다 우선하는 최신 지정 상태다. */
+export interface RegulationSummary {
+  as_of: string;
+  seoul_apartment_permit_zone: boolean;
 }
 
 export interface Redevelop {

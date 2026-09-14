@@ -7,11 +7,11 @@ import { CompareSection } from "@/components/compare-section";
 import { DetailPanel } from "@/components/detail-panel";
 import { MapPreview } from "@/components/map-preview";
 import { SearchPanel } from "@/components/search-panel";
-import { MAX_RESULTS, fetchComplex, loadIndex } from "@/lib/data";
+import { MAX_RESULTS, fetchComplex, fetchRegulation, loadIndex } from "@/lib/data";
 import { isFailed } from "@/lib/format";
 import { useBasket } from "@/lib/use-basket";
 import { cn } from "@/lib/utils";
-import type { ComplexPayload, IndexComplex, QuickFilter } from "@/lib/types";
+import type { ComplexPayload, IndexComplex, QuickFilter, RegulationSummary } from "@/lib/types";
 
 export default function Page() {
   const [complexes, setComplexes] = useState<IndexComplex[]>([]);
@@ -26,6 +26,8 @@ export default function Page() {
   const [compareOpen, setCompareOpen] = useState(false);
   const [compareLoading, setCompareLoading] = useState(false);
   const [compareError, setCompareError] = useState<string | null>(null);
+  const [regulation, setRegulation] = useState<RegulationSummary | null>(null);
+  const [regulationReady, setRegulationReady] = useState(false);
   const [revealKey, setRevealKey] = useState(0);
 
   const { basket, has, toggle, clear, full } = useBasket();
@@ -95,6 +97,11 @@ export default function Page() {
     // 데이터를 기다리지 않고 먼저 내려간다. 섹션은 이미 '불러오는 중'으로 자리를 잡는다.
     requestAnimationFrame(() => {
       compareRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+
+    void fetchRegulation().then((summary) => {
+      setRegulation(summary);
+      setRegulationReady(true);
     });
 
     Promise.all(basket.map((entry) => fetchComplex(entry.id)))
@@ -177,7 +184,13 @@ export default function Page() {
           ref={compareRef}
           className="animate-reveal-up reveal-ring mx-auto mt-3 w-[min(1320px,100%)] scroll-mt-16"
         >
-          <CompareSection payloads={payloads} loading={compareLoading} error={compareError} />
+          <CompareSection
+            payloads={payloads}
+            loading={compareLoading}
+            error={compareError}
+            regulation={regulation}
+            regulationReady={regulationReady}
+          />
         </div>
       )}
 
@@ -192,7 +205,7 @@ export default function Page() {
 
       <footer className="mx-auto mt-6 w-[min(1320px,100%)] border-t border-border pt-4 text-[11px] text-muted-foreground">
         <p className="my-1">
-          실거래가는 국토교통부 공개 자료입니다. 추정값은 모델 산출이며 실제 거래가가 아닙니다.
+          출처: 국토교통부 실거래가, 서울 열린데이터광장, © OpenStreetMap contributors (ODbL)
         </p>
         <p className="my-1">
           향, 호수, 실내 상태, 실제 소음은 데이터로 알 수 없습니다. 현장 확인이 필요합니다.
