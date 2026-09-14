@@ -61,13 +61,14 @@ function ComplexCard({ data, index, regulation, regulationReady }: {
   regulationReady: boolean;
 }) {
   const pricedAreas = useMemo(
-    () => [...new Set(data.price.map((entry) => entry.area_type).filter((area): area is number => area !== null))],
+    () => [...new Set(data.price.map((entry) => entry.area_type).filter((area): area is number => area !== null))].sort((a, b) => a - b),
     [data.price],
   );
   const defaultArea = useMemo(() => mostTradedArea(data.price, pricedAreas), [data.price, pricedAreas]);
   const [area, setArea] = useState<number | null>(defaultArea);
-  const [floor, setFloor] = useState<FloorChoice>(ALL_FLOORS);
+  const [floor, setFloor] = useState<FloorChoice>(() => defaultFloor(data.price, defaultArea));
   const availableFloors = useMemo(() => floorsForArea(data.price, area), [data.price, area]);
+  const hasUnbanded = useMemo(() => hasUnbandedEntry(data.price, area), [data.price, area]);
   const selectedPrice = useMemo(() => priceForSelection(data.price, area, floor), [data.price, area, floor]);
   const selectedSeries = useMemo(() => area === null ? undefined : data.series.find((series) => series.area_type === area), [area, data.series]);
   const selectedComparables = useMemo(() => area === null ? [] : data.comparables.filter((comparable) => comparable.area_type === area), [area, data.comparables]);
@@ -81,7 +82,7 @@ function ComplexCard({ data, index, regulation, regulationReady }: {
     <article className="min-w-0 rounded-lg bg-muted p-3 animate-rise-in" style={{ animationDelay: `${index * 40}ms` }}>
       <h3 className="text-lg font-bold break-words">{data.name}</h3>
       <p className="text-[12.5px] text-muted-foreground">
-        {data.gu} {data.umd_name} · {num(data.built_year, "년")} · {num(data.households, "세대")}
+        {data.gu} {data.umd_name} · {data.built_year === null ? "준공연도 정보 없음" : `${data.built_year}년`} · {num(data.households, "세대")}
       </p>
       {displayedRegulation && <Flag>토지거래허가구역 ({displayedRegulation.as_of} 기준) · 실거주 목적만 매수 가능, 2년 실거주 의무</Flag>}
       {data.redevelop?.type && <Flag>{redevelopLabel(data.redevelop.type, data.redevelop.stage)}</Flag>}
@@ -91,15 +92,16 @@ function ComplexCard({ data, index, regulation, regulationReady }: {
         <div className="grid grid-cols-2 gap-2">
           <label className="text-[12.5px] text-muted-foreground">면적타입
             <select className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1 text-foreground" value={area} onChange={(event) => {
-              setArea(Number(event.target.value));
-              setFloor(ALL_FLOORS);
+              const nextArea = Number(event.target.value);
+              setArea(nextArea);
+              setFloor(defaultFloor(data.price, nextArea));
             }}>
               {pricedAreas.map((value) => <option key={value} value={value}>{value}㎡</option>)}
             </select>
           </label>
           <label className="text-[12.5px] text-muted-foreground">층대
             <select className="mt-1 w-full rounded-md border border-border bg-background px-2 py-1 text-foreground" value={floor} onChange={(event) => setFloor(event.target.value as FloorChoice)}>
-              <option value={ALL_FLOORS}>전체</option>
+              {hasUnbanded && <option value={ALL_FLOORS}>층 정보 없음</option>}
               {availableFloors.map((value) => <option key={value} value={value}>{bandLabel(value)}</option>)}
             </select>
           </label>
@@ -152,7 +154,7 @@ function EnvironmentComparison({ payloads }: { payloads: ComplexPayload[] }) {
             </th>)}
           </tr></thead>
           <tbody>{ENV_ROWS.map((row) => <tr key={row.label} className="border-b border-border/70">
-            <th scope="row" className="sticky left-0 bg-card px-2 py-2 text-left font-normal text-muted-foreground">{row.label}</th>
+            <th scope="row" className="sticky left-0 min-w-28 bg-card px-2 py-2 text-left font-normal text-muted-foreground">{row.label}</th>
             {payloads.map((data) => <td key={data.id} className="px-2 py-2 text-right align-top">{row.read(data.env)}</td>)}
           </tr>)}</tbody>
         </table>
@@ -169,11 +171,28 @@ function mostTradedArea(entries: PriceEntry[], areas: number[]): number | null {
   }, null);
 }
 
+const FLOOR_ORDER: FloorBand[] = ["LOW", "MID", "HIGH"];
+
 function floorsForArea(entries: PriceEntry[], area: number | null): FloorBand[] {
   if (area === null) return [];
-  return [...new Set(entries
+  const bands = new Set(entries
     .filter((entry) => entry.area_type === area && entry.floor_band !== null && entry.floor_band !== "UNKNOWN")
-    .map((entry) => entry.floor_band))] as FloorBand[];
+    .map((entry) => entry.floor_band));
+  return FLOOR_ORDER.filter((band) => bands.has(band));
+}
+function hasUnbandedEntry(entries: PriceEntry[], area: number | null): boolean {
+  return area !== null && entries.some((entry) => entry.area_type === area && (entry.floor_band === null || entry.floor_band === "UNKNOWN"));
+}
+/**
+ * 가격은 층대별로만 들어 있고 층대를 합친 "전체" 항목은 없다.
+ * 기본값을 "전체"로 두면 층 정보가 있는 단지는 담자마자 가격이 비어 보인다.
+ * 그 면적에서 최근 2년 거래가 가장 많은 층대를 고르고, 층 정보가 없는 단지만 ALL 로 둔다.
+ */
+function defaultFloor(entries: PriceEntry[], area: number | null): FloorChoice {
+  const bands = floorsForArea(entries, area);
+  if (bands.length === 0) return ALL_FLOORS;
+  const trades = (band: FloorBand) => entries.find((entry) => entry.area_type === area && entry.floor_band === band)?.n_trades_24m ?? 0;
+  return bands.reduce((best, band) => (trades(band) > trades(best) ? band : best), bands[0]);
 }
 
 function priceForSelection(entries: PriceEntry[], area: number | null, floor: FloorChoice): PriceEntry | undefined {
