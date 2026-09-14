@@ -9,11 +9,20 @@ import { isFailed } from "@/lib/format";
 import type { IndexComplex } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
-type KakaoLatLng = object;
-type KakaoBounds = object;
+type KakaoLatLng = {
+  getLat: () => number;
+  getLng: () => number;
+};
+
+type KakaoBounds = {
+  extend: (position: KakaoLatLng) => void;
+  getSouthWest: () => KakaoLatLng;
+  getNorthEast: () => KakaoLatLng;
+};
 
 type KakaoMap = {
   setBounds: (bounds: KakaoBounds) => void;
+  getBounds: () => KakaoBounds;
   setCenter: (position: KakaoLatLng) => void;
   setLevel: (level: number) => void;
   panTo: (position: KakaoLatLng) => void;
@@ -25,18 +34,35 @@ type KakaoCustomOverlay = {
   setZIndex: (zIndex: number) => void;
 };
 
+type KakaoClusterer = {
+  addMarkers: (markers: KakaoCustomOverlay[]) => void;
+  clear: () => void;
+};
+
 type KakaoSdk = {
   maps: {
     load: (callback: () => void) => void;
     Map: new (container: HTMLElement, options: { center: KakaoLatLng; level: number }) => KakaoMap;
     LatLng: new (lat: number, lng: number) => KakaoLatLng;
-    LatLngBounds: new () => KakaoBounds & { extend: (position: KakaoLatLng) => void };
+    LatLngBounds: new () => KakaoBounds;
     CustomOverlay: new (options: {
       position: KakaoLatLng;
       content: HTMLElement;
       yAnchor: number;
       zIndex: number;
     }) => KakaoCustomOverlay;
+    MarkerClusterer: new (options: {
+      map: KakaoMap;
+      averageCenter: boolean;
+      minLevel: number;
+      gridSize: number;
+      calculator: number[];
+      styles: Record<string, string>[];
+    }) => KakaoClusterer;
+    event: {
+      addListener: (target: KakaoMap, type: string, handler: () => void) => void;
+      removeListener: (target: KakaoMap, type: string, handler: () => void) => void;
+    };
   };
 };
 
@@ -53,6 +79,23 @@ type MarkerOverlay = {
   onClick: () => void;
 };
 
+// 이 레벨 이상(더 넓게 본 화면)에서만 가까운 단지를 숫자 묶음으로 합친다.
+const CLUSTER_MIN_LEVEL = 6;
+// 화면 가장자리에서 끊겨 보이지 않도록 보이는 영역보다 사방 20% 넓게 그린다.
+const VIEWPORT_PADDING = 0.2;
+const CLUSTER_STYLES = [36, 44, 52].map((size) => ({
+  width: `${size}px`,
+  height: `${size}px`,
+  lineHeight: `${size}px`,
+  borderRadius: "50%",
+  background: "rgba(65, 54, 232, 0.86)",
+  boxShadow: "0 0 0 4px rgba(65, 54, 232, 0.18)",
+  color: "#fff",
+  fontSize: "12px",
+  fontWeight: "600",
+  textAlign: "center",
+}));
+
 let kakaoSdkPromise: Promise<KakaoSdk> | null = null;
 
 function markerClassName(item: IndexComplex, selected: boolean) {
@@ -68,6 +111,22 @@ function markerClassName(item: IndexComplex, selected: boolean) {
     !selected && "hover:scale-115",
     selected && "scale-135 bg-primary-hover shadow-[0_0_0_5px_rgb(65_54_232/0.2),0_8px_18px_rgb(29_36_51/0.2)]",
   );
+}
+
+function styleMarker({ item, marker, overlay }: MarkerOverlay, selected: boolean) {
+  marker.className = markerClassName(item, selected);
+  marker.setAttribute("aria-pressed", String(selected));
+  overlay.setZIndex(selected ? 10 : 1);
+}
+
+function isInBounds(bounds: KakaoBounds, item: IndexComplex, padding: number) {
+  const sw = bounds.getSouthWest();
+  const ne = bounds.getNorthEast();
+  const padLat = (ne.getLat() - sw.getLat()) * padding;
+  const padLng = (ne.getLng() - sw.getLng()) * padding;
+  const lat = item.lat as number;
+  const lng = item.lng as number;
+  return lat >= sw.getLat() - padLat && lat <= ne.getLat() + padLat && lng >= sw.getLng() - padLng && lng <= ne.getLng() + padLng;
 }
 
 function loadKakaoSdk(key: string): Promise<KakaoSdk> {
@@ -99,7 +158,7 @@ function loadKakaoSdk(key: string): Promise<KakaoSdk> {
     if (!existingScript) {
       script.id = scriptId;
       script.async = true;
-      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&autoload=false`;
+      script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${encodeURIComponent(key)}&autoload=false&libraries=clusterer`;
       document.head.appendChild(script);
     }
   });
@@ -109,6 +168,8 @@ function loadKakaoSdk(key: string): Promise<KakaoSdk> {
 
 /**
  * Kakao Maps JavaScript SDK로 지도를 표시한다.
+ * 검색 결과 전체를 대상으로 하되, 확대·이동이 끝날 때마다(idle) 보이는 영역의 단지만
+ * 클러스터러에 넣는다. 넓게 보면 숫자 묶음, 확대하면 개별 점이 된다.
  * 키가 없거나 SDK 로드에 실패하면 좌표 기반 미리보기를 그대로 표시한다.
  */
 export function MapPreview({
@@ -123,17 +184,22 @@ export function MapPreview({
   const mapElementRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<KakaoMap | null>(null);
   const sdkRef = useRef<KakaoSdk | null>(null);
-  const overlaysRef = useRef<MarkerOverlay[]>([]);
+  const clustererRef = useRef<KakaoClusterer | null>(null);
+  // 마커 DOM은 단지별로 한 번만 만들고 확대·이동·검색 사이에 재사용한다.
+  const overlayCacheRef = useRef(new Map<string, MarkerOverlay>());
   const onSelectRef = useRef(onSelect);
+  const selectedIdRef = useRef(selectedId);
   const [mapStatus, setMapStatus] = useState<"loading" | "ready" | "fallback">("loading");
-  const markers = useMemo(
-    () => items.filter((item) => item.lat !== null && item.lng !== null).slice(0, MAX_MARKERS),
-    [items],
-  );
+  const mappable = useMemo(() => items.filter((item) => item.lat !== null && item.lng !== null), [items]);
+  const previewMarkers = useMemo(() => mappable.slice(0, MAX_MARKERS), [mappable]);
 
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
+
+  useEffect(() => {
+    selectedIdRef.current = selectedId;
+  }, [selectedId]);
 
   useEffect(() => {
     const key = process.env.NEXT_PUBLIC_KAKAO_JS_KEY;
@@ -145,6 +211,7 @@ export function MapPreview({
     let disposed = false;
     let mapsLoadTimedOut = false;
     let mapsLoadTimeout: number | undefined;
+    const overlayCache = overlayCacheRef.current;
     loadKakaoSdk(key)
       .then((sdk) => {
         mapsLoadTimeout = window.setTimeout(() => {
@@ -155,9 +222,18 @@ export function MapPreview({
           window.clearTimeout(mapsLoadTimeout);
           if (disposed || mapsLoadTimedOut || !mapElementRef.current) return;
           sdkRef.current = sdk;
-          mapRef.current = new sdk.maps.Map(mapElementRef.current, {
+          const map = new sdk.maps.Map(mapElementRef.current, {
             center: new sdk.maps.LatLng(37.5665, 126.978),
             level: 9,
+          });
+          mapRef.current = map;
+          clustererRef.current = new sdk.maps.MarkerClusterer({
+            map,
+            averageCenter: true,
+            minLevel: CLUSTER_MIN_LEVEL,
+            gridSize: 60,
+            calculator: [20, 100],
+            styles: CLUSTER_STYLES,
           });
           setMapStatus("ready");
         });
@@ -170,11 +246,13 @@ export function MapPreview({
     return () => {
       disposed = true;
       window.clearTimeout(mapsLoadTimeout);
-      overlaysRef.current.forEach(({ marker, onClick, overlay }) => {
+      clustererRef.current?.clear();
+      clustererRef.current = null;
+      overlayCache.forEach(({ marker, onClick, overlay }) => {
         marker.removeEventListener("click", onClick);
         overlay.setMap(null);
       });
-      overlaysRef.current = [];
+      overlayCache.clear();
       mapRef.current = null;
     };
   }, []);
@@ -182,67 +260,71 @@ export function MapPreview({
   useEffect(() => {
     const map = mapRef.current;
     const sdk = sdkRef.current;
-    if (mapStatus !== "ready" || !map || !sdk) return;
+    const clusterer = clustererRef.current;
+    if (mapStatus !== "ready" || !map || !sdk || !clusterer) return;
 
-    const bounds = new sdk.maps.LatLngBounds();
-    const overlays = markers.map((item) => {
-      const position = new sdk.maps.LatLng(item.lat as number, item.lng as number);
+    const overlayFor = (item: IndexComplex) => {
+      const cached = overlayCacheRef.current.get(item.id);
+      if (cached) return cached;
       const marker = document.createElement("button");
       marker.type = "button";
       marker.title = item.n;
       marker.setAttribute("aria-label", `${item.n} 선택`);
-      marker.setAttribute("aria-pressed", "false");
-      marker.className = markerClassName(item, false);
       const onClick = () => onSelectRef.current(item.id);
       marker.addEventListener("click", onClick);
-      bounds.extend(position);
-      return {
+      const entry: MarkerOverlay = {
         item,
         marker,
         onClick,
         overlay: new sdk.maps.CustomOverlay({
-          position,
+          position: new sdk.maps.LatLng(item.lat as number, item.lng as number),
           content: marker,
           yAnchor: 0.5,
           zIndex: 1,
         }),
       };
-    });
-    overlaysRef.current = overlays;
-    overlays.forEach(({ overlay }) => overlay.setMap(map));
+      styleMarker(entry, item.id === selectedIdRef.current);
+      overlayCacheRef.current.set(item.id, entry);
+      return entry;
+    };
 
-    if (markers.length > 1) map.setBounds(bounds);
-    else if (markers.length === 1) {
-      map.setCenter(new sdk.maps.LatLng(markers[0].lat as number, markers[0].lng as number));
-      map.setLevel(5);
+    // 선택된 단지는 화면 밖이어도 빠지지 않게 항상 포함한다.
+    const renderVisible = () => {
+      const bounds = map.getBounds();
+      const visible = mappable.filter(
+        (item) => item.id === selectedIdRef.current || isInBounds(bounds, item, VIEWPORT_PADDING),
+      );
+      clusterer.clear();
+      clusterer.addMarkers(visible.map((item) => overlayFor(item).overlay));
+    };
+
+    if (mappable.length > 1) {
+      const bounds = new sdk.maps.LatLngBounds();
+      mappable.forEach((item) => bounds.extend(new sdk.maps.LatLng(item.lat as number, item.lng as number)));
+      map.setBounds(bounds);
+    } else if (mappable.length === 1) {
+      map.setCenter(new sdk.maps.LatLng(mappable[0].lat as number, mappable[0].lng as number));
+      map.setLevel(4);
     }
 
-    return () => {
-      overlays.forEach(({ marker, onClick, overlay }) => {
-        marker.removeEventListener("click", onClick);
-        overlay.setMap(null);
-      });
-      if (overlaysRef.current === overlays) overlaysRef.current = [];
-    };
-  }, [mapStatus, markers]);
+    sdk.maps.event.addListener(map, "idle", renderVisible);
+    renderVisible();
+    return () => sdk.maps.event.removeListener(map, "idle", renderVisible);
+  }, [mapStatus, mappable]);
 
   useEffect(() => {
     const map = mapRef.current;
     const sdk = sdkRef.current;
-    const selected = markers.find((item) => item.id === selectedId);
     if (mapStatus !== "ready" || !map || !sdk) return;
 
-    overlaysRef.current.forEach(({ item, marker, overlay }) => {
-      const isSelected = item.id === selectedId;
-      marker.className = markerClassName(item, isSelected);
-      marker.setAttribute("aria-pressed", String(isSelected));
-      overlay.setZIndex(isSelected ? 10 : 1);
-    });
+    overlayCacheRef.current.forEach((entry) => styleMarker(entry, entry.item.id === selectedId));
 
-    if (selected) {
+    // 이미 보이는 단지를 고른 경우 사용자가 맞춰 둔 화면을 움직이지 않는다.
+    const selected = mappable.find((item) => item.id === selectedId);
+    if (selected && !isInBounds(map.getBounds(), selected, 0)) {
       map.panTo(new sdk.maps.LatLng(selected.lat as number, selected.lng as number));
     }
-  }, [mapStatus, markers, selectedId]);
+  }, [mapStatus, mappable, selectedId]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -293,7 +375,7 @@ export function MapPreview({
             className="absolute -inset-x-[8%] top-[43%] h-[74px] rotate-[-10deg] bg-primary/[0.07]"
           />
           <div className="absolute inset-0">
-            {markers.map((item) => {
+            {previewMarkers.map((item) => {
               const point = projectToMap(item.lat as number, item.lng as number);
               const selected = selectedId === item.id;
               const failed = isFailed(item);
