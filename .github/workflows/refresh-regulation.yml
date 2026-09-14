@@ -8,6 +8,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write
 
 concurrency:
   group: refresh-regulation
@@ -20,6 +21,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -27,7 +31,7 @@ jobs:
           python-version: "3.13"
 
       - name: Install dependencies
-        run: pip install requests pandas openpyxl beautifulsoup4
+        run: pip install requests pandas openpyxl
 
       - name: Collect regulation data
         run: python data/collect/35.collect_regulation.py
@@ -35,15 +39,40 @@ jobs:
       - name: Update published regulation data
         run: cp output/35.2.regulation_summary.json front/public/regulation.json
 
-      - name: Commit and push changes when needed
+      - name: Commit changes and open or update pull request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if git diff --quiet -- front/public/regulation.json; then
+          as_of="$(python -c 'import json; print(json.load(open("output/35.2.regulation_summary.json", encoding="utf-8"))["as_of"])')"
+          branch="chore/refresh-regulation"
+          published_file="front/public/regulation.json"
+          staged_file="${RUNNER_TEMP}/regulation.json"
+          branch_exists=false
+
+          cp "$published_file" "$staged_file"
+          if git ls-remote --exit-code --heads origin "$branch"; then
+            branch_exists=true
+            git fetch origin "$branch"
+            git checkout -B "$branch" "origin/$branch"
+          else
+            git checkout -b "$branch"
+          fi
+          cp "$staged_file" "$published_file"
+
+          if ! git diff --quiet -- "$published_file"; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add "$published_file"
+            git commit -m "chore: refresh regulation data as of ${as_of}"
+            git push --set-upstream origin "$branch"
+          elif [ "$branch_exists" = false ]; then
             exit 0
           fi
 
-          as_of="$(python -c 'import json; print(json.load(open("output/35.2.regulation_summary.json", encoding="utf-8"))["as_of"])')"
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add front/public/regulation.json
-          git commit -m "chore: refresh regulation data as of ${as_of}"
-          git push
+          if [ "$(gh pr list --base main --head "$branch" --state open --json number --jq 'length')" = "0" ]; then
+            gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "chore: refresh regulation data as of ${as_of}" \
+              --body "Automated regulation data refresh as of ${as_of}."
+          fi
