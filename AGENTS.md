@@ -27,14 +27,19 @@ Codex는 이 파일을 직접 읽는다. Claude Code는 저장소 루트의 `CLA
 
 ## 3. 작업 흐름 (필수)
 
-1. **작업 단위마다** 최신 `main`에서 브랜치를 만든다. 예: `feat/front-map-cluster`, `fix/price-area-fallback`, `docs/backend-plan`.
+브랜치는 세 층이다. `main`(배포 기준) ← `dev`(통합·build 검증) ← 작업 브랜치.
+GitHub 기본 브랜치는 `dev`이므로 PR base는 따로 지정하지 않으면 `dev`가 된다. `main`으로 올릴 때만 base를 `main`으로 명시한다(`gh pr create --base main`).
+
+1. **작업 단위마다** 최신 `dev`에서 브랜치를 만든다. 예: `feat/front-map-cluster`, `fix/price-area-fallback`, `docs/backend-plan`.
 2. 로컬 검증(§5)을 통과시킨다. 검사 명령은 **exit code로 다음 단계를 막는다**(`&&` 또는 실패 시 중단). 실패를 무시하고 커밋·PR로 넘어가지 않는다.
 3. `front/`나 배포 산출물(`front/public/data`)이 바뀌면 **Vercel preview 배포로 테스트**한다(§4). 문서만 바뀐 작업은 생략할 수 있다.
-4. preview에서 이상이 없을 때 PR(병합 요청)을 연다. PR에 변경 요약, 확인 방법(preview URL 포함), 영향 영역, 남은 이슈를 적는다.
-5. **`main` 병합은 신중하게**: 담당자 리뷰(프론트는 정선우 님) 후에만 병합한다. 에이전트는 사람의 명시적 지시 없이 병합하지 않는다.
-6. 프로덕션 배포(`--prod`)는 `main` 병합 후 `main`에서만 한다.
+4. preview에서 이상이 없을 때 **`dev`를 대상으로** PR(병합 요청)을 연다. PR에 변경 요약, 확인 방법(preview URL 포함), 영향 영역, 남은 이슈를 적는다.
+5. `dev`에 병합한 뒤 `dev`에서 build를 다시 검증한다: `cd front && npx tsc --noEmit && npm run build`.
+6. build가 통과하면 `dev` → `main` PR을 연다. **`main` 병합은 신중하게**: 담당자 리뷰(프론트는 정선우 님) 후에만 병합한다. 에이전트는 사람의 명시적 지시 없이 병합하지 않는다.
+7. 프로덕션 배포(`--prod`)는 `main` 병합 후 `main`에서만 한다.
+8. `main`에 hotfix가 직접 들어간 경우 `main`을 `dev`로 다시 merge해 맞춘다.
 
-금지: `main` 직접 push, force push, 리뷰 없는 병합, preview 테스트 없이 프론트 PR 열기.
+금지: `main` 직접 push, `main`으로 직접 여는 작업 브랜치 PR(`dev` 경유), force push, 리뷰 없는 병합, preview 테스트 없이 프론트 PR 열기, `dev` build 실패 상태로 `main` PR 열기.
 
 ## 4. Vercel 배포
 
