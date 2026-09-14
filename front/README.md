@@ -39,7 +39,7 @@ front/
     globals.css        Tailwind v4 + 디자인 토큰 + keyframes
   components/
     search-panel.tsx   검색, 빠른 필터, 결과 리스트
-    map-preview.tsx    좌표 기반 위치 미리보기
+    map-preview.tsx    Kakao Maps 위치 지도 (실패 시 좌표 미리보기)
     detail-panel.tsx   선택 단지 요약
     basket-bar.tsx     하단 비교 바
     compare-section.tsx 비교서 (가격·추이·유사단지·환경·확인사항)
@@ -85,6 +85,15 @@ python -m venv .venv
 `index.json`에는 `match_confidence`가 `HIGH`가 아닐 때만 실린다. 9,160행에 기본값을 매번 싣지 않기 위해서다. 프론트는 값이 없으면 `HIGH`로 읽는다 (`lib/format.ts`의 `matchConfidence()`).
 
 `front/public/data/`는 `.gitignore` 대상이다. 재빌드마다 전량이 바뀌므로 개발 중에는 추적하지 않고, **배포 직전에 한 번만 commit한다.**
+
+## 지도 설정
+
+`front/.env.local`에 `NEXT_PUBLIC_KAKAO_JS_KEY`를 설정한다. 이 키는 Kakao Maps JavaScript SDK가 브라우저에서 사용하는 도메인 제한 공개키이므로, 정적 export 번들에 포함되는 것은 정상이다. 값 자체는 commit하지 않는다.
+
+Kakao 개발자 콘솔 → 앱 → 플랫폼 → Web 사이트 도메인에 다음을 등록해야 한다.
+
+- `https://imnjang-pi.vercel.app`
+- `http://localhost:3000`
 
 ## 검사
 
@@ -157,6 +166,6 @@ vercel --prod   # production
 
 ## 알려진 제약
 
-- **지도는 아직 실제 배경지도가 아니다.** `SEOUL_BOUNDS` 기준 좌표 투영 미리보기다. VWorld API 키가 준비되면 `lib/data.ts`의 `projectToMap()`과 `components/map-preview.tsx`를 OpenLayers adapter로 교체한다.
+- **지도는 Kakao Maps JavaScript SDK를 사용한다.** 지도 내부에 Kakao 로고가 표시되므로 별도 출처 표기는 필요 없다. 키가 없거나 SDK를 불러오지 못하면 `SEOUL_BOUNDS` 기준 좌표 투영 미리보기로 자동 전환한다.
 - **단지 payload는 `.json.gz`로만 생성된다.** 정적 호스팅은 이 파일을 `Content-Type: application/gzip`으로 그냥 내려주므로 브라우저가 압축을 풀지 않는다 (`next dev`에서 확인). 그래서 `lib/data.ts`의 `fetchComplex()`가 `DecompressionStream("gzip")`으로 직접 푼다. 서버가 `Content-Encoding: gzip`을 붙여주는 환경이면 그대로 쓴다. **Vercel preview에서 한 번 더 확인할 것** — 아직 배포해보지 않았다.
 - `npm audit`에 `postcss` 관련 경고가 뜬다. Next 15의 전이 의존성이고 빌드 타임에만 쓰인다. 해소하려면 Next 16으로 올려야 해서 지금은 두었다.
