@@ -56,8 +56,10 @@ type MarkerOverlay = {
 let kakaoSdkPromise: Promise<KakaoSdk> | null = null;
 
 function markerClassName(item: IndexComplex, selected: boolean) {
+  // relative: 흰 점(::before)의 기준을 overlay wrapper가 아닌 버튼으로 둔다.
+  // block: inline 줄높이로 wrapper가 커져 점이 세로로 늘어나고 yAnchor가 어긋나는 것을 막는다.
   return cn(
-    "size-4 rounded-full transition-[transform,background-color,box-shadow] duration-200 ease-[var(--ease-out-soft)]",
+    "relative block size-4 rounded-full transition-[transform,background-color,box-shadow] duration-200 ease-[var(--ease-out-soft)]",
     "before:absolute before:inset-1 before:rounded-full before:bg-white before:content-['']",
     "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
     isFailed(item)
