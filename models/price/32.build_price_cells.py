@@ -4,7 +4,8 @@
 # Author:      yjkim
 # Purpose:     단지×면적타입×층대의 최근 매매 가격 셀과 5년 가격 시계열을 만든다.
 # Description: 최근 24개월의 같은 셀 실거래를 우선 사용하고, 셀 거래가 없으면
-#              같은 단지의 최근 거래 평균으로만 보완한다. 최근 거래가 전혀 없는
+#              같은 면적의 다른 층대 최근 거래를 우선하고, 없으면 단지 평균으로
+#              보완한다. 최근 거래가 전혀 없는
 #              단지는 cold-start 모델(Task 2)의 대상이므로 이 산출물에 넣지 않는다.
 #
 #              층대는 15.1.complex_final의 실제 max_levels를 사용해 최고층의
@@ -103,20 +104,26 @@ def print_validation(cells: pd.DataFrame, series: pd.DataFrame, trades: pd.DataF
     active_apts = set(trades.loc[trades["deal_period"].between(latest_month - 23, latest_month), "apt_seq"])
     key_unique = not cells.duplicated(["apt_seq", "area_type", "floor_band"]).any()
     cell_last_has_price = cells.loc[cells["price_source"].eq("CELL_LAST"), "last_price_manwon"].notna().all()
+    area_last_has_evidence = (
+        cells.loc[cells["price_source"].eq("AREA_LAST"), ["last_deal_ym", "last_price_manwon", "last_price_per_m2", "area_last_floor_band"]]
+        .notna().all().all()
+    )
     series_periods = pd.PeriodIndex(series["deal_ym"].astype(str), freq="M")
     series_in_range = ((series_periods >= series_start) & (series_periods <= latest_month)).all()
     cells_are_active = set(cells["apt_seq"]).issubset(active_apts)
-    source_valid = set(cells["price_source"]).issubset({"CELL_LAST", "COMPLEX_MEAN"})
+    source_valid = set(cells["price_source"]).issubset({"CELL_LAST", "AREA_LAST", "COMPLEX_MEAN"})
 
     checks = [
         ("apt_seq×area_type×floor_band key 유일", key_unique, f"{len(cells):,}행"),
         ("CELL_LAST의 last_price_manwon 결측 0건", cell_last_has_price,
          f"결측 {cells.loc[cells['price_source'].eq('CELL_LAST'), 'last_price_manwon'].isna().sum():,}건"),
+        ("AREA_LAST의 거래월·가격·근거 층대 결측 0건", area_last_has_evidence,
+         f"결측 {cells.loc[cells['price_source'].eq('AREA_LAST'), ['last_deal_ym', 'last_price_manwon', 'last_price_per_m2', 'area_last_floor_band']].isna().any(axis=1).sum():,}건"),
         ("32.2 deal_ym이 최근 60개월 안", series_in_range,
          f"{series_periods.min()} ~ {series_periods.max()}"),
         ("32.1 단지가 최근 24개월 거래 단지에 포함", cells_are_active,
          f"32.1 {cells['apt_seq'].nunique():,}단지 / 최근 거래 {len(active_apts):,}단지"),
-        ("price_source 값이 CELL_LAST 또는 COMPLEX_MEAN", source_valid, "MODEL은 Task 2에서만 추가"),
+        ("price_source 값이 CELL_LAST·AREA_LAST·COMPLEX_MEAN", source_valid, "MODEL은 Task 2에서만 추가"),
     ]
     for label, passed, detail in checks:
         print(f"  [{'PASS' if passed else 'FAIL'}] {label}: {detail}")

@@ -94,13 +94,14 @@ front/
 - 출력: `output/32.1.price_cells.txt`, `output/32.2.price_series.txt`
 
 **인터페이스**
-- 생산: `32.1.price_cells` = `apt_seq, area_type, floor_band, n_trades_24m, last_deal_ym, last_price_manwon, last_price_per_m2, mean_price_per_m2_24m, price_source`
-  `price_source` ∈ `{CELL_LAST, COMPLEX_MEAN, MODEL}` — 3번째는 Task 3이 채운다
+- 생산: `32.1.price_cells` = `apt_seq, area_type, floor_band, n_trades_24m, last_deal_ym, last_price_manwon, last_price_per_m2, mean_price_per_m2_24m, area_last_floor_band, price_source`
+  `price_source` ∈ `{CELL_LAST, AREA_LAST, COMPLEX_MEAN, MODEL}` — `MODEL`은 Task 3이 채운다
 - 생산: `32.2.price_series` = `apt_seq, area_type, deal_ym, n_trades, median_price_per_m2` (최근 60개월)
 
 **정의 (스펙 §5.1과 일치시킬 것)**
 - `area_type = round(전용면적 / 3) * 3` — 3m bin. 90개 타입, 단지당 중앙값 2개
 - `floor_band`: `models/price/_floor_band.py` 공통 함수로 실제 최고층을 기준으로 LOW/MID/HIGH를 나눈다. `horizon_profile`의 `repr_floor`를 최고층 proxy로 쓰지 않는다.
+- 셀 거래가 없고 같은 `apt_seq×area_type`의 최근 24개월 거래가 있으면, `deal_date, source_order` 마지막 거래를 `AREA_LAST`로 사용한다. `last_*`에는 그 실제 거래를, `area_last_floor_band`에는 근거 층대를 넣는다. `mean_price_per_m2_24m`은 평균 열의 의미를 지키기 위해 비운다.
 - 정제: `is_cancelled=True` 제외, 단지×면적타입 기준 상하위 1% 제외
 
 - [ ] **Step 1** — 32를 작성한다. 셀 집계와 시계열 두 산출물을 만든다.
@@ -260,8 +261,10 @@ front/
 
 **표기 규칙 구현 (스펙 §6). 이걸 어기면 기능이 아니라 거짓말이 된다.**
 - `source == "CELL_LAST"` → "2026년 7월 실거래 14.2억"
-- `source == "COMPLEX_MEAN"` → "이 면적 거래 없음 · 단지 평균 13.8억"
-- `source == "MODEL"` → "**추정** 13.5~15.1억 · 이 단지는 최근 2년 거래가 없습니다"
+- `source == "AREA_LAST"` → "이 층대 최근 2년 매매 거래 없음 · 같은 면적 저층 2026년 7월 실거래 14.2억"
+- `source == "COMPLEX_MEAN"` → "이 면적·층대의 최근 2년 매매 거래 없음 · 단지 평균 13.8억"
+- `source == "MODEL"` → "추정 13.5~15.1억 · 최근 2년 매매 거래가 없어 추정했습니다" + "원단가 …만원/㎡~…만원/㎡" + 신뢰도 배지
+- `source == "EXCLUDED"` → "임대 관련 명칭으로 추정 대상에서 제외했습니다"
 - `match_confidence == "FAILED"` → 환경 블록에 "건물 매칭 실패로 일조·조망 분석 불가"
 - 도보 시간은 반드시 "추정 도보 N분"
 

@@ -63,7 +63,7 @@ SCHEMA = {
             "supermarket_m", "cvs_500m", "restaurant_500m", "park_m", "park_area_m2",
             "nightlife_300m"},
     "price": {"area_type", "floor_band", "source", "n_trades_24m", "last_deal_ym",
-              "last_price_manwon", "mean_price_per_m2_24m", "est_price_per_m2",
+              "last_price_manwon", "mean_price_per_m2_24m", "area_last_floor_band", "est_price_per_m2",
               "est_low", "est_high", "est_confidence", "reason"},
     "comparables": {"area_type", "target_source", "rank", "comp_id", "name", "deal_ym",
                     "price_manwon", "price_per_m2", "adj_price_per_m2", "adj_reason",
@@ -76,7 +76,7 @@ SCHEMA = {
     # match_confidence 는 HIGH 가 아닐 때만 실린다 (36.build_payload.py)
     "index": {"id", "n", "g", "u", "lat", "lng", "y", "h", "match_confidence"},
 }
-VALID_SOURCES = {"CELL_LAST", "COMPLEX_MEAN", "MODEL", "EXCLUDED"}
+VALID_SOURCES = {"CELL_LAST", "AREA_LAST", "COMPLEX_MEAN", "MODEL", "EXCLUDED"}
 
 
 print("===== 1. 금지 표현 검사 =====")
@@ -132,7 +132,7 @@ missing = VALID_SOURCES - handled
 if missing:
     print(f"  [FAIL] 처리하지 않은 source: {sorted(missing)}")
 else:
-    print(f"  [PASS] source 4종 전부 분기 ({sorted(handled)})")
+    print(f"  [PASS] source {len(VALID_SOURCES)}종 전부 분기 ({sorted(handled)})")
 
 
 all_passed = not violations and not unknown_fields and not missing

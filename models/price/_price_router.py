@@ -14,10 +14,12 @@ from _floor_band import FLOOR_BANDS, assign_floor_band
 
 CELL_COLUMNS = [
     "apt_seq", "area_type", "floor_band", "n_trades_24m", "last_deal_ym",
-    "last_price_manwon", "last_price_per_m2", "mean_price_per_m2_24m", "price_source",
+    "last_price_manwon", "last_price_per_m2", "mean_price_per_m2_24m",
+    "area_last_floor_band", "price_source",
 ]
 ROUTE_COLUMNS = [
     "n_trades_24m", "last_deal_ym", "last_price_per_m2", "mean_price_per_m2_24m",
+    "area_last_floor_band",
 ]
 
 
@@ -148,16 +150,44 @@ def build_service_snapshot(clean_history: pd.DataFrame, as_of_month: pd.Period |
         )
         .reset_index()
     )
+    # AREA_LAST는 같은 면적의 다른 층대 거래를 쓰므로, 항상 전체 층대를
+    # 대상으로 기존 CELL_LAST와 같은 정렬 키로 마지막 거래를 선택한다.
+    area_last = (
+        recent.sort_values(["deal_date", "source_order"])
+        .groupby(["apt_seq", "area_type"], observed=True)
+        .agg(
+            area_last_deal_ym=("deal_ym", "last"),
+            area_last_price_manwon=("deal_amount_manwon", "last"),
+            area_last_price_per_m2=("price_per_m2", "last"),
+            area_last_floor_band=("floor_band", "last"),
+        )
+        .reset_index()
+    )
     complex_mean = recent.groupby("apt_seq", observed=True)["price_per_m2"].mean().rename("complex_mean_price_per_m2_24m")
     cells = candidates.merge(cell_stats, on=["apt_seq", "area_type", "floor_band"], how="left", validate="one_to_one")
+    cells = cells.merge(area_last, on=["apt_seq", "area_type"], how="left", validate="many_to_one")
     cells = cells.join(complex_mean, on="apt_seq", validate="many_to_one")
     has_cell_trade = cells["n_trades_24m"].notna()
+    has_area_trade = cells["area_last_price_per_m2"].notna()
     cells["n_trades_24m"] = cells["n_trades_24m"].fillna(0).astype(int)
     cells["mean_price_per_m2_24m"] = cells["cell_mean_price_per_m2_24m"].where(
         has_cell_trade, cells["complex_mean_price_per_m2_24m"]
     )
-    cells["price_source"] = np.where(has_cell_trade, "CELL_LAST", "COMPLEX_MEAN")
-    cells = cells.drop(columns=["cell_mean_price_per_m2_24m", "complex_mean_price_per_m2_24m"])
+    area_last_fallback = ~has_cell_trade & has_area_trade
+    cells.loc[area_last_fallback, "last_deal_ym"] = cells.loc[area_last_fallback, "area_last_deal_ym"]
+    cells.loc[area_last_fallback, "last_price_manwon"] = cells.loc[area_last_fallback, "area_last_price_manwon"]
+    cells.loc[area_last_fallback, "last_price_per_m2"] = cells.loc[area_last_fallback, "area_last_price_per_m2"]
+    # 이 열은 평균이라는 계약을 유지한다. AREA_LAST의 근거 가격을 넣으면
+    # 화면과 downstream이 마지막 거래를 평균으로 오해하므로 결측으로 남긴다.
+    cells.loc[area_last_fallback, "mean_price_per_m2_24m"] = np.nan
+    cells["area_last_floor_band"] = cells["area_last_floor_band"].where(area_last_fallback, pd.NA)
+    cells["price_source"] = np.select(
+        [has_cell_trade, area_last_fallback], ["CELL_LAST", "AREA_LAST"], default="COMPLEX_MEAN"
+    )
+    cells = cells.drop(columns=[
+        "cell_mean_price_per_m2_24m", "area_last_deal_ym", "area_last_price_manwon",
+        "area_last_price_per_m2", "complex_mean_price_per_m2_24m",
+    ])
     cells = cells[CELL_COLUMNS].sort_values(["apt_seq", "area_type", "floor_band"], kind="stable").reset_index(drop=True)
     if cells.duplicated(["apt_seq", "area_type", "floor_band"]).any():
         raise AssertionError("서비스 snapshot key가 중복되었습니다.")
@@ -225,11 +255,11 @@ def route_target(target_rows: pd.DataFrame, snapshot: pd.DataFrame) -> pd.DataFr
         default="NO_CELL_CANDIDATE",
     )
     merged["pred_price_per_m2"] = np.where(
-        merged["service_route"].eq("CELL_LAST"),
+        merged["service_route"].isin(["CELL_LAST", "AREA_LAST"]),
         merged["last_price_per_m2"],
         np.where(merged["service_route"].eq("COMPLEX_MEAN"), merged["mean_price_per_m2_24m"], np.nan),
     )
-    merged["is_scored"] = merged["service_route"].isin(["CELL_LAST", "COMPLEX_MEAN"])
+    merged["is_scored"] = merged["service_route"].isin(["CELL_LAST", "AREA_LAST", "COMPLEX_MEAN"])
     merged["unscored_reason"] = merged["service_route"].where(~merged["is_scored"], pd.NA)
     if merged.loc[merged["is_scored"], "pred_price_per_m2"].isna().any():
         raise AssertionError("서비스 cell route의 예측값이 비어 있습니다.")

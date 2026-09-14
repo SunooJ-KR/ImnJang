@@ -28,7 +28,7 @@ export interface IndexPayload {
   complexes: IndexComplex[];
 }
 
-export type PriceSource = "CELL_LAST" | "COMPLEX_MEAN" | "MODEL" | "EXCLUDED";
+export type PriceSource = "CELL_LAST" | "AREA_LAST" | "COMPLEX_MEAN" | "MODEL" | "EXCLUDED";
 export type FloorBand = "HIGH" | "MID" | "LOW" | "UNKNOWN";
 export type EstConfidence = "HIGH" | "MEDIUM" | "LOW";
 
@@ -40,6 +40,7 @@ export interface PriceEntry {
   last_deal_ym: string | null;
   last_price_manwon: number | null;
   mean_price_per_m2_24m: number | null;
+  area_last_floor_band: FloorBand | null;
   est_price_per_m2: number | null;
   est_low: number | null;
   est_high: number | null;

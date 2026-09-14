@@ -207,6 +207,9 @@ function PriceSummary({ entry }: { entry: PriceEntry }) {
     <Value>{ymLabel(entry.last_deal_ym)} 실거래 {toEok(entry.last_price_manwon)}</Value>
     <div className="text-[12.5px] text-muted-foreground">최근 2년 매매 거래 {num(entry.n_trades_24m, "건")}</div>
   </>;
+  if (entry.source === "AREA_LAST") return <>
+    <Value>이 층대 최근 2년 매매 거래 없음 · 같은 면적 {bandLabel(entry.area_last_floor_band)} {ymLabel(entry.last_deal_ym)} 실거래 {toEok(entry.last_price_manwon)}</Value>
+  </>;
   if (entry.source === "COMPLEX_MEAN") return <>
     <Value>이 면적·층대의 최근 2년 매매 거래 없음 · 단지 평균 {totalFromUnit(entry.mean_price_per_m2_24m)}</Value>
     <div className="text-[12.5px] text-muted-foreground">원단가 {num(entry.mean_price_per_m2_24m, "만원/㎡")}</div>

@@ -43,7 +43,7 @@ INDEX_PATH = public_data_dir / "index.json"
 
 UNKNOWN_ITEMS = ["향", "호수", "실내 상태", "소음 실측", "실제 보행 경로"]
 REGULATION_NOTE = "실거주 목적만 매수 가능, 2년 실거주 의무"
-PRICE_SOURCES = {"CELL_LAST", "COMPLEX_MEAN", "MODEL", "EXCLUDED"}
+PRICE_SOURCES = {"CELL_LAST", "AREA_LAST", "COMPLEX_MEAN", "MODEL", "EXCLUDED"}
 
 # Payload numeric precision rules (schema values and null semantics are unchanged):
 # - distances/heights/areas in metres: 1 decimal place;
@@ -228,7 +228,7 @@ def make_price_rows(cells: pd.DataFrame, estimates: pd.DataFrame,
 
     for row in cells.sort_values(["apt_seq", "area_type", "floor_band"], kind="stable").to_dict("records"):
         source = str(row["price_source"])
-        if source not in {"CELL_LAST", "COMPLEX_MEAN"}:
+        if source not in {"CELL_LAST", "AREA_LAST", "COMPLEX_MEAN"}:
             raise ValueError(f"32.1의 허용되지 않은 price_source: {source}")
         key = (str(row["apt_seq"]), json_value(row["area_type"]), json_value(row["floor_band"]))
         if key in seen_keys:
@@ -244,6 +244,12 @@ def make_price_rows(cells: pd.DataFrame, estimates: pd.DataFrame,
             item.update({
                 "last_deal_ym": month_string(row["last_deal_ym"]),
                 "last_price_manwon": payload_value("last_price_manwon", row["last_price_manwon"]),
+            })
+        elif source == "AREA_LAST":
+            item.update({
+                "last_deal_ym": month_string(row["last_deal_ym"]),
+                "last_price_manwon": payload_value("last_price_manwon", row["last_price_manwon"]),
+                "area_last_floor_band": payload_value("area_last_floor_band", row["area_last_floor_band"]),
             })
         else:
             item["mean_price_per_m2_24m"] = payload_value("mean_price_per_m2_24m", row["mean_price_per_m2_24m"])
@@ -471,6 +477,7 @@ def validate(complex_df: pd.DataFrame, metrics: pd.DataFrame, excluded: pd.DataF
 
     model_null_bounds = 0
     cell_last_null_price = 0
+    area_last_missing_evidence = 0
     excluded_all_correct = True
     env_null_schema_preserved = True
     non_permanent_env_columns = [
@@ -494,6 +501,10 @@ def validate(complex_df: pd.DataFrame, metrics: pd.DataFrame, excluded: pd.DataF
                 model_null_bounds += 1
             if item["source"] == "CELL_LAST" and item.get("last_price_manwon") is None:
                 cell_last_null_price += 1
+            if item["source"] == "AREA_LAST" and any(
+                item.get(field) is None for field in ["last_deal_ym", "last_price_manwon", "area_last_floor_band"]
+            ):
+                area_last_missing_evidence += 1
         if payload["id"] in set(excluded["apt_seq"].astype(str)):
             excluded_all_correct &= bool(payload["price"]) and all(
                 item["source"] == "EXCLUDED" for item in payload["price"]
@@ -516,6 +527,8 @@ def validate(complex_df: pd.DataFrame, metrics: pd.DataFrame, excluded: pd.DataF
          f"결측 {model_null_bounds:,}건"),
         ("CELL_LAST의 last_price_manwon 결측 0건", cell_last_null_price == 0,
          f"결측 {cell_last_null_price:,}건"),
+        ("AREA_LAST의 거래월·가격·근거 층대 결측 0건", area_last_missing_evidence == 0,
+         f"결측 {area_last_missing_evidence:,}건"),
         ("임대 전용 단지 109개의 price가 EXCLUDED", excluded_all_correct and len(excluded) == 109,
          f"검사 {len(excluded):,}개"),
     ]

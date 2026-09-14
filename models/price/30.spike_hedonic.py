@@ -424,13 +424,13 @@ def grouped_baseline_comparison(test: pd.DataFrame, detail: pd.DataFrame, b2: pd
     return pd.DataFrame(rows)
 
 
-SERVICE_ROUTES = ["CELL_LAST", "COMPLEX_MEAN", "MODEL_REQUIRED", "NO_CELL_CANDIDATE"]
+SERVICE_ROUTES = ["CELL_LAST", "AREA_LAST", "COMPLEX_MEAN", "MODEL_REQUIRED", "NO_CELL_CANDIDATE"]
 SERVICE_HOUSEHOLD_BINS = ["<=20", "21~100", "101+", "UNKNOWN"]
 SERVICE_AUDIT_COLUMNS = [
     "evaluation_mode", "origin_ym", "target_deal_ym", "target_deal_date", "source_order",
     "apt_seq", "area_type", "floor_band", "actual_price_per_m2", "history_start_ym",
     "recent_start_ym", "history_max_ym", "active_24m", "candidate_area_seen_60m",
-    "service_route", "n_trades_24m", "last_deal_ym", "last_price_per_m2",
+    "service_route", "n_trades_24m", "last_deal_ym", "last_price_per_m2", "area_last_floor_band",
     "mean_price_per_m2_24m", "pred_price_per_m2", "is_scored", "unscored_reason",
     "ape_pct", "ae_manwon_per_m2", "total_households", "household_bin",
 ]
@@ -513,7 +513,7 @@ def build_service_route_audit(
     audit["history_max_ym"] = str(history["deal_period"].max())
     for column in [
         "active_24m", "candidate_area_seen_60m", "service_route", "n_trades_24m",
-        "last_deal_ym", "last_price_per_m2", "mean_price_per_m2_24m",
+        "last_deal_ym", "last_price_per_m2", "mean_price_per_m2_24m", "area_last_floor_band",
     ]:
         audit[column] = routed[column]
     audit["pred_price_per_m2"] = routed["pred_price_per_m2"]
@@ -602,10 +602,15 @@ def assert_service_route_gates(audit: pd.DataFrame, metrics: pd.DataFrame) -> No
         raise AssertionError("gate 3: 암묵적 global fallback 또는 score 상태 불일치가 있습니다.")
     cell = audit["service_route"].eq("CELL_LAST")
     mean = audit["service_route"].eq("COMPLEX_MEAN")
+    area_last = audit["service_route"].eq("AREA_LAST")
     if not np.array_equal(audit.loc[cell, "pred_price_per_m2"].to_numpy(), audit.loc[cell, "last_price_per_m2"].to_numpy()):
         raise AssertionError("gate 4: CELL_LAST 예측값이 snapshot last_price와 다릅니다.")
     if not np.array_equal(audit.loc[mean, "pred_price_per_m2"].to_numpy(), audit.loc[mean, "mean_price_per_m2_24m"].to_numpy()):
         raise AssertionError("gate 4: COMPLEX_MEAN 예측값이 snapshot mean_price와 다릅니다.")
+    if not np.array_equal(audit.loc[area_last, "pred_price_per_m2"].to_numpy(), audit.loc[area_last, "last_price_per_m2"].to_numpy()):
+        raise AssertionError("gate 4: AREA_LAST 예측값이 snapshot same-area last price와 다릅니다.")
+    if audit.loc[area_last, "area_last_floor_band"].isna().any():
+        raise AssertionError("gate 4: AREA_LAST 근거 층대가 비어 있습니다.")
     rolling = audit.loc[audit["evaluation_mode"].eq("ROLLING_1M")]
     if rolling.duplicated(["source_order"]).any():
         raise AssertionError("gate 5: ROLLING_1M target 거래가 두 번 이상 평가되었습니다.")
@@ -655,7 +660,7 @@ def write_service_route_outputs(service_audit: pd.DataFrame, service_metrics: pd
     metrics_header = [
         "# 서비스 가격 셀 route OOT metrics",
         "# 주 검증은 ROLLING_1M이며, complex_equal_MAPE_pct는 단지 내 월별 APE 평균 뒤 단지를 동일가중합니다.",
-        "# CELL_LAST/COMPLEX_MEAN만 MAPE denominator에 포함하며 MODEL_REQUIRED/NO_CELL_CANDIDATE는 route coverage에 포함합니다.",
+        "# CELL_LAST/AREA_LAST/COMPLEX_MEAN만 MAPE denominator에 포함하며 MODEL_REQUIRED/NO_CELL_CANDIDATE는 route coverage에 포함합니다.",
         f"# complex block bootstrap: {SERVICE_BOOTSTRAP_REPS}회, seed={SERVICE_BOOTSTRAP_SEED}; MAPE에는 사후 cutoff를 적용하지 않았습니다.",
     ]
     SERVICE_ROUTE_METRICS_PATH.write_text(

@@ -97,9 +97,12 @@
 | `source` | 화면 문구 | 함께 오는 필드 |
 |---|---|---|
 | `CELL_LAST` | "2026년 7월 실거래 3.3억" | `last_deal_ym` `last_price_manwon` |
-| `COMPLEX_MEAN` | "이 면적·층대의 최근 2년 거래 없음 · 단지 평균 …" | `mean_price_per_m2_24m` |
-| `MODEL` | "추정 …~… · 이 단지는 최근 2년 거래가 없습니다" + 신뢰도 배지 | `est_low` `est_high` `est_confidence` |
-| `EXCLUDED` | "임대 전용 단지로 매매 거래가 없습니다" | `reason` |
+| `AREA_LAST` | "이 층대 최근 2년 매매 거래 없음 · 같은 면적 저층 2026년 7월 실거래 …" | `last_deal_ym` `last_price_manwon` `area_last_floor_band` |
+| `COMPLEX_MEAN` | "이 면적·층대의 최근 2년 매매 거래 없음 · 단지 평균 …" | `mean_price_per_m2_24m` |
+| `MODEL` | "추정 …~… · 최근 2년 매매 거래가 없어 추정했습니다" + 원단가·신뢰도 배지 | `est_low` `est_high` `est_confidence` |
+| `EXCLUDED` | "임대 관련 명칭으로 추정 대상에서 제외했습니다" | `reason` |
+
+표시 총액은 근거 거래의 실제 계약 총액이며, 면적타입은 3㎡ 구간이므로 근거 거래의 전용면적은 선택 면적과 최대 ±1.5㎡ 다를 수 있다.
 
 `MODEL`은 전체 단지의 일부(2,206단지)에만 붙는다. 예측구간의 명목 수준은 80%이고 검증 기간 실측 coverage는 84.42%다. **다만 "80% 보장"이라 쓰지 말 것** — 첫 coverage 실패를 보고 방식을 바꿨으므로 test가 재사용됐다. "개발 기간에서 관측된 값"까지만 말할 수 있다.
 
