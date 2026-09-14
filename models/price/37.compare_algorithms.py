@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import re
 import time
 from pathlib import Path
 import sys
@@ -32,16 +33,66 @@ from _features import (  # noqa: E402
     build_design,
     location_category_columns,
     model_features,
+    service_model_features,
     transformed_feature,
 )
 from _jeonse import JeonseFeatureBuilder  # noqa: E402
 
 OUTPUT_PATH = work_dir / "output" / "37.1.algorithm_comparison.txt"
+METRICS_PATH = work_dir / "output" / "33.2.coldstart_metrics.txt"
 SOURCE_PATH = Path(__file__).with_name("33.train_coldstart.py")
 SEED = 20260911
 LOCATION_SCHEME = "hierarchical"
 MIN_BJD_TRAIN_ROWS = 30
 CAT_COLUMNS = ["bjd_full_key", "sgg_code", "floor_band", "jeonse_level", "deal_ym"]
+
+
+def parse_adopted_jeonse_spec() -> dict[str, object]:
+    """33.2의 채택 선언과 J/K/L 표에서 서비스 전세 사양을 읽는다."""
+    lines = METRICS_PATH.read_text(encoding="utf-8").splitlines()
+    adopted_line = next(
+        (line for line in lines if line.startswith("- 전세 feature 채택:")), None
+    )
+    if adopted_line is None:
+        raise ValueError(f"33.2에서 전세 feature 채택 선언을 찾지 못했습니다: {METRICS_PATH}")
+    match = re.search(r"전세 feature 채택:\s*([^:]+):", adopted_line)
+    if match is None:
+        raise ValueError(f"33.2 채택 선언의 variant 형식을 읽지 못했습니다: {adopted_line}")
+    adopted_variant = match.group(1).strip()
+
+    candidate_line = next(
+        (line for line in lines if line.startswith(f"{adopted_variant}:") and "\t" in line), None
+    )
+    if candidate_line is None:
+        raise ValueError(f"33.2에서 채택 variant {adopted_variant!r}의 표 행을 찾지 못했습니다.")
+    fields = candidate_line.split("\t")
+    if len(fields) < 5:
+        raise ValueError(f"33.2 채택 표 행의 열 수가 부족합니다: {candidate_line}")
+
+    variant_label, family, d4_spec, _, holdout_mape = fields[:5]
+    if family != "LightGBM":
+        raise ValueError(f"37의 기준 model은 LightGBM이어야 합니다: {candidate_line}")
+    if "순수 전세" in variant_label:
+        jeonse_variant = "PURE"
+    elif "5% 환산" in variant_label:
+        jeonse_variant = "CONVERTED"
+    else:
+        raise ValueError(f"37이 처리할 수 없는 33.2 전세 variant입니다: {variant_label}")
+
+    d4_spec_normalized = d4_spec.strip().lower()
+    if d4_spec_normalized == "linear":
+        use_sgg_interactions = False
+    elif d4_spec_normalized == "sgg interaction":
+        use_sgg_interactions = True
+    else:
+        raise ValueError(f"37이 처리할 수 없는 33.2 D4 사양입니다: {d4_spec}")
+    return {
+        "jeonse_variant": jeonse_variant,
+        "use_sgg_interactions": use_sgg_interactions,
+        "holdout_mape": float(holdout_mape),
+        "adopted_line": adopted_line,
+        "candidate_line": candidate_line,
+    }
 
 
 def load_coldstart_module():
@@ -96,7 +147,7 @@ def make_model(name: str, params: dict):
     if name == "LightGBM":
         return LGBMRegressor(
             objective="regression", random_state=SEED, n_jobs=-1, verbosity=-1,
-            n_estimators=300, learning_rate=0.05, **params,
+            n_estimators=300, learning_rate=0.05, subsample_freq=1, **params,
         )
     if name == "XGBoost":
         return XGBRegressor(
@@ -175,8 +226,17 @@ def inputs_for_evaluation(name: str, train_frame: pd.DataFrame, predict_frame: p
 
 def main():
     source = load_coldstart_module()
+    adopted_spec = parse_adopted_jeonse_spec()
+    jeonse_variant = str(adopted_spec["jeonse_variant"])
+    use_sgg_interactions = bool(adopted_spec["use_sgg_interactions"])
     print("===== 1. 동일 L 데이터 준비 =====")
-    raw, complex_df, _, _ = source.load_base()
+    print(
+        f"  33.2 채택 사양: {jeonse_variant}, "
+        f"자치구 교호항={use_sgg_interactions}",
+        flush=True,
+    )
+    # 33.load_base 가 층대용 max_levels 를 추가로 반환하도록 바뀌었다
+    raw, complex_df, *_ = source.load_base()
     print(f"  기본 매매·단지 data 로드: {len(raw):,}행", flush=True)
     rent = JeonseFeatureBuilder(source.RENT_PATH, complex_df, source.TRAIN_START, source.TRAIN_END)
     print("  전세 feature builder 초기화 완료", flush=True)
@@ -188,13 +248,22 @@ def main():
     test = add_location_fe_columns(test, LOCATION_SCHEME, dense_keys)
     print("  train 기간 이상치 cutoff 및 완전 법정동 FE 완료", flush=True)
 
-    # 33번의 L: 5% 전월세 환산 + train에서 확정한 자치구 교호항을 그대로 사용한다.
+    # 33.2의 실제 채택 variant와 D4 사양을 매 실행마다 파싱해 사용한다.
     sgg_levels = sorted(train.sgg_code.astype(str).unique())
-    train, train_rent_audit = source.prepare(train, rent, "CONVERTED", source.TRAIN_END, True, sgg_levels)
-    print("  train 전세 5% 환산 feature 결합 완료", flush=True)
-    test, test_rent_audit = source.prepare(test, rent, "CONVERTED", source.TRAIN_END, True, sgg_levels)
-    print("  test 전세 5% 환산 feature 결합 완료", flush=True)
-    features = model_features(True, sgg_levels)
+    train, train_rent_audit = source.prepare(
+        train, rent, jeonse_variant, source.TRAIN_END, use_sgg_interactions, sgg_levels,
+    )
+    print(f"  train 전세 {jeonse_variant} feature 결합 완료", flush=True)
+    test, test_rent_audit = source.prepare(
+        test, rent, jeonse_variant, source.TRAIN_END, use_sgg_interactions, sgg_levels,
+    )
+    print(f"  test 전세 {jeonse_variant} feature 결합 완료", flush=True)
+    # 33 이 실제로 배포에 쓰는 사양과 같아야 비교가 의미 있다.
+    # 물리 feature 는 예측 기여가 0으로 측정돼 서비스 모델에서 제외됐다.
+    # 첫 인자는 전세 본항 포함 여부이고, 교호항 여부가 아니다. 채택 variant가
+    # 있으므로 linear 사양이어도 전세 본항은 반드시 포함한다.
+    interaction_levels = sgg_levels if use_sgg_interactions else []
+    features = service_model_features(True, interaction_levels)
     location_columns = location_category_columns(LOCATION_SCHEME)
     fit_frame, holdout_frame = source.split(train)
 
@@ -202,7 +271,7 @@ def main():
         "OLS": {},
         "Ridge": {"alpha": [0.1, 1.0, 10.0, 100.0]},
         "RandomForest": {"n_estimators": [150], "max_depth": [16, None], "min_samples_leaf": [2, 8], "max_features": [0.8]},
-        "LightGBM": {"num_leaves": [15, 31], "min_child_samples": [30, 80], "subsample": [0.8], "colsample_bytree": [0.8], "reg_lambda": [1.0]},
+        "LightGBM": {"num_leaves": [31], "min_child_samples": [40], "subsample": [0.8], "colsample_bytree": [0.8], "reg_lambda": [1.0]},
         "XGBoost": {"max_depth": [4, 7], "min_child_weight": [5, 20], "subsample": [0.8], "colsample_bytree": [0.8], "reg_lambda": [1.0]},
         "CatBoost": {"depth": [6, 8], "l2_leaf_reg": [3.0, 10.0], "random_strength": [1.0]},
     }
@@ -257,6 +326,8 @@ def main():
 
     result_frame = pd.DataFrame(results).sort_values("holdout_MAPE_pct").reset_index(drop=True)
     lightgbm_holdout = float(result_frame.loc[result_frame.model.eq("LightGBM"), "holdout_MAPE_pct"].iloc[0])
+    source_lightgbm_holdout = float(adopted_spec["holdout_mape"])
+    lightgbm_holdout_delta = lightgbm_holdout - source_lightgbm_holdout
     best = result_frame.iloc[0]
     improvement = lightgbm_holdout - float(best.holdout_MAPE_pct)
     catboost_oot = float(result_frame.loc[result_frame.model.eq("CatBoost"), "oot_MAPE_pct"].iloc[0])
@@ -295,12 +366,18 @@ def main():
     lines = [
         "# 37.1 cold-start 알고리즘 비교",
         "",
+        "## 33.2 채택 사양 (실행 시 파싱)",
+        f"- 사용 사양: 전세 variant={jeonse_variant}, 자치구 교호항={use_sgg_interactions}.",
+        f"- 33.2 채택 선언 근거: `{adopted_spec['adopted_line']}`",
+        f"- 33.2 채택 표 행 근거: `{adopted_spec['candidate_line']}`",
+        f"- LightGBM holdout MAPE 대조: 33.2={source_lightgbm_holdout:.6f}%, 37={lightgbm_holdout:.6f}%, 차이={lightgbm_holdout_delta:+.6f}%p.",
+        "",
         "## 결과",
         table.to_csv(sep="\t", index=False, float_format="%.6f").rstrip(),
         "",
         "## 비교 조건",
         f"- random seed: {SEED}. 최근 24개월 중 train={source.TRAIN_START}~{source.TRAIN_END}, test={source.TEST_START}~{source.TEST_END}입니다.",
-        f"- L feature: 전세 5% 환산(CONVERTED) 및 train에서 확정한 자치구 교호항 {len(sgg_levels)}개를 사용했습니다. train 이상치 cutoff만 적합하여 {outlier_audit['removed']:,}행을 제거했습니다.",
+        f"- L feature: 33.2에서 파싱한 전세 {jeonse_variant}, 자치구 교호항={use_sgg_interactions} 사양을 사용했습니다. train 이상치 cutoff만 적합하여 {outlier_audit['removed']:,}행을 제거했습니다.",
         "- OLS/Ridge/RandomForest/LightGBM/XGBoost는 `_features.build_design()`의 기존 dummy 방식(층대·월·지역 FE·전세 수준)을 사용했습니다.",
         "- CatBoost는 dummy를 만들지 않고 완전 법정동 키(`bjd_full_key`), 자치구(`sgg_code`), `floor_band`, `jeonse_level`, `deal_ym`을 native `cat_features`로 넘겼습니다. 수치 L feature는 동일하게 사용했습니다.",
         "- tuning은 stable hash holdout을 제외한 fit 단지의 GroupKFold 3분할에서만 실시했습니다. model당 grid는 1회, 최대 4개 후보입니다.",
@@ -312,6 +389,11 @@ def main():
         delta = lightgbm_holdout - row.holdout_MAPE_pct
         lines.append(f"- {row.model}: {json.dumps(row.hyperparams, sort_keys=True)}; LightGBM 대비 holdout {delta:+.3f}%p")
     lines += ["", "## 결론", f"- {recommendation}", "", "===== 3. 자체 검증 ====="]
+    if abs(lightgbm_holdout_delta) > 0.1:
+        lines.append(
+            "- [WARN] LightGBM holdout MAPE가 33.2와 0.1%p를 초과해 차이납니다. "
+            "같은 사양·split 여부 외에 33과 37의 estimator hyperparameter 또는 tuning 절차 차이를 점검해야 합니다."
+        )
     lines += [f"- [{'PASS' if passed else 'FAIL'}] {label}: {detail}" for label, passed, detail in checks]
     OUTPUT_PATH.write_text("\n".join(lines) + "\n", encoding="utf-8")
     print(f"  저장: {OUTPUT_PATH.relative_to(work_dir)}")

@@ -30,6 +30,13 @@ from _features import (
     normalize_administrative_code,
     transformed_feature,
 )
+from _floor_band import assign_floor_band, load_actual_max_levels
+from _price_router import (
+    build_service_snapshot,
+    clean_sale_history,
+    prepare_target_sales,
+    route_target,
+)
 
 
 work_dir = Path(__file__).resolve().parents[2]
@@ -39,14 +46,19 @@ TRADES_PATH = output_dir / "11.1.trades_sale.txt"
 COMPLEX_PATH = output_dir / "23.1.complex.txt"
 METRICS_PATH = output_dir / "23.2.complex_metrics.txt"
 PROFILE_PATH = output_dir / "23.3.horizon_profile.txt"
+COMPLEX_FINAL_PATH = output_dir / "15.1.complex_final.txt"
 GEOCODED_PATH = output_dir / "14.1.geocoded_master.txt"
 COMPARISON_PATH = output_dir / "30.1.spike_model_comparison.txt"
 COEFFICIENTS_PATH = output_dir / "30.2.spike_coefficients.txt"
 BASELINE_PATH = output_dir / "30.3.baseline_breakdown.txt"
+SERVICE_ROUTE_PREDICTIONS_PATH = output_dir / "30.4.service_route_oot_predictions.txt"
+SERVICE_ROUTE_METRICS_PATH = output_dir / "30.5.service_route_oot_metrics.txt"
 
 BOOTSTRAP_REPS = 1_000
 BOOTSTRAP_SEED = 20260911
 MIN_BJD_TRAIN_ROWS = 30
+SERVICE_BOOTSTRAP_REPS = 200
+SERVICE_BOOTSTRAP_SEED = 20260914
 
 # A--F는 완전히 같은 train/test 표본으로 비교한다. B는 값이 아니라 profile 매칭 성공만 넣는다.
 ABLATION_FEATURES = {
@@ -133,6 +145,7 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
     complex_df = add_canonical_sgg(complex_df, trades)
     metrics = ensure_unique(pd.read_csv(METRICS_PATH, sep="\t"), "apt_seq", "complex_metrics")
     profile = pd.read_csv(PROFILE_PATH, sep="\t")
+    complex_final = pd.read_csv(COMPLEX_FINAL_PATH, sep="\t", low_memory=False).rename(columns={"aptSeq": "apt_seq"})
     if profile.duplicated(["apt_seq", "floor_band"]).any():
         raise ValueError("horizon_profile의 apt_seq×floor_band가 유일하지 않습니다.")
 
@@ -163,23 +176,9 @@ def load_pre_split_sample() -> tuple[pd.DataFrame, pd.Period, pd.Period, pd.Peri
         errors="coerce",
     ).fillna(trades["deal_period"].dt.to_timestamp())
 
-    # 가격 셀(32)과 같은 HIGH repr_floor 최고층 proxy의 삼등분 규칙을 쓴다.
-    # profile이 없거나 거래 층이 결측이면 UNKNOWN으로 남긴다.
-    high_floor_proxy = profile.loc[profile["floor_band"].eq("HIGH"), ["apt_seq", "repr_floor"]].copy()
-    high_floor_proxy["repr_floor"] = pd.to_numeric(high_floor_proxy["repr_floor"], errors="coerce")
-    if high_floor_proxy["apt_seq"].duplicated().any():
-        raise ValueError("horizon_profile의 HIGH repr_floor가 apt_seq별로 유일하지 않습니다.")
-    high_floor_proxy = high_floor_proxy.set_index("apt_seq")["repr_floor"]
-    floor = pd.to_numeric(trades["floor"], errors="coerce")
-    max_floor = trades["apt_seq"].map(high_floor_proxy)
-    has_proxy = max_floor.notna() & max_floor.gt(0)
-    trades["floor_band"] = np.select(
-        [has_proxy & floor.le(max_floor / 3),
-         has_proxy & floor.gt(max_floor / 3) & floor.le(max_floor * 2 / 3),
-         has_proxy & floor.gt(max_floor * 2 / 3)],
-        ["LOW", "MID", "HIGH"],
-        default="UNKNOWN",
-    )
+    # 15.1의 실제 최고층으로 삼등분한다. 23.3 HIGH repr_floor는 5/6 대표
+    # 관측층이므로 최고층 proxy로 사용하지 않는다.
+    trades["floor_band"] = assign_floor_band(trades, load_actual_max_levels(complex_final))
 
     keep_complex = ["apt_seq", "bjd_code", "sgg_code", "built_year", "total_households", "far", "bcr", "parking_per_hh",
                     "redevelop_type", "redevelop_stage"]
@@ -425,6 +424,253 @@ def grouped_baseline_comparison(test: pd.DataFrame, detail: pd.DataFrame, b2: pd
     return pd.DataFrame(rows)
 
 
+SERVICE_ROUTES = ["CELL_LAST", "COMPLEX_MEAN", "MODEL_REQUIRED", "NO_CELL_CANDIDATE"]
+SERVICE_HOUSEHOLD_BINS = ["<=20", "21~100", "101+", "UNKNOWN"]
+SERVICE_AUDIT_COLUMNS = [
+    "evaluation_mode", "origin_ym", "target_deal_ym", "target_deal_date", "source_order",
+    "apt_seq", "area_type", "floor_band", "actual_price_per_m2", "history_start_ym",
+    "recent_start_ym", "history_max_ym", "active_24m", "candidate_area_seen_60m",
+    "service_route", "n_trades_24m", "last_deal_ym", "last_price_per_m2",
+    "mean_price_per_m2_24m", "pred_price_per_m2", "is_scored", "unscored_reason",
+    "ape_pct", "ae_manwon_per_m2", "total_households", "household_bin",
+]
+SERVICE_METRIC_COLUMNS = [
+    "evaluation_mode", "origin_ym", "route", "household_bin", "n_target_rows",
+    "n_target_complexes", "n_scored_rows", "n_scored_complexes", "route_share_pct",
+    "prediction_coverage_pct", "transaction_weighted_MAPE_pct", "complex_equal_MAPE_pct",
+    "MAE_manwon_per_m2", "complex_bootstrap_ci95_low", "complex_bootstrap_ci95_high",
+    "small_n_status",
+]
+
+
+def household_bin(values: pd.Series) -> pd.Series:
+    """결측 단지는 제외하지 않고 서비스 audit의 UNKNOWN subgroup으로 남긴다."""
+    households = pd.to_numeric(values, errors="coerce")
+    return pd.Series(
+        np.select(
+            [households.le(20), households.between(21, 100), households.gt(100)],
+            ["<=20", "21~100", "101+"],
+            default="UNKNOWN",
+        ),
+        index=values.index,
+        dtype="string",
+    )
+
+
+def service_route_context() -> tuple[pd.DataFrame, set[str], pd.Series, pd.Series]:
+    """월별 OOT가 재사용할 raw sale·known complex·층·세대수 context를 한 번 읽는다."""
+    raw_sale = pd.read_csv(TRADES_PATH, sep="\t", low_memory=False)
+    complex_df = ensure_unique(
+        pd.read_csv(COMPLEX_PATH, sep="\t", usecols=["apt_seq", "total_households"]), "apt_seq", "service complex"
+    )
+    complex_final = pd.read_csv(COMPLEX_FINAL_PATH, sep="\t", usecols=["aptSeq", "max_levels"]).rename(columns={"aptSeq": "apt_seq"})
+    max_levels = load_actual_max_levels(complex_final)
+    households = pd.Series(
+        pd.to_numeric(complex_df["total_households"], errors="coerce").to_numpy(),
+        index=complex_df["apt_seq"].astype(str),
+        name="total_households",
+    )
+    return raw_sale, set(complex_df["apt_seq"].astype(str)), max_levels, households
+
+
+def build_service_route_audit(
+    raw_sale: pd.DataFrame,
+    known_complexes: set[str],
+    max_levels: pd.Series,
+    households: pd.Series,
+    evaluation_mode: str,
+    origin: pd.Period,
+    target_start: pd.Period,
+    target_end: pd.Period,
+) -> pd.DataFrame:
+    """한 origin의 snapshot과 미래 target을 서비스 route 계약으로 감사한다."""
+    history = clean_sale_history(raw_sale, known_complexes, max_levels, origin)
+    snapshot = build_service_snapshot(history, origin)
+    targets = prepare_target_sales(raw_sale, known_complexes, max_levels, target_start, target_end)
+    if targets.attrs.get("target_price_removed_n") != 0:
+        raise AssertionError("target 가격 기반 제거가 발생했습니다.")
+    routed = route_target(targets, snapshot)
+    if len(routed) != len(targets):
+        raise AssertionError("route_target이 유효 target 거래를 누락했습니다.")
+    if snapshot.duplicated(["apt_seq", "area_type", "floor_band"]).any():
+        raise AssertionError("서비스 snapshot key 중복입니다.")
+    if not history["deal_period"].le(origin).all():
+        raise AssertionError("history에 origin 이후 거래가 포함되었습니다.")
+    if not targets["deal_period"].gt(origin).all():
+        raise AssertionError("target 거래가 origin 이후가 아닙니다.")
+
+    audit = pd.DataFrame(index=routed.index)
+    audit["evaluation_mode"] = evaluation_mode
+    audit["origin_ym"] = str(origin)
+    audit["target_deal_ym"] = routed["deal_period"].astype(str)
+    audit["target_deal_date"] = routed["deal_date"].dt.strftime("%Y-%m-%d")
+    audit["source_order"] = routed["source_order"].astype(np.int64)
+    for column in ["apt_seq", "area_type", "floor_band"]:
+        audit[column] = routed[column]
+    audit["actual_price_per_m2"] = routed["price_per_m2"]
+    audit["history_start_ym"] = str(origin - 59)
+    audit["recent_start_ym"] = str(origin - 23)
+    audit["history_max_ym"] = str(history["deal_period"].max())
+    for column in [
+        "active_24m", "candidate_area_seen_60m", "service_route", "n_trades_24m",
+        "last_deal_ym", "last_price_per_m2", "mean_price_per_m2_24m",
+    ]:
+        audit[column] = routed[column]
+    audit["pred_price_per_m2"] = routed["pred_price_per_m2"]
+    audit["is_scored"] = routed["is_scored"]
+    audit["unscored_reason"] = routed["unscored_reason"]
+    audit["ape_pct"] = np.where(
+        audit["is_scored"],
+        np.abs(audit["actual_price_per_m2"] - audit["pred_price_per_m2"]) / audit["actual_price_per_m2"] * 100,
+        np.nan,
+    )
+    audit["ae_manwon_per_m2"] = np.where(
+        audit["is_scored"], np.abs(audit["actual_price_per_m2"] - audit["pred_price_per_m2"]), np.nan
+    )
+    audit["total_households"] = audit["apt_seq"].astype(str).map(households)
+    audit["household_bin"] = household_bin(audit["total_households"])
+    return audit[SERVICE_AUDIT_COLUMNS]
+
+
+def complex_bootstrap_ci(apes: pd.Series, seed: int) -> tuple[float, float]:
+    """단지별 평균 APE를 block으로 복원추출한 95% CI를 계산한다."""
+    values = apes.to_numpy(dtype=float)
+    if not len(values):
+        return np.nan, np.nan
+    rng = np.random.default_rng(seed)
+    picked = rng.integers(0, len(values), size=(SERVICE_BOOTSTRAP_REPS, len(values)))
+    sampled = values[picked].mean(axis=1)
+    low, high = np.quantile(sampled, [0.025, 0.975])
+    return float(low), float(high)
+
+
+def service_route_metrics(audit: pd.DataFrame) -> pd.DataFrame:
+    """audit 행을 재집계해 route·세대수별 long-format service 지표를 만든다."""
+    rows: list[dict] = []
+    for mode, mode_frame in audit.groupby("evaluation_mode", sort=False):
+        origins = list(mode_frame["origin_ym"].drop_duplicates())
+        if mode == "ROLLING_1M":
+            origins.append("ALL")
+        for origin in origins:
+            origin_frame = mode_frame if origin == "ALL" else mode_frame.loc[mode_frame["origin_ym"].eq(origin)]
+            for bin_name in ["ALL", *SERVICE_HOUSEHOLD_BINS]:
+                bin_frame = origin_frame if bin_name == "ALL" else origin_frame.loc[origin_frame["household_bin"].eq(bin_name)]
+                for route in ["ALL", *SERVICE_ROUTES]:
+                    frame = bin_frame if route == "ALL" else bin_frame.loc[bin_frame["service_route"].eq(route)]
+                    scored = frame.loc[frame["is_scored"]]
+                    complex_apes = scored.groupby("apt_seq", observed=True)["ape_pct"].mean()
+                    n_complexes = int(frame["apt_seq"].nunique())
+                    status = "OK" if n_complexes >= 100 else "LOW_N" if n_complexes >= 30 else "SUPPRESSED"
+                    ci_low, ci_high = complex_bootstrap_ci(
+                        complex_apes, SERVICE_BOOTSTRAP_SEED + len(rows)
+                    ) if n_complexes >= 30 else (np.nan, np.nan)
+                    rows.append({
+                        "evaluation_mode": mode,
+                        "origin_ym": origin,
+                        "route": route,
+                        "household_bin": bin_name,
+                        "n_target_rows": len(frame),
+                        "n_target_complexes": n_complexes,
+                        "n_scored_rows": len(scored),
+                        "n_scored_complexes": int(scored["apt_seq"].nunique()),
+                        "route_share_pct": len(frame) / len(bin_frame) * 100 if len(bin_frame) else np.nan,
+                        "prediction_coverage_pct": len(scored) / len(frame) * 100 if len(frame) else np.nan,
+                        "transaction_weighted_MAPE_pct": float(scored["ape_pct"].mean()) if len(scored) else np.nan,
+                        "complex_equal_MAPE_pct": float(complex_apes.mean()) if len(complex_apes) else np.nan,
+                        "MAE_manwon_per_m2": float(scored["ae_manwon_per_m2"].mean()) if len(scored) else np.nan,
+                        "complex_bootstrap_ci95_low": ci_low,
+                        "complex_bootstrap_ci95_high": ci_high,
+                        "small_n_status": status,
+                    })
+    return pd.DataFrame(rows, columns=SERVICE_METRIC_COLUMNS)
+
+
+def assert_service_route_gates(audit: pd.DataFrame, metrics: pd.DataFrame) -> None:
+    """설계 1.5의 다섯 hard gate를 audit과 summary에서 독립적으로 확인한다."""
+    allowed = set(SERVICE_ROUTES)
+    if audit["service_route"].isna().any() or not set(audit["service_route"]).issubset(allowed):
+        raise AssertionError("gate 3: route 결측 또는 정의되지 않은 route가 있습니다.")
+    if not (pd.PeriodIndex(audit["history_max_ym"], freq="M") <= pd.PeriodIndex(audit["origin_ym"], freq="M")).all():
+        raise AssertionError("gate 2: history_max_ym이 origin 이후입니다.")
+    if not (pd.PeriodIndex(audit["target_deal_ym"], freq="M") > pd.PeriodIndex(audit["origin_ym"], freq="M")).all():
+        raise AssertionError("gate 2: target_deal_ym이 origin 이후가 아닙니다.")
+    route_counts = audit.groupby(["evaluation_mode", "origin_ym"], observed=True)["service_route"].size().sum()
+    if route_counts != len(audit):
+        raise AssertionError("gate 3: route 합계가 전체 target 행과 다릅니다.")
+    scored = audit["is_scored"]
+    if audit.loc[scored, "pred_price_per_m2"].isna().any() or audit.loc[~scored, "pred_price_per_m2"].notna().any():
+        raise AssertionError("gate 3: 암묵적 global fallback 또는 score 상태 불일치가 있습니다.")
+    cell = audit["service_route"].eq("CELL_LAST")
+    mean = audit["service_route"].eq("COMPLEX_MEAN")
+    if not np.array_equal(audit.loc[cell, "pred_price_per_m2"].to_numpy(), audit.loc[cell, "last_price_per_m2"].to_numpy()):
+        raise AssertionError("gate 4: CELL_LAST 예측값이 snapshot last_price와 다릅니다.")
+    if not np.array_equal(audit.loc[mean, "pred_price_per_m2"].to_numpy(), audit.loc[mean, "mean_price_per_m2_24m"].to_numpy()):
+        raise AssertionError("gate 4: COMPLEX_MEAN 예측값이 snapshot mean_price와 다릅니다.")
+    rolling = audit.loc[audit["evaluation_mode"].eq("ROLLING_1M")]
+    if rolling.duplicated(["source_order"]).any():
+        raise AssertionError("gate 5: ROLLING_1M target 거래가 두 번 이상 평가되었습니다.")
+    for row in metrics.itertuples(index=False):
+        frame = audit.loc[audit["evaluation_mode"].eq(row.evaluation_mode)]
+        if row.origin_ym != "ALL":
+            frame = frame.loc[frame["origin_ym"].eq(row.origin_ym)]
+        if row.household_bin != "ALL":
+            frame = frame.loc[frame["household_bin"].eq(row.household_bin)]
+        if row.route != "ALL":
+            frame = frame.loc[frame["service_route"].eq(row.route)]
+        if len(frame) != row.n_target_rows or int(frame["is_scored"].sum()) != row.n_scored_rows:
+            raise AssertionError("gate 5: 30.5 denominator가 30.4 재집계와 다릅니다.")
+
+
+def run_service_route_oot() -> tuple[pd.DataFrame, pd.DataFrame]:
+    """2026-02~07 rolling 및 2026-02 frozen 6개월 OOT를 끝까지 실행한다."""
+    raw_sale, known_complexes, max_levels, households = service_route_context()
+    audits = []
+    for origin in pd.period_range("2026-02", "2026-07", freq="M"):
+        audits.append(build_service_route_audit(
+            raw_sale, known_complexes, max_levels, households, "ROLLING_1M", origin, origin + 1, origin + 1
+        ))
+    frozen_origin = pd.Period("2026-02", freq="M")
+    audits.append(build_service_route_audit(
+        raw_sale, known_complexes, max_levels, households, "FROZEN_6M", frozen_origin,
+        frozen_origin + 1, frozen_origin + 6,
+    ))
+    audit = pd.concat(audits, ignore_index=True)
+    metrics = service_route_metrics(audit)
+    assert_service_route_gates(audit, metrics)
+    return audit, metrics
+
+
+def write_service_route_outputs(service_audit: pd.DataFrame, service_metrics: pd.DataFrame) -> pd.DataFrame:
+    """검증을 통과한 audit/summary를 설계 1 schema와 header 주석으로 저장한다."""
+    assert_service_route_gates(service_audit, service_metrics)
+    prediction_header = [
+        "# 서비스 가격 셀 route OOT audit",
+        "# target은 유효·미취소 거래를 가격 기반 제거 없이 모두 유지했습니다.",
+        "# ROLLING_1M: origin 2026-02~2026-07, 다음 달 target; FROZEN_6M: as_of=2026-02, 2026-03~08 target.",
+    ]
+    SERVICE_ROUTE_PREDICTIONS_PATH.write_text(
+        "\n".join(prediction_header) + "\n" + service_audit.to_csv(sep="\t", index=False, float_format="%.15g"),
+        encoding="utf-8",
+    )
+    metrics_header = [
+        "# 서비스 가격 셀 route OOT metrics",
+        "# 주 검증은 ROLLING_1M이며, complex_equal_MAPE_pct는 단지 내 월별 APE 평균 뒤 단지를 동일가중합니다.",
+        "# CELL_LAST/COMPLEX_MEAN만 MAPE denominator에 포함하며 MODEL_REQUIRED/NO_CELL_CANDIDATE는 route coverage에 포함합니다.",
+        f"# complex block bootstrap: {SERVICE_BOOTSTRAP_REPS}회, seed={SERVICE_BOOTSTRAP_SEED}; MAPE에는 사후 cutoff를 적용하지 않았습니다.",
+    ]
+    SERVICE_ROUTE_METRICS_PATH.write_text(
+        "\n".join(metrics_header) + "\n" + service_metrics.to_csv(sep="\t", index=False, float_format="%.15g"),
+        encoding="utf-8",
+    )
+    return service_metrics.loc[
+        service_metrics["evaluation_mode"].eq("ROLLING_1M")
+        & service_metrics["origin_ym"].eq("ALL")
+        & service_metrics["household_bin"].eq("ALL")
+        & service_metrics["route"].isin(["ALL", *SERVICE_ROUTES]),
+        ["route", "route_share_pct", "transaction_weighted_MAPE_pct", "complex_equal_MAPE_pct", "MAE_manwon_per_m2"],
+    ]
+
+
 def coefficient_table(result, model_name: str) -> pd.DataFrame:
     """log-price 계수를 가격 변화율과 cluster-robust 95% CI로 함께 변환한다."""
     rows = []
@@ -569,7 +815,7 @@ def main() -> None:
         f"- VIF에서 제외된 상수열: {diag['constant_columns_excluded_from_vif']}",
         f"- 중복으로 제거한 물리 결측지시자: {diag['dropped_duplicate_physical_indicators']}",
         f"- floor_band_UNKNOWN과 완전 공선성으로 회귀 및 joint test에서 제외한 물리 결측지시자: {diag['dropped_collinear_physical_columns']}",
-        "- B는 층대(HIGH repr_floor 최고층 proxy의 삼등분)만 통제한 A에 profile availability를 추가한 모델입니다. 따라서 B의 증분은 profile 매칭 성공이라는 선택 효과 자체를 나타냅니다.",
+        "- B는 15.1 실제 최고층의 삼등분 층대만 통제한 A에 profile availability를 추가한 모델입니다. 따라서 B의 증분은 profile 매칭 성공이라는 선택 효과 자체를 나타냅니다.",
         "", "### VIF",
         vif_table.to_csv(sep="\t", index=False, float_format="%.6f").rstrip(), "", "### Correlation matrix",
         correlation.to_csv(sep="\t", float_format="%.6f").rstrip(), "", "## 물리 계수의 실질 크기 (F 모델, train; cluster-robust 95% CI)",
@@ -586,6 +832,13 @@ def main() -> None:
         cell_n_table.to_csv(sep="\t", index=False, float_format="%.6f").rstrip(),
     ]
     BASELINE_PATH.write_text("\n".join(baseline_report) + "\n", encoding="utf-8")
+    print("서비스 가격 셀 rolling OOT 실행 중 (6개 rolling origin + frozen 6개월)...")
+    service_audit, service_metrics = run_service_route_oot()
+    primary = write_service_route_outputs(service_audit, service_metrics)
+    print("서비스 route 비중·MAPE·단지 동일가중 MAPE (ROLLING_1M 전체):")
+    print(primary.to_string(index=False, float_format=lambda value: f"{value:.6f}"))
+    print(f"작성 완료: {SERVICE_ROUTE_PREDICTIONS_PATH}")
+    print(f"작성 완료: {SERVICE_ROUTE_METRICS_PATH}")
     print(f"작성 완료: {COMPARISON_PATH}")
     print(f"작성 완료: {COEFFICIENTS_PATH}")
     print(f"작성 완료: {BASELINE_PATH}")

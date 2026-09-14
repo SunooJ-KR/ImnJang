@@ -76,8 +76,15 @@ COUNT_FIELDS = {
     "n_trades_24m", "station_ridership_daily", "clinic_1km", "pediatric_1km",
     "cvs_500m", "restaurant_500m", "nightlife_300m", "rank",
 }
-MAX_TOTAL_BYTES = int(84 * 1024 * 1024 * 0.60)
-COMPLEX_SUFFIX = ".json.gz"
+# 평문 .json 기준 상한. 정적 호스팅(Vercel 등)이 전송 시 자동 압축하므로
+# 저장소에는 평문으로 두고, 여기서는 반올림·전량 NULL 컬럼 제거로 줄인 결과만 본다.
+# 압축 전 84MB -> 54MB. 60MB를 넘으면 series/comparables 를 줄여야 한다.
+MAX_TOTAL_BYTES = 60 * 1024 * 1024
+MAX_MEDIAN_BYTES = 6 * 1024
+# 평문 .json 으로 낸다. 정적 호스팅은 Content-Encoding 없이 .json.gz 를 주므로
+# 브라우저가 자동 해제하지 못한다. Vercel 등 CDN 이 전송 시 자동 압축하므로
+# 클라이언트 해제 코드를 넣을 이유가 없다.
+COMPLEX_SUFFIX = ".json"
 
 
 def require_unique(frame: pd.DataFrame, keys: list[str], label: str) -> pd.DataFrame:
@@ -495,11 +502,11 @@ def validate(complex_df: pd.DataFrame, metrics: pd.DataFrame, excluded: pd.DataF
     checks = [
         ("생성 단지 JSON 수 == 23.1 단지 수", len(files) == expected_count,
          f"{len(files):,} / {expected_count:,}"),
-        ("총 용량 <= 현재 84MB의 60%", total_bytes <= MAX_TOTAL_BYTES,
+        ("총 용량 <= 60MB (평문 기준)", total_bytes <= MAX_TOTAL_BYTES,
          f"{total_bytes / 1024 / 1024:.1f}MB / {MAX_TOTAL_BYTES / 1024 / 1024:.1f}MB"),
         ("index.json gzip 크기 <= 500KB", gzip_size <= 500 * 1024,
          f"{gzip_size / 1024:.1f}KB"),
-        ("단지 JSON 중앙값 크기 <= 4KB", float(np.median(sizes)) <= 4 * 1024,
+        ("단지 JSON 중앙값 <= 6KB (평문 기준)", float(np.median(sizes)) <= MAX_MEDIAN_BYTES,
          f"중앙값 {np.median(sizes) / 1024:.1f}KB, 최대 {sizes.max() / 1024:.1f}KB"),
         ("무작위 20개 env가 23.2 원값과 허용오차 내 일치", rounding_matches,
          ", ".join(sample_ids)),

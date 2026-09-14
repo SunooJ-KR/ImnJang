@@ -7,8 +7,8 @@
 #              같은 단지의 최근 거래 평균으로만 보완한다. 최근 거래가 전혀 없는
 #              단지는 cold-start 모델(Task 2)의 대상이므로 이 산출물에 넣지 않는다.
 #
-#              층대는 23.3.horizon_profile의 HIGH repr_floor를 단지 최고층 proxy로
-#              사용해 최고층의 1/3 이하 LOW, 2/3 이하 MID, 초과 HIGH로 구분한다.
+#              층대는 15.1.complex_final의 실제 max_levels를 사용해 최고층의
+#              1/3 이하 LOW, 2/3 이하 MID, 초과 HIGH로 구분한다.
 # ============================================================================
 
 from __future__ import annotations
@@ -18,6 +18,14 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from _floor_band import load_actual_max_levels
+from _price_router import (
+    CELL_COLUMNS,
+    build_service_snapshot,
+    clean_sale_history,
+    latest_valid_sale_month,
+)
+
 
 work_dir = Path(__file__).resolve().parents[2]
 output_dir = work_dir / "output"
@@ -25,15 +33,11 @@ output_dir = work_dir / "output"
 TRADES_PATH = output_dir / "11.1.trades_sale.txt"
 COMPLEX_PATH = output_dir / "23.1.complex.txt"
 PROFILE_PATH = output_dir / "23.3.horizon_profile.txt"
+COMPLEX_FINAL_PATH = output_dir / "15.1.complex_final.txt"
 CELLS_PATH = output_dir / "32.1.price_cells.txt"
 SERIES_PATH = output_dir / "32.2.price_series.txt"
 
-CELL_COLUMNS = [
-    "apt_seq", "area_type", "floor_band", "n_trades_24m", "last_deal_ym",
-    "last_price_manwon", "last_price_per_m2", "mean_price_per_m2_24m", "price_source",
-]
 SERIES_COLUMNS = ["apt_seq", "area_type", "deal_ym", "n_trades", "median_price_per_m2"]
-PROFILE_BANDS = ["LOW", "MID", "HIGH"]
 
 
 def require_unique(frame: pd.DataFrame, keys: list[str], label: str) -> pd.DataFrame:
@@ -43,137 +47,25 @@ def require_unique(frame: pd.DataFrame, keys: list[str], label: str) -> pd.DataF
     return frame
 
 
-def build_floor_proxy(profile: pd.DataFrame) -> pd.Series:
-    """단지별 HIGH repr_floor를 최고층 proxy로 반환한다."""
-    high_proxy = profile.loc[profile["floor_band"].eq("HIGH"), ["apt_seq", "repr_floor"]].copy()
-    high_proxy["repr_floor"] = pd.to_numeric(high_proxy["repr_floor"], errors="coerce")
-    high_proxy = require_unique(high_proxy, ["apt_seq"], "horizon_profile HIGH")
-    return high_proxy.set_index("apt_seq")["repr_floor"]
-
-
-def assign_floor_band(trades: pd.DataFrame, high_floor_proxy: pd.Series) -> pd.Series:
-    """HIGH repr_floor proxy의 삼등분 규칙으로 거래 층을 LOW/MID/HIGH로 구분한다."""
-    floor = pd.to_numeric(trades["floor"], errors="coerce")
-    max_floor = trades["apt_seq"].map(high_floor_proxy)
-    has_proxy = max_floor.notna() & max_floor.gt(0)
-    return pd.Series(
-        np.select(
-            [has_proxy & floor.le(max_floor / 3),
-             has_proxy & floor.gt(max_floor / 3) & floor.le(max_floor * 2 / 3),
-             has_proxy & floor.gt(max_floor * 2 / 3)],
-            ["LOW", "MID", "HIGH"],
-            default="UNKNOWN",
-        ),
-        index=trades.index,
-        dtype="string",
-    )
-
-
 def load_and_clean_trades() -> tuple[pd.DataFrame, pd.Period, pd.Period]:
-    """취소·명백한 입력 오류와 단지×면적타입 가격/m² 양끝 1%를 제거한다."""
-    trades = pd.read_csv(TRADES_PATH, sep="\t", low_memory=False).rename(columns={"aptSeq": "apt_seq"})
+    """공통 router로 최신 서비스 history를 정제한다."""
+    raw_trades = pd.read_csv(TRADES_PATH, sep="\t", low_memory=False)
     complex_df = require_unique(pd.read_csv(COMPLEX_PATH, sep="\t", low_memory=False), ["apt_seq"], "complex")
     profile = pd.read_csv(PROFILE_PATH, sep="\t", low_memory=False)
     require_unique(profile, ["apt_seq", "floor_band"], "horizon_profile")
-
-    # complex는 입력 계약의 단지 universe를 명시적으로 제한하는 데만 사용한다.
+    complex_final = pd.read_csv(COMPLEX_FINAL_PATH, sep="\t", low_memory=False).rename(columns={"aptSeq": "apt_seq"})
     known_complexes = set(complex_df["apt_seq"].astype(str))
-    trades["apt_seq"] = trades["apt_seq"].astype(str)
-    trades["deal_period"] = pd.PeriodIndex(trades["deal_ym"].astype(str), freq="M")
-    trades["deal_amount_manwon"] = pd.to_numeric(trades["deal_amount_manwon"], errors="coerce")
-    trades["excluUseAr"] = pd.to_numeric(trades["excluUseAr"], errors="coerce")
-    not_cancelled = trades["is_cancelled"].astype("string").str.strip().str.lower().ne("true")
-    trades = trades.loc[
-        trades["apt_seq"].isin(known_complexes)
-        & not_cancelled
-        & trades["deal_amount_manwon"].gt(0)
-        & trades["excluUseAr"].gt(0)
-        & trades["deal_period"].notna()
-    ].copy()
-    if trades.empty:
-        raise ValueError("유효한 매매 거래가 없습니다.")
-
-    latest_month = trades["deal_period"].max()
+    latest_month = latest_valid_sale_month(raw_trades, known_complexes)
     series_start = latest_month - 59
-    trades = trades.loc[trades["deal_period"].between(series_start, latest_month)].copy()
-    trades["area_type"] = np.round(trades["excluUseAr"] / 3) * 3
-    trades["price_per_m2"] = trades["deal_amount_manwon"] / trades["excluUseAr"]
-
-    # 작은 group에 보간 분위수를 그대로 적용하면 n=2에서 양 끝 두 거래가 모두
-    # 사라진다. 각 tail의 제거 수를 floor(n×1%)로 정의해 실제 상·하위 1%만 뺀다.
-    group_keys = ["apt_seq", "area_type"]
-    group_size = trades.groupby(group_keys, observed=True)["price_per_m2"].transform("size")
-    trim_count = np.floor(group_size * 0.01).astype(int)
-    ascending_rank = trades.groupby(group_keys, observed=True)["price_per_m2"].rank(method="first")
-    descending_rank = trades.groupby(group_keys, observed=True)["price_per_m2"].rank(method="first", ascending=False)
-    before_outlier = len(trades)
-    trades = trades.loc[(ascending_rank > trim_count) & (descending_rank > trim_count)].copy()
-    if trades.empty:
-        raise ValueError("가격/m² 양끝 1% 정제 후 거래가 없습니다.")
-
-    high_floor_proxy = build_floor_proxy(profile)
-    trades["floor_band"] = assign_floor_band(trades, high_floor_proxy)
-    trades["deal_date"] = pd.to_datetime(
-        dict(
-            year=pd.to_numeric(trades["dealYear"], errors="coerce"),
-            month=pd.to_numeric(trades["dealMonth"], errors="coerce"),
-            day=pd.to_numeric(trades["dealDay"], errors="coerce"),
-        ),
-        errors="coerce",
-    ).fillna(trades["deal_period"].dt.to_timestamp())
-    trades["source_order"] = np.arange(len(trades))
-
-    print(f"  유효 거래: {before_outlier:,}건 -> 양끝 1% 정제: {len(trades):,}건 "
-          f"(제거 {before_outlier - len(trades):,}건)")
+    trades = clean_sale_history(raw_trades, known_complexes, load_actual_max_levels(complex_final), latest_month)
+    print(f"  공통 router 정제 거래: {len(trades):,}건")
     print(f"  기준월: {latest_month}, 최근 24개월 시작월: {latest_month - 23}, 최근 60개월 시작월: {series_start}")
     return trades, latest_month, series_start
 
 
 def build_price_cells(trades: pd.DataFrame, latest_month: pd.Period) -> pd.DataFrame:
-    """최근 거래 단지에 대해 실제 셀 또는 단지 평균 가격 셀을 만든다."""
-    recent_start = latest_month - 23
-    recent = trades.loc[trades["deal_period"].between(recent_start, latest_month)].copy()
-    if recent.empty:
-        raise ValueError("최근 24개월의 정제된 매매 거래가 없습니다.")
-
-    # 최근 60개월에 관측된 면적타입을 화면의 후보 면적으로 쓰며, profile이 있는
-    # 단지는 세 층대를 모두 만든다. 따라서 해당 층대 거래가 없으면 단지 평균 fallback이 된다.
-    area_candidates = trades[["apt_seq", "area_type"]].drop_duplicates()
-    profiled_apts = set(recent.loc[recent["floor_band"].ne("UNKNOWN"), "apt_seq"])
-    candidate_rows = []
-    for row in area_candidates.itertuples(index=False):
-        bands = PROFILE_BANDS if row.apt_seq in profiled_apts else ["UNKNOWN"]
-        candidate_rows.extend((row.apt_seq, row.area_type, band) for band in bands)
-    candidates = pd.DataFrame(candidate_rows, columns=["apt_seq", "area_type", "floor_band"])
-
-    # 최근 거래가 있는 단지만 남긴다. 그 외 단지는 Task 2의 MODEL 대상이다.
-    active_apts = set(recent["apt_seq"])
-    candidates = candidates.loc[candidates["apt_seq"].isin(active_apts)].copy()
-
-    cell_stats = (
-        recent.sort_values(["deal_date", "source_order"])
-        .groupby(["apt_seq", "area_type", "floor_band"], observed=True)
-        .agg(
-            n_trades_24m=("price_per_m2", "size"),
-            last_deal_ym=("deal_ym", "last"),
-            last_price_manwon=("deal_amount_manwon", "last"),
-            last_price_per_m2=("price_per_m2", "last"),
-            cell_mean_price_per_m2_24m=("price_per_m2", "mean"),
-        )
-        .reset_index()
-    )
-    complex_mean = recent.groupby("apt_seq", observed=True)["price_per_m2"].mean().rename("complex_mean_price_per_m2_24m")
-
-    cells = candidates.merge(cell_stats, on=["apt_seq", "area_type", "floor_band"], how="left", validate="one_to_one")
-    cells = cells.join(complex_mean, on="apt_seq", validate="many_to_one")
-    has_cell_trade = cells["n_trades_24m"].notna()
-    cells["n_trades_24m"] = cells["n_trades_24m"].fillna(0).astype(int)
-    cells["mean_price_per_m2_24m"] = cells["cell_mean_price_per_m2_24m"].where(
-        has_cell_trade, cells["complex_mean_price_per_m2_24m"]
-    )
-    cells["price_source"] = np.where(has_cell_trade, "CELL_LAST", "COMPLEX_MEAN")
-    cells = cells.drop(columns=["cell_mean_price_per_m2_24m", "complex_mean_price_per_m2_24m"])
-    return cells[CELL_COLUMNS].sort_values(["apt_seq", "area_type", "floor_band"], kind="stable").reset_index(drop=True)
+    """공통 router snapshot을 32.1의 기존 schema로 반환한다."""
+    return build_service_snapshot(trades, latest_month)
 
 
 def build_price_series(trades: pd.DataFrame) -> pd.DataFrame:
@@ -184,6 +76,23 @@ def build_price_series(trades: pd.DataFrame) -> pd.DataFrame:
         .reset_index()
     )
     return series[SERIES_COLUMNS].sort_values(["apt_seq", "area_type", "deal_ym"], kind="stable").reset_index(drop=True)
+
+
+def assert_frame_exact(expected: pd.DataFrame, actual: pd.DataFrame, label: str) -> None:
+    """설계 1 gate 1: schema·순서·문자열/정수·float을 엄격히 대조한다."""
+    if list(expected.columns) != list(actual.columns):
+        raise AssertionError(f"{label}: 열 schema 또는 순서가 다릅니다.")
+    if len(expected) != len(actual):
+        raise AssertionError(f"{label}: 행 수가 다릅니다 ({len(expected)} != {len(actual)}).")
+    for column in expected.columns:
+        left, right = expected[column], actual[column]
+        if pd.api.types.is_float_dtype(left) or pd.api.types.is_float_dtype(right):
+            equal = np.isclose(left.to_numpy(dtype=float), right.to_numpy(dtype=float), rtol=1e-12, atol=1e-12, equal_nan=True)
+        else:
+            equal = left.fillna("<NA>").astype(str).to_numpy() == right.fillna("<NA>").astype(str).to_numpy()
+        if not np.all(equal):
+            mismatch = int(np.flatnonzero(~equal)[0])
+            raise AssertionError(f"{label}: {column} {mismatch}번째 행이 다릅니다.")
 
 
 def print_validation(cells: pd.DataFrame, series: pd.DataFrame, trades: pd.DataFrame,
@@ -223,16 +132,22 @@ def print_validation(cells: pd.DataFrame, series: pd.DataFrame, trades: pd.DataF
 
 
 def main() -> None:
+    if not CELLS_PATH.exists() or not SERIES_PATH.exists():
+        raise FileNotFoundError("32.1/32.2 기존 산출물이 없어 설계 1 완전 일치 gate를 수행할 수 없습니다.")
+    previous_cells = pd.read_csv(CELLS_PATH, sep="\t", low_memory=False)
+    previous_series = pd.read_csv(SERIES_PATH, sep="\t", low_memory=False)
     print("===== 1. 입력 및 정제 =====")
     trades, latest_month, series_start = load_and_clean_trades()
 
     print("\n===== 2. 최근 24개월 가격 셀 =====")
     cells = build_price_cells(trades, latest_month)
-    cells.to_csv(CELLS_PATH, sep="\t", index=False)
-    print(f"  저장: {CELLS_PATH.relative_to(work_dir)} ({len(cells):,}행)")
 
     print("\n===== 3. 최근 60개월 가격 시계열 =====")
     series = build_price_series(trades)
+    assert_frame_exact(previous_cells, cells, "32.1 기존 산출물")
+    assert_frame_exact(previous_series, series, "32.2 기존 산출물")
+    cells.to_csv(CELLS_PATH, sep="\t", index=False)
+    print(f"  저장: {CELLS_PATH.relative_to(work_dir)} ({len(cells):,}행)")
     series.to_csv(SERIES_PATH, sep="\t", index=False)
     print(f"  저장: {SERIES_PATH.relative_to(work_dir)} ({len(series):,}행)")
 
