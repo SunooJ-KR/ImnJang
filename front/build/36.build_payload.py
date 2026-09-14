@@ -4,7 +4,7 @@
 # Author:      yjkim
 # Purpose:     정적 프론트엔드가 읽을 단지별 가격·환경 payload를 생성한다.
 # Description: 런타임 서버 없이 index와 단지별 JSON을 API로 사용한다. 가격 source는
-#              최근 동일 셀 실거래, 단지 평균, cold-start 모델, 임대 전용 제외를
+#              최근 동일 셀 실거래, 단지 평균, cold-start 모델, 가격 미표시 제외를
 #              서로 섞지 않고 분리한다. 일조·조망 지표는 환경 비교 전용으로만
 #              보존하며 가격을 연결하는 파생 필드는 만들지 않는다.
 # ============================================================================
@@ -269,12 +269,13 @@ def make_price_rows(cells: pd.DataFrame, estimates: pd.DataFrame,
             "est_low": payload_value("est_low", row["est_low"]),
             "est_high": payload_value("est_high", row["est_high"]),
             "est_confidence": payload_value("est_confidence", row["est_confidence"]),
+            "est_note": json_value(row["est_note"]),
         })
 
     excluded_map = excluded.set_index("apt_seq")["exclude_reason"].to_dict()
     for apt_seq, reason in excluded_map.items():
         if apt_seq in by_apt:
-            raise ValueError(f"임대 전용 단지에 가격 행이 있습니다: {apt_seq}")
+            raise ValueError(f"가격 미표시 단지에 가격 행이 있습니다: {apt_seq}")
         by_apt[apt_seq] = [{
             "area_type": None,
             "floor_band": None,
@@ -399,7 +400,7 @@ def build_payloads(complex_df: pd.DataFrame, metrics: pd.DataFrame, profile: pd.
         if redevelop_type is not None or redevelop_stage is not None:
             payload["redevelop"] = {"type": redevelop_type, "stage": redevelop_stage}
         if apt_seq in excluded_apts and [item["source"] for item in price] != ["EXCLUDED"]:
-            raise ValueError(f"임대 전용 payload의 price source가 EXCLUDED 단독이 아닙니다: {apt_seq}")
+            raise ValueError(f"가격 미표시 payload의 price source가 EXCLUDED 단독이 아닙니다: {apt_seq}")
         dump_json(complex_payload_path(apt_seq), payload)
         index_row: dict[str, Any] = {
             "id": apt_seq,
@@ -529,8 +530,8 @@ def validate(complex_df: pd.DataFrame, metrics: pd.DataFrame, excluded: pd.DataF
          f"결측 {cell_last_null_price:,}건"),
         ("AREA_LAST의 거래월·가격·근거 층대 결측 0건", area_last_missing_evidence == 0,
          f"결측 {area_last_missing_evidence:,}건"),
-        ("임대 전용 단지 109개의 price가 EXCLUDED", excluded_all_correct and len(excluded) == 109,
-         f"검사 {len(excluded):,}개"),
+        ("33.3 reason별 가격 미표시 payload가 EXCLUDED", excluded_all_correct,
+         ", ".join(f"{reason} {count:,}개" for reason, count in sorted(Counter(excluded['exclude_reason']).items()))),
     ]
     for label, passed, detail in checks:
         print(f"  [{'PASS' if passed else 'FAIL'}] {label}: {detail}")

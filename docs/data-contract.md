@@ -99,8 +99,9 @@
 | `CELL_LAST` | "2026년 7월 실거래 3.3억" | `last_deal_ym` `last_price_manwon` |
 | `AREA_LAST` | "이 층대 최근 2년 매매 거래 없음 · 같은 면적 저층 2026년 7월 실거래 …" | `last_deal_ym` `last_price_manwon` `area_last_floor_band` |
 | `COMPLEX_MEAN` | "이 면적·층대의 최근 2년 매매 거래 없음 · 단지 평균 …" | `mean_price_per_m2_24m` |
-| `MODEL` | "추정 …~… · 최근 2년 매매 거래가 없어 추정했습니다" + 원단가·신뢰도 배지 | `est_low` `est_high` `est_confidence` |
-| `EXCLUDED` | "임대 관련 명칭으로 추정 대상에서 제외했습니다" | `reason` |
+| `MODEL` | "추정 …~… · 최근 2년 매매 거래가 없어 추정했습니다" + 원단가·신뢰도 배지. `est_note=NEW_BUILD_NO_SALE`이면 "2023년 이후 준공 · 아직 매매 거래 없음"을 덧붙임 | `est_low` `est_high` `est_confidence` `est_note` |
+| `EXCLUDED` (`reason=RENTAL_ONLY`) | "임대 관련 명칭으로 추정 대상에서 제외했습니다" | `reason` |
+| `EXCLUDED` (`reason=NO_SALE_5Y`) | "최근 5년간 매매 거래가 없어 가격을 표시하지 않습니다" + "임대 단지이거나 거래가 드문 단지일 수 있습니다. 공급기관·관리사무소 정보를 확인하세요" | `reason` |
 
 표시 총액은 근거 거래의 실제 계약 총액이며, 면적타입은 3㎡ 구간이므로 근거 거래의 전용면적은 선택 면적과 최대 ±1.5㎡ 다를 수 있다.
 
